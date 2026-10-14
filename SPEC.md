@@ -11,7 +11,7 @@ Rust lib + CLI for Linux & macOS. Measures congestion signals (CPU, memory, disk
 ## §F FEDERATION
 
 dir|owns|⊥owns|tokens
-src|the tool: units, signal model, OS facade, every congestion domain, gates, waiting, slots, launch, remote, report, CLI|repo gate, dogfood wiring, release|-
+src|the tool: congestion domains, gates, waiting, launch, CLI|repo gate, dogfood wiring, release|-
 tests|integration tests driving `cgmr` binary, dogfood tests, fixtures, real-machine tests|unit tests (beside their module)|-
 docs|human reference: `CONGESTION.md`, CLI guide, LLM disclaimer, third-party notices|rules (specs = law)|-
 dev|`congestimancer-dev`, `publish = false`: README badges, notices closure, AGENTS step table & their drift checks|anything a consumer installs; gate ops (`hk.pkl`)|-

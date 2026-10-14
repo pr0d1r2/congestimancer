@@ -9,7 +9,7 @@
 rel|path|lens
 up|.|-
 self|nix|repo gate: dev shell, guardrails, hk steps, spec & token gates, CI, release, real-machine runs
-sib|src|the tool: units, signal model, OS facade, every congestion domain, gates, waiting, slots, launch, remote, report, CLI
+sib|src|the tool: congestion domains, gates, waiting, launch, CLI
 sib|tests|integration tests driving `cgmr` binary, dogfood tests, fixtures, real-machine tests
 sib|docs|human reference: `CONGESTION.md`, CLI guide, LLM disclaimer, third-party notices
 sib|dev|`congestimancer-dev`, `publish = false`: README badges, notices closure, AGENTS step table & their drift checks
