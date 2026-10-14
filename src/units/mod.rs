@@ -11,6 +11,7 @@ mod count;
 mod decimal;
 mod duration;
 mod error;
+mod name;
 mod number;
 mod percent;
 mod size;
@@ -21,6 +22,7 @@ pub use count::{Count, parse_count};
 pub use decimal::{Decimal, parse_decimal};
 pub use duration::parse_duration;
 pub use error::UnitError;
+pub use name::{Name, parse_name};
 pub use percent::{Percent, parse_percent};
 pub use size::{Bytes, Rate, parse_bytes, parse_rate};
 
