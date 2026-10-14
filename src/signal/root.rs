@@ -1,7 +1,8 @@
 //! [`Root`]: the filesystem root `/proc`, `/sys` and cgroup paths are read
 //! under (src/signal:T5, V5).
 
-use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
+use std::path::{Component, Path, PathBuf};
 
 /// The directory that stands for `/` when reading kernel files.
 ///
@@ -19,14 +20,13 @@ impl Root {
     /// The live machine's root, `/`.
     #[must_use]
     pub fn system() -> Self {
-        Self(PathBuf::new())
+        Self(PathBuf::from("/"))
     }
 
     /// A fixture tree that stands for `/`.
     #[must_use]
     pub fn new(dir: impl Into<PathBuf>) -> Self {
-        let _ = dir.into();
-        Self(PathBuf::new())
+        Self(dir.into())
     }
 
     /// The directory that stands for `/`.
@@ -44,8 +44,21 @@ impl Root {
     /// a fixture run at the real machine.
     #[must_use]
     pub fn join(&self, path: impl AsRef<Path>) -> PathBuf {
-        let _ = path.as_ref();
-        PathBuf::new()
+        let mut parts: Vec<&OsStr> = Vec::new();
+        for part in path.as_ref().components() {
+            match part {
+                Component::Normal(name) => parts.push(name),
+                Component::ParentDir => {
+                    parts.pop();
+                }
+                Component::RootDir
+                | Component::CurDir
+                | Component::Prefix(_) => {}
+            }
+        }
+        let mut joined = self.0.clone();
+        joined.extend(parts);
+        joined
     }
 }
 

@@ -42,3 +42,5 @@ is a development series, not for production.
   interval percents come from two samples of a running total; the first
   sample, and any sample after a counter goes back, reads `warming up`,
   never zero and never negative.
+- `Root`: the directory kernel files are read under, `/` on the live
+  machine or a fixture tree; `..` never climbs above it.
