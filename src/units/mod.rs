@@ -8,6 +8,7 @@
 mod celsius;
 mod clock;
 mod count;
+mod decimal;
 mod duration;
 mod error;
 mod number;
@@ -17,7 +18,11 @@ mod size;
 pub use celsius::{Celsius, parse_celsius};
 pub use clock::{ClockTime, ClockWindow, parse_clock_window};
 pub use count::{Count, parse_count};
+pub use decimal::{Decimal, parse_decimal};
 pub use duration::parse_duration;
 pub use error::UnitError;
 pub use percent::{Percent, parse_percent};
 pub use size::{Bytes, Rate, parse_bytes, parse_rate};
+
+#[cfg(test)]
+mod tests;
