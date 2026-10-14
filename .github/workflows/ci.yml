@@ -1,0 +1,35 @@
+---
+# The gate CI runs is the gate laptops run: the same dev shell, the same
+# hk.pkl (nix:V23). One runner per system CI can host; x86_64-darwin has no
+# runner and is verified by hand on an Intel Mac (nix:C).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342  # v31.11.0
+      - run: nix develop --command hk check --all --check --no-fail-fast
+      # Evaluation of every system, x86_64-darwin included, so a fourth
+      # platform that stops evaluating fails here even without a runner.
+      - run: nix flake check --all-systems

@@ -60,6 +60,8 @@ path:Cargo.lock|cargo-deny|-|-
 path:Cargo.toml|taplo, cargo-deny|-|-
 path:dev/Cargo.toml|taplo, cargo-deny|-|-
 path:deny.toml|taplo, cargo-deny|-|-
+yml|yamllint|-|-
+path:.github/workflows/*.yml|yamllint, actionlint, zizmor|-|-
 sh|shellcheck, shfmt|-|-
 path:.coverage|coverage|-|-
 path:nix/guard/tdd-order.exempt|tdd-order|-|-
