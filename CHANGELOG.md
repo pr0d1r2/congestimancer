@@ -21,3 +21,5 @@ is a development series, not for production.
 - `parse_duration`: durations like `1h30m` or `500ms`, units `d h m s ms`
   largest first; a bare number is an error.
 - `Celsius` and `parse_celsius`: temperatures like `85C` or `72.5C`.
+- `ClockWindow`, `ClockTime` and `parse_clock_window`: daily windows like
+  `22:00-06:00` in local time, wrapping midnight when start is after end.

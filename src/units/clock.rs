@@ -4,6 +4,7 @@
 use std::str::FromStr;
 
 use super::UnitError;
+use super::number::LexError;
 
 /// The form a clock window takes, named in every error (src/units:V12).
 const EXPECTED: &str = "a clock window HH:MM-HH:MM in local time, start \
@@ -19,20 +20,23 @@ pub struct ClockTime {
 impl ClockTime {
     /// The time `hour:minute`, if `hour` < 24 and `minute` < 60.
     #[must_use]
-    pub const fn new(_hour: u8, _minute: u8) -> Option<Self> {
-        None
+    pub const fn new(hour: u8, minute: u8) -> Option<Self> {
+        if hour >= 24 || minute >= 60 {
+            return None;
+        }
+        Some(Self { hour, minute })
     }
 
     /// The hour, 0 to 23.
     #[must_use]
     pub const fn hour(self) -> u8 {
-        0
+        self.hour
     }
 
     /// The minute, 0 to 59.
     #[must_use]
     pub const fn minute(self) -> u8 {
-        0
+        self.minute
     }
 }
 
@@ -50,8 +54,8 @@ pub struct ClockWindow {
 impl ClockWindow {
     /// The window from `start` to `end`, unless they are equal.
     #[must_use]
-    pub fn new(start: ClockTime, _end: ClockTime) -> Option<Self> {
-        None.map(|end| Self { start, end })
+    pub fn new(start: ClockTime, end: ClockTime) -> Option<Self> {
+        (start != end).then_some(Self { start, end })
     }
 
     /// Where the window starts, inside it.
@@ -69,13 +73,18 @@ impl ClockWindow {
     /// Whether the window wraps midnight: it starts after it ends.
     #[must_use]
     pub fn wraps(self) -> bool {
-        false
+        self.start > self.end
     }
 
     /// Whether `t` falls inside the window.
     #[must_use]
-    pub fn contains(self, _t: ClockTime) -> bool {
-        false
+    pub fn contains(self, t: ClockTime) -> bool {
+        let (after_start, before_end) = (t >= self.start, t < self.end);
+        if self.wraps() {
+            after_start || before_end
+        } else {
+            after_start && before_end
+        }
     }
 }
 
@@ -87,10 +96,34 @@ impl ClockWindow {
 /// `HH:MM-HH:MM` with two digits each, an hour past 23 or a minute past
 /// 59, or a window that starts where it ends.
 pub fn parse_clock_window(s: &str) -> Result<ClockWindow, UnitError> {
-    Err(UnitError::Malformed {
-        input: s.to_owned(),
+    let (start, end) = s
+        .split_once('-')
+        .ok_or_else(|| LexError::Malformed.error(s, EXPECTED))?;
+    let window = ClockWindow::new(time(start, s)?, time(end, s)?);
+    window.ok_or_else(|| out_of_range(s))
+}
+
+/// The time in `part` of `input`: `HH:MM`, two digits each.
+fn time(part: &str, input: &str) -> Result<ClockTime, UnitError> {
+    let (hour, minute) = part
+        .split_once(':')
+        .and_then(|(h, m)| Some((two_digits(h)?, two_digits(m)?)))
+        .ok_or_else(|| LexError::Malformed.error(input, EXPECTED))?;
+    ClockTime::new(hour, minute).ok_or_else(|| out_of_range(input))
+}
+
+/// Exactly two ASCII digits, as a number.
+fn two_digits(s: &str) -> Option<u8> {
+    let digits = s.len() == 2 && s.bytes().all(|b| b.is_ascii_digit());
+    digits.then(|| s.parse().ok()).flatten()
+}
+
+/// The error for a well-formed window that is not one.
+fn out_of_range(input: &str) -> UnitError {
+    UnitError::OutOfRange {
+        input: input.to_owned(),
         expected: EXPECTED,
-    })
+    }
 }
 
 impl FromStr for ClockWindow {
