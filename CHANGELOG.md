@@ -16,3 +16,4 @@ is a development series, not for production.
   locale, and a value past 64 bits is an error, never wrapped.
 - `Bytes` and `parse_bytes`: sizes like `10GB` or `1.5GiB`; `KB` is 1000,
   `KiB` is 1024, units are case insensitive, fractions round down.
+- `Rate` and `parse_rate`: a size per second, like `50MB/s`.

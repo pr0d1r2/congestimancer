@@ -92,7 +92,10 @@ pub struct Rate(pub u64);
 /// [`UnitError`] naming the whole input and the form expected: no `/s`,
 /// or a size that does not parse (see [`parse_bytes`]).
 pub fn parse_rate(s: &str) -> Result<Rate, UnitError> {
-    Err(LexError::Malformed.error(s, RATE_EXPECTED))
+    let per_second = s.strip_suffix("/s").or_else(|| s.strip_suffix("/S"));
+    let size_part = per_second
+        .ok_or_else(|| LexError::Malformed.error(s, RATE_EXPECTED))?;
+    size(size_part, s, RATE_EXPECTED).map(Rate)
 }
 
 impl FromStr for Rate {
