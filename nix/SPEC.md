@@ -49,6 +49,7 @@ V20: release ! real-machine run (`cargo test -- --ignored`) on ∀ test hosts; x
 V23: CI = one `ci.yml`: `nix develop --command hk check --all --check --no-fail-fast` → `nix build .#default`; actions pinned by SHA, `permissions: contents: read`, `persist-credentials: false`, zizmor & actionlint gate.
 V24: hk `all` adds fleet release-grade steps: `cargo doc` w/ `RUSTDOCFLAGS=-D warnings` · `cargo package --locked` + `must-package` · `cargo semver-checks` (from first publish) · `--no-default-features` build (`nvml` = optional default feature, `src/gpu`).
 V25: hk `all` runs cost benchmarks (`src/wait:V10`); over budget → FAIL.
+V26: flake exports ∀ 4 systems: `packages.default` (`buildRustPackage`, bin `cgmr`) · `apps.default` · `overlays.default` (adds `cgmr` to pkgs) ∴ other fleet repos use `cgmr` in their hk gates by pinning a tag.
 
 ## §T TASKS
 
@@ -68,6 +69,7 @@ T12|.|dogfood wiring: shim + `CGMR_DOGFOOD`; heavy pre-push steps under `cgmr`|`
 T13|.|real-machine test run on ∀ hosts; Intel Mac by hand|V20
 T16|.|hk `all`: rustdoc, package, semver-checks, no-default-features steps|V24
 T17|.|benchmark step in hk `all`|V25
+T18|.|flake `packages.default`, `apps.default`, `overlays.default`; `nix flake check` covers them|V26
 
 ## §B BUGS
 
