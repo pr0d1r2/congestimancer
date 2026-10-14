@@ -204,3 +204,62 @@ Ordered by usefulness for a gate:
     run through `cgmr` as soon as it can gate them.
 14. Claim the crate name on crates.io with the first real pre-release, `0.1.0-rc.1`
     (crates.io requires SemVer; `0.1.0.rc1` is not valid). Publishing needs explicit approval.
+
+# Decisions, round 2 (2026-10-14)
+
+15. CLI has verbs; `run` is the default verb:
+    - `cgmr [run] [gates] [-- command...]`: wait for gates, then exec the command.
+    - `cgmr check [gates]`: evaluate gates once; exit 0 if all pass, 1 if not; never waits.
+    - `cgmr status [--json]`: print current readings for every supported signal (for agents).
+    The command always follows `--`, so it never collides with a verb name.
+16. Without a command, `cgmr [run] [gates]` waits until gates pass and exits 0. Combined with
+    `--timeout`, it exits 124 when the timeout is reached first. Enables `cgmr --load 2 && make`.
+17. Comparisons are strict, and a gate passes only when the system is strictly better than the
+    threshold. With N = logical CPU count (decision 8):
+    - `--load X`: load / N < X; `--all-load X`: load < X.
+    - `--mem X`: available / N > X; `--all-mem X`: available > X.
+    - `--disk X`: free space on the path > X.
+    - `--io-read X`, `--io-write X`, `--io X`: measured rate < X.
+    - `--*-pressure X`: PSI `some avg10` < X (percent) on Linux; macOS maps to its native
+      signal per the platform policy (e.g. pressure level must be normal).
+18. Fairness (FIFO queue among waiters) is a non-goal for v1; possible later as FIFO slots.
+19. Every gate and control switch has an environment variable default (`CGMR_LOAD`,
+    `CGMR_MEM`, `CGMR_TIMEOUT`, ...). Precedence: CLI flag > env var > built-in default.
+20. Distribution: `cargo install congestimancer` and a nix flake package (`nix build`,
+    `nix run`). No Homebrew tap or prebuilt binaries for now.
+21. stdout belongs to the command. cgmr writes diagnostics only to stderr; the only exception is
+    `status` / `--json` output, which goes to stdout.
+22. JSON output has a `schema_version` field and stable field names; breaking changes bump it.
+23. SIGINT / SIGTERM while waiting: exit 130 / 143; the command never runs.
+24. Exit code collision: if the command itself exits 124, 64 or 69, the caller cannot tell it
+    apart from cgmr's own code (same as `timeout(1)`). Document this; `--verbose` and `--json`
+    show the source.
+25. cgmr must be cheap: 100 waiting instances must not add measurable load. Sleep between
+    polls, refresh only the metrics the requested gates need, never busy-loop.
+26. Time: monotonic clock for `--settle`, `--timeout`, `--interval` and IO rate windows.
+    Durations parsed with `humantime` (`10s`, `1h`, `1h30m`).
+27. Slot lock directory: per user, mode 0700, in `$XDG_RUNTIME_DIR` if set, otherwise
+    `$TMPDIR` (macOS) or a per-user directory under `/tmp`. Never share locks between users.
+28. Non-standard working directories:
+    - tmpfs, NFS, FUSE and other mounts without a block device: `--io-*` gates fail with the
+      "unsupported" error (exit 69) and suggest `--io-device`.
+    - macOS APFS: several volumes share one physical disk; measure IO at the physical disk.
+29. Containers are supported (cgroup v2): inside a cgroup, use the cgroup's own limits and
+    pressure files (`cpu.max`, `cpu.stat`, `cpu.pressure`, `memory.max`, `memory.current`,
+    `memory.pressure`, `io.pressure`) instead of host-wide `/proc` values. N for per-CPU gates
+    comes from `available_parallelism` (respects `cpu.max`). Host load average divided by the
+    container's CPU count is wrong, so inside a cgroup `--load` uses cgroup CPU pressure or
+    warns. cgroup v1 is a non-goal unless it turns out to be needed.
+30. Testing on real machines: besides fixture-based unit tests and CLI tests (`assert_cmd`)
+    with a hidden fixture-root env var (`CGMR_FIXTURE_ROOT`), run real-machine tests on the
+    local network hosts:
+    - `nix-builder.local` (Linux)
+    - `hallucinogen.local` (Linux)
+    - `unicomplex.local` (Linux, ThinkPad T440p, x86_64)
+    - this development machine: M4 Mac (covers `aarch64-darwin`)
+    - the Intel Mac (covers `x86_64-darwin`)
+31. CLI tooling: `clap` (derive), shell completions with `clap_complete`, man page with
+    `clap_mangen`, `--help` with examples.
+32. CI runs on 3 platforms: `x86_64-linux` (ubuntu-latest), `aarch64-linux`
+    (ubuntu-24.04-arm), `aarch64-darwin` (macos-latest). `x86_64-darwin` stays a supported
+    target, verified manually on the Intel Mac (no CI runner).
