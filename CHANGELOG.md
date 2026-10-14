@@ -30,3 +30,6 @@ is a development series, not for production.
   never a leading `-`, never `.` or `..`.
 - Every value renders back as the input that parses to it (`Display`, and
   `render_duration` for durations): `1KiB`, `12.5%`, `1h30m`, `22:00-06:00`.
+- `SignalId`: one signal per gate switch in `docs/CONGESTION.md`, named by
+  its switch (`io-busy`); `--all-load`, `--all-run-queue`, `--all-mem` and
+  `--needs-mem` read the signal of their plain switch.

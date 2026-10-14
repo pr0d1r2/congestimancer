@@ -146,8 +146,11 @@ impl SignalId {
 
     /// The switch name, without the leading `--`: `io-busy`.
     #[must_use]
-    pub const fn name(self) -> &'static str {
-        ""
+    pub fn name(self) -> &'static str {
+        NAMES
+            .iter()
+            .find(|(id, _)| *id == self)
+            .map_or("", |(_, name)| name)
     }
 
     /// The signal a gate switch reads, if it reads one.
@@ -157,8 +160,11 @@ impl SignalId {
     /// custom gates map to `None`.
     #[must_use]
     pub fn for_switch(switch: &str) -> Option<Self> {
-        let _ = switch;
-        None
+        NAMES
+            .iter()
+            .chain(&ALIASES)
+            .find(|(_, name)| *name == switch)
+            .map(|(id, _)| *id)
     }
 
     /// Whether a value needs two samples: a rate or a percent over an
@@ -166,10 +172,77 @@ impl SignalId {
     ///
     /// [`Reading::Warming`]: super::Reading::Warming
     #[must_use]
-    pub const fn is_delta(self) -> bool {
-        false
+    pub fn is_delta(self) -> bool {
+        DELTA.contains(&self)
     }
 }
+
+/// Every signal with its switch name.
+const NAMES: [(SignalId, &str); 39] = [
+    (SignalId::Load, "load"),
+    (SignalId::RunQueue, "run-queue"),
+    (SignalId::CpuIdle, "cpu-idle"),
+    (SignalId::CpuPressure, "cpu-pressure"),
+    (SignalId::Steal, "steal"),
+    (SignalId::Mem, "mem"),
+    (SignalId::MemPressure, "mem-pressure"),
+    (SignalId::MemPressureFull, "mem-pressure-full"),
+    (SignalId::MemLevel, "mem-level"),
+    (SignalId::SwapRate, "swap-rate"),
+    (SignalId::Dirty, "dirty"),
+    (SignalId::Disk, "disk"),
+    (SignalId::Inodes, "inodes"),
+    (SignalId::IoRead, "io-read"),
+    (SignalId::IoWrite, "io-write"),
+    (SignalId::Io, "io"),
+    (SignalId::IoBusy, "io-busy"),
+    (SignalId::IoLatency, "io-latency"),
+    (SignalId::IoQueue, "io-queue"),
+    (SignalId::IoPressure, "io-pressure"),
+    (SignalId::IoPressureFull, "io-pressure-full"),
+    (SignalId::NetRx, "net-rx"),
+    (SignalId::NetTx, "net-tx"),
+    (SignalId::Net, "net"),
+    (SignalId::Rtt, "rtt"),
+    (SignalId::Fds, "fds"),
+    (SignalId::Pids, "pids"),
+    (SignalId::Cool, "cool"),
+    (SignalId::Temp, "temp"),
+    (SignalId::OnAc, "on-ac"),
+    (SignalId::Battery, "battery"),
+    (SignalId::NoLowPower, "no-low-power"),
+    (SignalId::Idle, "idle"),
+    (SignalId::Between, "between"),
+    (SignalId::Gpu, "gpu"),
+    (SignalId::GpuMem, "gpu-mem"),
+    (SignalId::MaxProcs, "max-procs"),
+    (SignalId::MaxUserProcs, "max-user-procs"),
+    (SignalId::CpuThrottle, "cpu-throttle"),
+];
+
+/// Switches that read the signal of another, plainer switch.
+const ALIASES: [(SignalId, &str); 4] = [
+    (SignalId::Load, "all-load"),
+    (SignalId::RunQueue, "all-run-queue"),
+    (SignalId::Mem, "all-mem"),
+    (SignalId::Mem, "needs-mem"),
+];
+
+/// The signals measured over an interval: rates and interval percents.
+const DELTA: [SignalId; 12] = [
+    SignalId::CpuIdle,
+    SignalId::Steal,
+    SignalId::SwapRate,
+    SignalId::IoRead,
+    SignalId::IoWrite,
+    SignalId::Io,
+    SignalId::IoBusy,
+    SignalId::IoLatency,
+    SignalId::NetRx,
+    SignalId::NetTx,
+    SignalId::Net,
+    SignalId::CpuThrottle,
+];
 
 /// Renders the switch name: `io-busy`.
 impl fmt::Display for SignalId {

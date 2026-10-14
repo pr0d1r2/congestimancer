@@ -60,7 +60,7 @@ V7: trend (rising|falling|flat) derivable from last 2 values per signal.
 ## §T TASKS
 
 id|status|task|cites
-T1|.|`SignalId` enum w/ ∀ signals + names = switch names|V6
+T1|x|`SignalId` enum w/ ∀ signals + names = switch names|V6
 T2|.|`Reading` & `Unsupported` reason|V6
 T3|.|`Source` & `Clock` traits + fakes for tests|V4,V5
 T4|.|`Sampler` deltas, warming, reset handling|V1,V2
