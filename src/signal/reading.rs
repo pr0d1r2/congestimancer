@@ -35,21 +35,29 @@ impl Reading {
     /// An [`Reading::Unsupported`] reading with its reason.
     #[must_use]
     pub fn unsupported(reason: impl Into<Cow<'static, str>>) -> Self {
-        let _ = reason.into();
-        Self::Warming
+        Self::Unsupported {
+            reason: Reason(reason.into()),
+        }
     }
 
     /// The value, if the reading has one.
     #[must_use]
     pub const fn measure(&self) -> Option<&Measure> {
-        None
+        match self {
+            Self::Value(measure) => Some(measure),
+            Self::Warming | Self::Unsupported { .. } => None,
+        }
     }
 }
 
 /// Renders the value in its unit, `warming up`, or `unsupported: <reason>`.
 impl fmt::Display for Reading {
-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Value(measure) => measure.fmt(f),
+            Self::Warming => f.write_str("warming up"),
+            Self::Unsupported { reason } => write!(f, "unsupported: {reason}"),
+        }
     }
 }
 
@@ -61,7 +69,7 @@ impl Reason {
     /// The reason as text.
     #[must_use]
     pub fn as_str(&self) -> &str {
-        ""
+        &self.0
     }
 }
 
@@ -111,16 +119,39 @@ impl Measure {
     /// minutes since midnight for a time of day.
     #[must_use]
     pub fn as_f64(self) -> f64 {
-        0.0
+        match self {
+            Self::Number(n) => n.as_f64(),
+            Self::Count(Count(n))
+            | Self::Bytes(Bytes(n))
+            | Self::Rate(Rate(n)) => n as f64,
+            Self::Percent(p) => p.as_f64(),
+            Self::Duration(d) => d.as_secs_f64(),
+            Self::Celsius(c) => c.as_f64(),
+            Self::Flag(on) => f64::from(u8::from(on)),
+            Self::Level(level) => f64::from(level as u8),
+            Self::Clock(t) => {
+                f64::from(t.hour()) * 60.0 + f64::from(t.minute())
+            }
+        }
     }
 }
 
 /// Renders in the form the matching switch takes: `12.5%`, `1KiB`,
 /// `50MB/s`, `1s500ms`, `72.5C`, `yes`, `warning`, `22:00`.
 impl fmt::Display for Measure {
-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let _ = render_duration;
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Number(n) => n.fmt(f),
+            Self::Count(n) => n.fmt(f),
+            Self::Percent(p) => p.fmt(f),
+            Self::Bytes(b) => b.fmt(f),
+            Self::Rate(r) => r.fmt(f),
+            Self::Duration(d) => f.write_str(&render_duration(*d)),
+            Self::Celsius(c) => c.fmt(f),
+            Self::Flag(on) => f.write_str(if *on { "yes" } else { "no" }),
+            Self::Level(level) => level.fmt(f),
+            Self::Clock(t) => t.fmt(f),
+        }
     }
 }
 
@@ -137,8 +168,12 @@ pub enum Level {
 
 /// Renders as the `--mem-level` value: `normal`, `warning`, `critical`.
 impl fmt::Display for Level {
-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Normal => "normal",
+            Self::Warning => "warning",
+            Self::Critical => "critical",
+        })
     }
 }
 

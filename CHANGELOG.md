@@ -33,3 +33,6 @@ is a development series, not for production.
 - `SignalId`: one signal per gate switch in `docs/CONGESTION.md`, named by
   its switch (`io-busy`); `--all-load`, `--all-run-queue`, `--all-mem` and
   `--needs-mem` read the signal of their plain switch.
+- `Reading`, `Measure`, `Reason` and `Level`: a signal reads a value with
+  its unit (rendered as its switch takes it: `12.5%`, `50MB/s`, `72.5C`),
+  `warming up` before a rate has two samples, or `unsupported: <reason>`.
