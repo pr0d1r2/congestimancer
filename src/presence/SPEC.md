@@ -40,6 +40,11 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 - switches: `--idle D` · `--between HH:MM-HH:MM`.
 - sources: macOS IOKit `HIDIdleTime` · Linux logind session idle hint, X11|Wayland idle where available.
 
+## §R RESEARCH
+
+id|topic|finding|src
+R1|Linux idle source|open: logind `IdleHint`/`IdleSinceHint` via D-Bus (`zbus`) vs `/run/systemd/sessions/*` file; X11/Wayland without new deps?|-
+
 ## §V INVARIANTS
 
 V1: `--idle D` ⇔ no keyboard|mouse input for ≥ D.
@@ -54,6 +59,7 @@ T1|.|macOS idle via `HIDIdleTime`|V1
 T2|.|Linux logind idle hint|V1,V2
 T3|.|`--idle` gate|V1,V2
 T4|.|`--between` gate w/ injectable wall clock|V3,V4
+T5|.|SPIKE: settle R1 on Linux desktop & headless hosts|-
 
 ## §B BUGS
 

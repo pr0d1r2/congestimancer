@@ -41,6 +41,12 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 - switches: `--io-read X/s` · `--io-write X/s` · `--io X/s` · `--io-device D` · `--io-busy X` · `--io-latency D` · `--io-queue X` · `--io-pressure X` · `--io-pressure-full X`.
 - sources: Linux `/proc/diskstats`, `/proc/pressure/io` · macOS IOKit block storage stats.
 
+## §R RESEARCH
+
+id|topic|finding|src
+R1|macOS IO latency|open: IOKit block storage stats expose total read/write time & op counts per physical disk?|-
+R2|APFS physical disk|open: map volume → container → physical disk (IOKit parent walk \| `DADisk`)|-
+
 ## §V INVARIANTS
 
 V1: device = one holding `--disk-path` (default cwd) unless `--io-device D`.
@@ -66,6 +72,7 @@ T6|.|`--io-latency` both OS|V7
 T7|.|`--io-queue`|V8
 T8|.|`--io-pressure` & `-full`|V9
 T9|.|`--io-device` override & validation|V1,V10
+T10|.|SPIKE: settle R1–R2 on M4 & Intel Mac|-
 
 ## §B BUGS
 

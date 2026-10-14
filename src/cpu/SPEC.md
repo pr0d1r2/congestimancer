@@ -40,6 +40,11 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 - switches: `--load X` · `--all-load X` · `--load-window 1m|5m|15m` · `--run-queue X` · `--all-run-queue X` · `--cpu-idle X` · `--cpu-pressure X` · `--steal X`.
 - sources: Linux `/proc/loadavg`|sysinfo, `/proc/stat` (`procs_running`, cpu times, `steal`), `/proc/pressure/cpu` · macOS sysinfo load, `host_processor_info`.
 
+## §R RESEARCH
+
+id|topic|finding|src
+R1|macOS run queue|open: does any mach\|sysctl counter give runnable tasks? else `--run-queue` `Unsupported` on macOS|-
+
 ## §V INVARIANTS
 
 V1: `--load X` passes ⇔ load / N < X; `--all-load X` ⇔ load < X.
@@ -61,6 +66,7 @@ T5|.|macOS run queue counter|V3
 T6|.|`--cpu-idle` both OS (deltas)|V4
 T7|.|`--cpu-pressure` via shared PSI parser|V5
 T8|.|`--steal`|V6
+T9|.|SPIKE: settle R1|-
 
 ## §B BUGS
 

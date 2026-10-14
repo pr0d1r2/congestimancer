@@ -53,3 +53,4 @@ V2: node ⊥ dep sibling node except through its public surface.
 V3: lib API = `lib.rs` re-exports ONLY, ∀ node `mod` private; exported error enums & growable structs `#[non_exhaustive]`.
 V4: ∀ domain parser unit-tested w/ fixture files `tests/fixtures/<node>/`; ⊥ live machine in unit tests.
 V5: ∀ gate in a domain node: one source per platform; platform w/o source → `Reading::Unsupported` → exit 69 (`src/gate`).
+V6: ∀ node w/ open §R row: its SPIKE task runs FIRST (round 0 of build); finding & chosen source recorded in §R before any task citing that area starts; ⊥ guessing APIs.

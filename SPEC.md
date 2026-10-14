@@ -27,7 +27,7 @@ self|.|-
 
 - Rust edition 2024, stable, MSRV 1.95 = fleet pin (`nixpkgs-lock` → nixos-26.05). ⊥ rust-toolchain file. MIT.
 - workspace: crate `congestimancer` = lib + bin `cgmr` (V21); member `dev` (`publish = false`).
-- direct deps: `clap` (derive) → `src/cli` · `sysinfo`, `rustix`, `libc` → `src/sys`. ∀ other dep ! justified in `docs/THIRD-PARTY-NOTICES.md` & owned by ONE facade node.
+- direct deps: `clap` (derive) → `src/cli` · `sysinfo`, `rustix`, `libc` → `src/sys`. candidate FFI deps, each decided by a node §R spike: `mach2`, `core-foundation`, `io-kit-sys`, `objc2`, `libloading`, `zbus` → `src/sys`. ∀ other dep ! justified in `docs/THIRD-PARTY-NOTICES.md` & owned by ONE facade node.
 - ⊥ `humantime`: durations parsed by `src/units`. ⊥ signal-handler crate (V22).
 - `unsafe_code = "deny"` crate-wide; `#[allow(unsafe_code)]` ONLY ∈ `src/sys` (`nix:V11`). `forbid` ⊥ usable ∵ inner `allow` cannot lift `forbid`.
 - clippy: fleet deny list (`unwrap_used expect_used panic indexing_slicing todo unimplemented dbg_macro arithmetic_side_effects too_many_lines cognitive_complexity excessive_nesting fn_params_excessive_bools struct_excessive_bools undocumented_unsafe_blocks unreachable_pub`) + fleet `clippy.toml` thresholds; `rustfmt.toml` `max_width = 80`.

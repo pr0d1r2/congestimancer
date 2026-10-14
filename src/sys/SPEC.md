@@ -33,7 +33,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §C CONSTRAINTS
 
-- facade ∀ `sysinfo`, `rustix`, `libc`. prefer safe crate over raw FFI when it covers the call.
+- facade ∀ `sysinfo`, `rustix`, `libc` + spike-decided `mach2`, `core-foundation`, `io-kit-sys`, `objc2`, `libloading`, `zbus` (R1–R4). prefer safe crate over raw FFI when it covers the call.
 - `#[allow(unsafe_code)]` scoped to FFI submodules here; ⊥ elsewhere (`nix:V11`).
 - `cfg(target_os)` per platform; other OS → `Unsupported`.
 
@@ -45,6 +45,14 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 - macOS FFI: `sysctlbyname` (`kern.memorystatus_vm_pressure_level`, `kern.memorystatus_level`, `kern.num_files`, `kern.maxfiles`, `kern.num_tasks`, `kern.maxproc`, `vm.swapusage`), `host_processor_info`, `host_statistics64`, IOKit (block storage stats, power sources, `HIDIdleTime`, GPU `PerformanceStatistics`, thermal state), `setiopolicy_np`.
 - Linux FFI: `ioprio_set`; NVML via runtime `dlopen` (absent lib → `Unsupported`).
 - net: `getifaddrs` + `if_data` (macOS); TCP connect w/ timeout (std).
+
+## §R RESEARCH
+
+id|topic|finding|src
+R1|mach & sysctl access|open: `mach2` vs raw `libc` for `host_processor_info`, `host_statistics64`|-
+R2|IOKit & CoreFoundation|open: `io-kit-sys` + `core-foundation` vs hand-written FFI; licence & size|-
+R3|NVML loading|open: `libloading` vs `libc::dlopen`|-
+R4|Objective-C calls|open: `objc2` needed only if `src/power` R1/R2 find no C API|-
 
 ## §V INVARIANTS
 
@@ -71,6 +79,7 @@ T10|.|macOS `setiopolicy_np`; Linux `ioprio_set`|V1,V2
 T11|.|Linux NVML via `dlopen`|V1,V4
 T12|.|`getifaddrs` interface counters (macOS)|V1,V3
 T13|.|TCP connect probe w/ timeout|V2
+T14|.|SPIKE: settle R1–R4; record finding & chosen crate; update root §C deps|-
 
 ## §B BUGS
 

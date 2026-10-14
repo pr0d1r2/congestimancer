@@ -40,6 +40,13 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 - switches: `--cool` · `--temp X` · `--on-ac` · `--battery X` · `--no-low-power`.
 - sources: Linux `/sys/class/thermal`, `thermal_throttle` counters, `/sys/class/power_supply`, power-profiles-daemon state · macOS IOKit thermal state, IOKit power sources, `lowpowermode`.
 
+## §R RESEARCH
+
+id|topic|finding|src
+R1|macOS thermal state|open: C\|IOKit\|sysctl source for nominal/fair/serious/critical w/o `NSProcessInfo`; else `objc2`|-
+R2|macOS Low Power Mode|open: C\|sysctl source for `lowPowerModeEnabled`; else `objc2`|-
+R3|Linux throttle signal|open: `thermal_throttle` counters present on AMD & ARM? fallback|-
+
 ## §V INVARIANTS
 
 V1: `--cool` ⇔ no active throttling: Linux throttle counters unchanged over last interval; macOS thermal state = nominal.
@@ -58,6 +65,7 @@ T4|.|`--temp`|V2
 T5|.|power supply parser Linux + IOKit macOS|V3,V4
 T6|.|`--on-ac` `--battery`|V3,V4
 T7|.|`--no-low-power` both OS|V5
+T8|.|SPIKE: settle R1–R3 on M4, Intel Mac & Linux hosts|-
 
 ## §B BUGS
 

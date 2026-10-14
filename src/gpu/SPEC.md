@@ -40,6 +40,11 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 - switches: `--gpu X` · `--gpu-mem X` · `--gpu-device I`.
 - sources: Linux NVML (NVIDIA), sysfs `gpu_busy_percent` & `mem_info_vram_total|used` (AMD) · macOS IOKit `PerformanceStatistics`.
 
+## §R RESEARCH
+
+id|topic|finding|src
+R1|Apple Silicon GPU stats|open: `PerformanceStatistics` keys for utilisation & memory on M-series; Intel Mac dGPU|-
+
 ## §V INVARIANTS
 
 V1: `--gpu X` ⇔ utilisation % < X.
@@ -55,6 +60,7 @@ T1|.|AMD sysfs parser|V1,V2
 T2|.|NVML reads|V1,V2,V4
 T3|.|macOS IOKit GPU stats|V1,V2,V4
 T4|.|device selection & worst-wins|V3,V5
+T5|.|SPIKE: settle R1 on M4 & Intel Mac|-
 
 ## §B BUGS
 
