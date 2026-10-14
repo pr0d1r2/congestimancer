@@ -5,7 +5,7 @@
 use std::fmt;
 use std::time::Duration;
 
-use crate::units::Percent;
+use crate::units::{Percent, parse_percent};
 
 /// One pressure file: `/proc/pressure/{cpu,memory,io}` or a cgroup's
 /// `{cpu,memory,io}.pressure`.
@@ -81,8 +81,47 @@ impl std::error::Error for PsiError {}
 /// misordered field, a share past 100, a bad total), two lines of one
 /// kind, or no `some` line.
 pub fn parse_psi(text: &str) -> Result<Psi, PsiError> {
-    let _ = text;
-    Err(PsiError::MissingSome)
+    let mut some = None;
+    let mut full = None;
+    for line in text.lines().filter(|l| !l.trim().is_empty()) {
+        let (kind, parsed) = parse_line(line)?;
+        let slot = if kind == "some" { &mut some } else { &mut full };
+        if slot.replace(parsed).is_some() {
+            return Err(PsiError::Duplicate { kind });
+        }
+    }
+    let some = some.ok_or(PsiError::MissingSome)?;
+    Ok(Psi { some, full })
+}
+
+/// One `some` or `full` line, with its kind.
+fn parse_line(line: &str) -> Result<(&'static str, PsiLine), PsiError> {
+    let mut words = line.split_whitespace();
+    let kind = match words.next() {
+        Some("some") => Some("some"),
+        Some("full") => Some("full"),
+        _ => None,
+    };
+    kind.zip(fields(&mut words))
+        .filter(|_| words.next().is_none())
+        .ok_or_else(|| PsiError::Malformed {
+            line: line.to_owned(),
+        })
+}
+
+/// The four fields after the kind, in their fixed order.
+fn fields<'a>(words: &mut impl Iterator<Item = &'a str>) -> Option<PsiLine> {
+    let mut field = |key: &str| words.next()?.strip_prefix(key);
+    let avg10 = parse_percent(field("avg10=")?).ok()?;
+    let avg60 = parse_percent(field("avg60=")?).ok()?;
+    let avg300 = parse_percent(field("avg300=")?).ok()?;
+    let micros = field("total=")?.parse().ok()?;
+    Some(PsiLine {
+        avg10,
+        avg60,
+        avg300,
+        total: Duration::from_micros(micros),
+    })
 }
 
 #[cfg(test)]

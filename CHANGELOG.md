@@ -48,3 +48,6 @@ is a development series, not for production.
   refreshed; the others are never touched.
 - `Trend` and `Trends`: each signal reads `rising`, `falling` or `flat`
   from its last two values.
+- `parse_psi`, `Psi`, `PsiLine` and `PsiError`: one parser for Linux
+  pressure stall text (`/proc/pressure/*` and cgroup `*.pressure`); a bad
+  line is named in the error.

@@ -67,7 +67,7 @@ T4|x|`Sampler` deltas, warming, reset handling|V1,V2
 T5|x|`Root` path joining|V5
 T6|x|selective refresh set from requested gates|V3
 T7|x|trend from last 2 values|V7
-T8|.|PSI text parser shared by pressure gates|-
+T8|x|PSI text parser shared by pressure gates|-
 
 ## §B BUGS
 
