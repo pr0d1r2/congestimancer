@@ -24,7 +24,7 @@ impl Name {
     /// The name as text.
     #[must_use]
     pub fn as_str(&self) -> &str {
-        ""
+        &self.0
     }
 }
 
@@ -36,11 +36,30 @@ impl Name {
 /// character outside the set, a leading `-`, `.` or `..` alone, or longer
 /// than 64.
 pub fn parse_name(s: &str) -> Result<Name, UnitError> {
-    let _ = MAX_LEN;
-    Err(UnitError::Malformed {
-        input: s.to_owned(),
-        expected: EXPECTED,
-    })
+    let input = s.to_owned();
+    if !safe(s) {
+        return Err(UnitError::Malformed {
+            input,
+            expected: EXPECTED,
+        });
+    }
+    if s.len() > MAX_LEN {
+        return Err(UnitError::OutOfRange {
+            input,
+            expected: EXPECTED,
+        });
+    }
+    Ok(Name(input))
+}
+
+/// Whether `s` is shaped like a name, length aside.
+fn safe(s: &str) -> bool {
+    let allowed = |c: char| c.is_ascii_alphanumeric() || "._-".contains(c);
+    !s.is_empty()
+        && s.chars().all(allowed)
+        && !s.starts_with('-')
+        && s != "."
+        && s != ".."
 }
 
 impl FromStr for Name {

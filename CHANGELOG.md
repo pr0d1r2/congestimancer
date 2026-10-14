@@ -26,3 +26,5 @@ is a development series, not for production.
 - `Count` and `parse_count`: whole numbers of things; a decimal is an error.
 - `Decimal` and `parse_decimal`: load-like thresholds that take decimals,
   like `0.5`; no threshold of any kind is negative.
+- `Name` and `parse_name`: safe identifiers, 1 to 64 of `A-Z a-z 0-9 . _ -`,
+  never a leading `-`, never `.` or `..`.
