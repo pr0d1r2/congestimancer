@@ -25,7 +25,7 @@ V1: `CONGESTION.md` lists ∀ signal, switch, strategy w/ semantics & sources; �
 V2: `CLI.md` documents verbs, exit codes & exit-code collision.
 V3: `THIRD-PARTY-NOTICES.md` justifies ∀ direct dep; generated closure checked by `dev`.
 V4: `INTEGRATION.md`: hk|lefthook|CI|agent usage examples, incl. dogfood pattern.
-V5: `SECURITY.md`: `--when` runs shell; lock dir safety; `--host` uses ssh BatchMode, refuses `-` hosts & passes `--`; names used in paths restricted to `[A-Za-z0-9._-]`.
+V5: `SECURITY.md`: `--when` runs shell & is refused in project `.cgmr` files; lock dir safety; `--host` uses ssh BatchMode, refuses `-` hosts & passes `--`; names used in paths restricted to `[A-Za-z0-9._-]`.
 
 ## §T TASKS
 

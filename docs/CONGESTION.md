@@ -10,6 +10,7 @@ All methods listed here are in scope. None is deferred.
 
 - [Concepts](#concepts)
 - [Verbs](#verbs)
+- [Profiles](#profiles)
 - [Advice](#advice)
 - [Values and units](#values-and-units)
 - [CPU](#cpu)
@@ -47,7 +48,7 @@ All methods listed here are in scope. None is deferred.
   the gate fails with exit code 69. A gate never passes silently.
 - **Every switch has an environment variable**: `--foo-bar` reads
   `CGMR_FOO_BAR` when the flag is not given. A CLI flag beats the environment
-  variable, which beats the built-in default.
+  variable, which beats a profile, which beats the built-in default.
   - Value switches use the same text as on the command line.
   - Boolean switches accept `1`, `true`, `yes` (on) and `0`, `false`,
     `no` (off).
@@ -78,6 +79,39 @@ cgmr check --load 1 --disk 5GB     # one-shot, for scripts and agents
 cgmr status --json                 # readings for agents
 cgmr advise --jobs 8 --needs-mem 2GB --json   # how many of 8 jobs fit
 ```
+
+## Profiles
+
+A profile is a named set of switches, so a gate combination used in many
+places gets one name.
+
+```
+# .cgmr (project) or ~/.config/cgmr/profiles (user)
+[heavy]
+--load 1
+--mem 2GB
+--slots 2
+--slot-key build
+
+[quiet-hours]
+--between 22:00-06:00
+--idle 10m
+```
+
+```sh
+cgmr --profile heavy -- cargo test
+cgmr profiles                      # list names, files and switches
+```
+
+- Lookup: `--profile-file P` (or `CGMR_PROFILE_FILE`) alone if given;
+  otherwise the nearest `.cgmr` walking up from the working directory,
+  then the user file. A project profile beats a user profile of the same
+  name.
+- Precedence: CLI flag, then environment variable, then profile, then the
+  built-in default.
+- `--when` is allowed only in the user file. A cloned repository's
+  `.cgmr` must not be able to run commands.
+- Errors name the file and line.
 
 ## Advice
 

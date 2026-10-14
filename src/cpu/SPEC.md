@@ -29,6 +29,7 @@ sib|src/slot|per-user lock dir, slots, FIFO, rate, spacing, memory reservations,
 sib|src/launch|exec, no-cmd exit, govern, background priority, env cleanup
 sib|src/remote|`--host` evaluation over ssh
 sib|src/report|`status` human & JSON, verbose reasons, heartbeat text, colour
+sib|src/profile|named switch sets from project & user files, lookup & trust rule
 sib|src/advise|`advise` verb: how many jobs fit now, what limits them, what to do
 sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
