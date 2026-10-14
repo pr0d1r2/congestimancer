@@ -50,7 +50,7 @@ V23: CI = one `ci.yml`: `nix develop --command hk check --all --check --no-fail-
 V24: hk `all` adds fleet release-grade steps: `cargo doc` w/ `RUSTDOCFLAGS=-D warnings` · `cargo package --locked` + `must-package` · `cargo semver-checks` (from first publish) · `--no-default-features` build (`nvml` = optional default feature, `src/gpu`).
 V25: hk `all` runs cost benchmarks (`src/wait:V10`); over budget → FAIL.
 V26: flake exports ∀ 4 systems: `packages.default` (`buildRustPackage`, bin `cgmr`) · `apps.default` · `overlays.default` (adds `cgmr` to pkgs) ∴ other fleet repos use `cgmr` in their hk gates by pinning a tag.
-V27: overnight build harness = Claude Code workflow (sherd cannot execute waves yet: sherd T106, issue #132): rounds follow hub order (`src` §C) after spike round (`src:V6`); one git worktree per node per round; each worker does RED → GREEN → REFACTOR on its node only & runs hk `fast`; round merges in hub order after hk `all`; failed node → reverted & logged, round continues. workers start under `cgmr --profile build` (`.cgmr`) once `run` exists ∴ machine ⊥ overcommitted.
+V27: build harness = `sherd wave` for the schedule + Claude subagents to unfurl it. ∀ round: one subagent per code node, own git worktree, works ONLY its node (spec chain via `sherd lens`), TDD RED → GREEN → REFACTOR, hk `fast` per commit; round merges in wave order after hk `all`; failed node → reverted & logged, round continues. spike round (`src:V6`) runs first. worker count per round ! ⊥ congest machine: `nix/guard/workers.sh` (load & available memory) until `cgmr advise` exists, then `cgmr advise --jobs N` (`.:V1`). REJECTED: `sherd tdd` & its Ollama endpoint as code writer.
 
 ## §T TASKS
 
@@ -71,7 +71,7 @@ T13|.|real-machine test run on ∀ hosts; Intel Mac by hand|V20
 T16|x|hk `all`: rustdoc, package, semver-checks, no-default-features steps|V24
 T17|.|benchmark step in hk `all`|V25
 T18|x|flake `packages.default`, `apps.default`, `overlays.default`; `nix flake check` covers them|V26
-T19|.|build harness workflow + `.cgmr` `build` profile|V27,`.:V1`
+T19|~|harness: `nix/guard/workers.sh` worker budget, round runner instructions in AGENTS.md, `.cgmr` `build` profile once `cgmr advise` works|V27,`.:V1`
 
 ## §B BUGS
 
