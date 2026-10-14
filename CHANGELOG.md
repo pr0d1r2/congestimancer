@@ -24,3 +24,5 @@ is a development series, not for production.
 - `ClockWindow`, `ClockTime` and `parse_clock_window`: daily windows like
   `22:00-06:00` in local time, wrapping midnight when start is after end.
 - `Count` and `parse_count`: whole numbers of things; a decimal is an error.
+- `Decimal` and `parse_decimal`: load-like thresholds that take decimals,
+  like `0.5`; no threshold of any kind is negative.

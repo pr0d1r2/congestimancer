@@ -4,7 +4,7 @@
 use std::str::FromStr;
 
 use super::UnitError;
-use super::number::LexError;
+use super::number;
 
 /// The form a decimal takes, named in every error (src/units:V12).
 const EXPECTED: &str = "a non-negative number with at most 3 decimals, like \
@@ -21,20 +21,26 @@ pub struct Decimal(u64);
 impl Decimal {
     /// The decimal of `thousandths` thousandths.
     #[must_use]
-    pub const fn from_thousandths(_thousandths: u64) -> Self {
-        Self(0)
+    pub const fn from_thousandths(thousandths: u64) -> Self {
+        Self(thousandths)
     }
 
     /// The value in thousandths: `0.5` is 500.
     #[must_use]
     pub const fn thousandths(self) -> u64 {
-        0
+        self.0
     }
 
-    /// The value as a float: `0.5` is 0.5.
+    /// The value as a float: `0.5` is 0.5. Past 2^53 thousandths the
+    /// float is the nearest one.
     #[must_use]
     pub fn as_f64(self) -> f64 {
-        0.0
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "a threshold compared as a float; nearest is exact enough"
+        )]
+        let thousandths = self.0 as f64;
+        thousandths / 1000.0
     }
 }
 
@@ -45,7 +51,10 @@ impl Decimal {
 /// [`UnitError`] naming the input and the form expected: malformed, more
 /// than three decimals, negative, or past `u64` thousandths.
 pub fn parse_decimal(s: &str) -> Result<Decimal, UnitError> {
-    Err(LexError::Malformed.error(s, EXPECTED))
+    number::lex(s)
+        .and_then(|l| l.scaled(3))
+        .map(Decimal)
+        .map_err(|e| e.error(s, EXPECTED))
 }
 
 impl FromStr for Decimal {
