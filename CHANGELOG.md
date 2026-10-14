@@ -46,3 +46,5 @@ is a development series, not for production.
   machine or a fixture tree; `..` never climbs above it.
 - `SignalSet` and `refresh`: only the signals the requested gates read are
   refreshed; the others are never touched.
+- `Trend` and `Trends`: each signal reads `rising`, `falling` or `flat`
+  from its last two values.

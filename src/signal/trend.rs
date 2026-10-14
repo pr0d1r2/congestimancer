@@ -1,6 +1,7 @@
 //! [`Trend`] and [`Trends`]: which way a signal moves, from its last two
 //! values (src/signal:T7, V7).
 
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
 
@@ -22,15 +23,22 @@ impl Trend {
     /// cannot be compared.
     #[must_use]
     pub fn between(previous: f64, last: f64) -> Self {
-        let _ = (previous, last);
-        Self::Flat
+        match last.partial_cmp(&previous) {
+            Some(Ordering::Greater) => Self::Rising,
+            Some(Ordering::Less) => Self::Falling,
+            Some(Ordering::Equal) | None => Self::Flat,
+        }
     }
 }
 
 /// Renders as `--verbose` prints it: `rising`, `falling`, `flat`.
 impl fmt::Display for Trend {
-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Rising => "rising",
+            Self::Falling => "falling",
+            Self::Flat => "flat",
+        })
     }
 }
 
@@ -53,14 +61,18 @@ impl Trends {
 
     /// Records the newest reading of `id`.
     pub fn record(&mut self, id: SignalId, reading: &Reading) {
-        let _ = (&mut self.last, id, reading);
+        let Some(&value) = reading.measure() else {
+            return;
+        };
+        let before = self.last.get(&id).map(|&(_, last)| last);
+        self.last.insert(id, (before, value));
     }
 
     /// The trend of `id`, once it has two values.
     #[must_use]
     pub fn trend(&self, id: SignalId) -> Option<Trend> {
-        let _ = id;
-        None
+        let &(before, last) = self.last.get(&id)?;
+        Some(Trend::between(before?.as_f64(), last.as_f64()))
     }
 }
 
