@@ -26,3 +26,5 @@ mod slot;
 mod sys;
 mod units;
 mod wait;
+
+pub use units::UnitError;
