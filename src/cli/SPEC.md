@@ -41,7 +41,7 @@ sib|src/advise|`advise` verb: how many jobs fit now, what limits them, what to d
 - verbs: `run` (default) · `check` · `status [--json]` · `advise [--jobs J] [--json]` · `completions <shell>` · `man`.
 - `cgmr [run] [gates] [-- cmd...]`; cmd only after `--`.
 - ∀ switch ∈ `docs/CONGESTION.md` w/ env `CGMR_<SWITCH>` (upper snake), except `--when`.
-- hidden: `CGMR_FIXTURE_ROOT` (tests), `CGMR_DOGFOOD`.
+- hidden: `CGMR_FIXTURE_ROOT` (tests), `CGMR_DOGFOOD`, verb `debug capture <dir>` (fixture capture, `src/sys:V7`).
 
 ## §V INVARIANTS
 

@@ -63,6 +63,7 @@ V3: raw bytes from FFI decoded by pure fns tested w/ captured fixtures; FFI call
 V4: missing lib|sysctl|file → `Unsupported` w/ reason, ⊥ error exit.
 V5: `sysinfo` refresh only parts requested (`src/signal:V3`).
 V6: ⊥ shelling out to `sysctl`, `vm_stat`, `iostat`, `pmset` ∵ cost (`docs/CONGESTION.md` cheapness).
+V7: `capture(root, out)` copies every raw source this node reads (procfs, sysfs, cgroupfs files) & writes decoded sysctl|mach|IOKit values as text into `out/<os>-<arch>/`; read-only on host; ⊥ secrets (cmdlines, environ, usernames beyond counts).
 
 ## §T TASKS
 
@@ -81,6 +82,7 @@ T11|.|Linux NVML via `dlopen`|V1,V4
 T12|.|`getifaddrs` interface counters (macOS)|V1,V3
 T13|.|TCP connect probe w/ timeout|V2
 T14|.|SPIKE: settle R1–R4; record finding & chosen crate; update root §C deps|-
+T15|.|fixture capture of ∀ sources|V7
 
 ## §B BUGS
 

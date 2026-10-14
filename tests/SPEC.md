@@ -31,7 +31,7 @@ V6: fixtures captured from real hosts named by OS & arch in path (e.g. `cpu/linu
 ## §T TASKS
 
 id|status|task|cites
-T1|.|fixture tree & capture script (non-shell logic in Rust per xenolith)|V6
+T1|.|fixture tree filled by `cgmr debug capture` on ∀ test hosts|V6
 T2|.|`tests/cli.rs` exit codes|V1,V2
 T3|.|switch parity test from switch table|V3
 T4|.|`tests/real.rs` ignored real-machine suite|V4
