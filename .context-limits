@@ -7,13 +7,14 @@
 # <= 3500, a chain <= 5500. A node that would pass its cap splits
 # (`sherd split <dir>`), it does not raise.
 #
-# MEASURED 2026-10-14 with `sherd budget` at the commit that wrote this file.
-# File rows are derived as chain minus parent chain.
+# MEASURED 2026-10-14 with `sherd budget --format json` (own_tokens, chain_tokens)
+# after the repo gate moved from the root spec to the nix node.
 
 # Files
-SPEC.md                      2830
+SPEC.md                      1140
 dev/SPEC.md                  220
-docs/SPEC.md                 370
+docs/SPEC.md                 380
+nix/SPEC.md                  1980
 src/SPEC.md                  390
 src/cgroup/SPEC.md           540
 src/cli/SPEC.md              550
@@ -39,28 +40,29 @@ src/wait/SPEC.md             510
 tests/SPEC.md                430
 
 # Chains
-dev                          3050
-docs                         3200
-src                          3220
-src/cgroup                   3750
-src/cli                      3770
-src/cpu                      3850
-src/disk                     3490
-src/gate                     3700
-src/gpu                      3540
-src/io                       3950
-src/launch                   3720
-src/limits                   3500
-src/mem                      3940
-src/net                      3680
-src/power                    3670
-src/presence                 3540
-src/procs                    3530
-src/remote                   3520
-src/report                   3600
-src/signal                   3880
-src/slot                     3850
-src/sys                      4150
-src/units                    3910
-src/wait                     3720
-tests                        3260
+dev                          1350
+docs                         1510
+nix                          3120
+src                          1520
+src/cgroup                   2060
+src/cli                      2070
+src/cpu                      2160
+src/disk                     1790
+src/gate                     2000
+src/gpu                      1840
+src/io                       2260
+src/launch                   2030
+src/limits                   1810
+src/mem                      2240
+src/net                      1990
+src/power                    1970
+src/presence                 1850
+src/procs                    1830
+src/remote                   1820
+src/report                   1910
+src/signal                   2190
+src/slot                     2160
+src/sys                      2460
+src/units                    2210
+src/wait                     2030
+tests                        1570
