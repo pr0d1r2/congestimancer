@@ -37,3 +37,6 @@ pub use trend::{Trend, Trends};
 pub(crate) use clock::ManualClock;
 #[cfg(test)]
 pub(crate) use source::FakeSource;
+
+#[cfg(test)]
+mod tests;
