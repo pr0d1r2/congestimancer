@@ -27,27 +27,29 @@ impl SignalSet {
     pub fn from_switches<'a>(
         switches: impl IntoIterator<Item = &'a str>,
     ) -> Self {
-        let _ = switches.into_iter();
-        Self::new()
+        switches
+            .into_iter()
+            .filter_map(SignalId::for_switch)
+            .collect()
     }
 
     /// Adds `id`; `true` if it was not in the set yet.
     pub fn insert(&mut self, id: SignalId) -> bool {
-        let _ = id;
-        false
+        let new = !self.contains(id);
+        self.0 |= bit(id);
+        new
     }
 
     /// Whether `id` is in the set.
     #[must_use]
-    pub fn contains(self, id: SignalId) -> bool {
-        let _ = id;
-        false
+    pub const fn contains(self, id: SignalId) -> bool {
+        self.0 & bit(id) != 0
     }
 
     /// How many signals are in the set.
     #[must_use]
     pub const fn len(self) -> usize {
-        0
+        self.0.count_ones() as usize
     }
 
     /// Whether the set is empty.
@@ -68,7 +70,16 @@ impl SignalSet {
     /// (src/signal:V1).
     #[must_use]
     pub fn needs_two_samples(self) -> bool {
-        false
+        self.iter().any(SignalId::is_delta)
+    }
+}
+
+/// The bit that stands for `id`: its place in the declaration order,
+/// which [`SignalId::ALL`] keeps under 64.
+const fn bit(id: SignalId) -> u64 {
+    match 1_u64.checked_shl(id as u32) {
+        Some(bit) => bit,
+        None => 0,
     }
 }
 
@@ -95,8 +106,7 @@ pub fn refresh<S: Source + ?Sized>(
     wanted: SignalSet,
     now: Instant,
 ) -> Vec<(SignalId, Reading)> {
-    let _ = (source, wanted, now);
-    Vec::new()
+    wanted.iter().map(|id| (id, source.read(id, now))).collect()
 }
 
 #[cfg(test)]

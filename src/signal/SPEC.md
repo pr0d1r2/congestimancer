@@ -65,7 +65,7 @@ T2|x|`Reading` & `Unsupported` reason|V6
 T3|x|`Source` & `Clock` traits + fakes for tests|V4,V5
 T4|x|`Sampler` deltas, warming, reset handling|V1,V2
 T5|x|`Root` path joining|V5
-T6|.|selective refresh set from requested gates|V3
+T6|x|selective refresh set from requested gates|V3
 T7|.|trend from last 2 values|V7
 T8|.|PSI text parser shared by pressure gates|-
 

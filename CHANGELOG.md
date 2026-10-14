@@ -44,3 +44,5 @@ is a development series, not for production.
   never zero and never negative.
 - `Root`: the directory kernel files are read under, `/` on the live
   machine or a fixture tree; `..` never climbs above it.
+- `SignalSet` and `refresh`: only the signals the requested gates read are
+  refreshed; the others are never touched.
