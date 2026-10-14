@@ -1,6 +1,7 @@
 ---
 # The gate CI runs is the gate laptops run: the same dev shell, the same
-# hk.pkl (nix:V23). One runner per system CI can host; x86_64-darwin has no
+# hk.pkl, then the flake evaluated for every system and the package built
+# (nix:V23). One runner per system CI can host; x86_64-darwin has no
 # runner and is verified by hand on an Intel Mac (nix:C).
 name: ci
 
@@ -33,3 +34,4 @@ jobs:
       # Evaluation of every system, x86_64-darwin included, so a fourth
       # platform that stops evaluating fails here even without a runner.
       - run: nix flake check --all-systems
+      - run: nix build .#default

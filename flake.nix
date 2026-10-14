@@ -124,6 +124,40 @@
           tools.${name}.packages.${system}.default;
       present = system: builtins.filter (p: p != null) (map (toolFor system) (builtins.attrNames tools));
       missing = system: unavailable.${system} or [ ];
+      cgmrPkg =
+        pkgs:
+        pkgs.rustPlatform.buildRustPackage {
+          pname = "congestimancer";
+          # One version: read from Cargo.toml.
+          version = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).package.version;
+          src = pkgs.lib.fileset.toSource {
+            root = ./.;
+            fileset = pkgs.lib.fileset.unions [
+              ./src
+              ./Cargo.toml
+              ./Cargo.lock
+              # The workspace member, so cargo can load the workspace; it
+              # is never built (see the flags).
+              ./dev/Cargo.toml
+              ./dev/src
+            ];
+          };
+          cargoLock.lockFile = ./Cargo.lock;
+          cargoBuildFlags = [
+            "-p"
+            "congestimancer"
+          ];
+          cargoTestFlags = [
+            "-p"
+            "congestimancer"
+          ];
+          meta = {
+            description = "gate commands on machine congestion";
+            homepage = "https://github.com/pr0d1r2/congestimancer";
+            license = pkgs.lib.licenses.mit;
+            mainProgram = "cgmr";
+          };
+        };
       # Systems pklith's `lib.devShell` supports.
       pklithSystems = [
         "aarch64-darwin"
@@ -200,5 +234,22 @@
       );
 
       formatter = forAll (pkgs: pkgs.nixfmt);
+
+      # The product: `cgmr`, built reproducibly from the tracked sources only
+      # (nix:V26). Editing a SPEC.md never rebuilds it.
+      packages = forAll (pkgs: {
+        default = cgmrPkg pkgs;
+      });
+
+      apps = forAll (pkgs: {
+        default = {
+          type = "app";
+          program = "${cgmrPkg pkgs}/bin/cgmr";
+          meta.description = "gate commands on machine congestion";
+        };
+      });
+
+      # Other fleet repositories add `cgmr` to their pkgs with this overlay.
+      overlays.default = final: _prev: { cgmr = cgmrPkg final; };
     };
 }
