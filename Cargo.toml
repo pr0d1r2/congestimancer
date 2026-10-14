@@ -61,6 +61,12 @@ path = "src/main.rs"
 # (src:C): clap -> src/cli; sysinfo, rustix, libc -> src/sys.
 [dependencies]
 
+# NVIDIA GPU stats load NVML at runtime; on by default, and the build without
+# it is gated (src/gpu:C, nix:V24).
+[features]
+default = ["nvml"]
+nvml = []
+
 [lints.clippy]
 unwrap_used = "deny"
 expect_used = "deny"

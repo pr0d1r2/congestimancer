@@ -68,7 +68,7 @@ T10|x|`ci.yml` 3-runner matrix|V23
 T11|x|`release.toml` + cargo-release pre-release hook|V20
 T12|.|dogfood wiring: shim + `CGMR_DOGFOOD`; heavy pre-push steps under `cgmr`|`.:V1`
 T13|.|real-machine test run on ∀ hosts; Intel Mac by hand|V20
-T16|.|hk `all`: rustdoc, package, semver-checks, no-default-features steps|V24
+T16|x|hk `all`: rustdoc, package, semver-checks, no-default-features steps|V24
 T17|.|benchmark step in hk `all`|V25
 T18|x|flake `packages.default`, `apps.default`, `overlays.default`; `nix flake check` covers them|V26
 T19|.|build harness workflow + `.cgmr` `build` profile|V27,`.:V1`
