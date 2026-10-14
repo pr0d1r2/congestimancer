@@ -128,8 +128,30 @@ fn config() -> ProptestConfig {
     }
 }
 
+/// Text near the grammars: digits, separators, signs and unit letters, so
+/// cases reach deep into each parser rather than failing on the first
+/// character.
+const NEAR: &str = "[0-9.,:%/ +_-]{0,12}[a-zA-Z]{0,4}[0-9.:/-]{0,12}";
+
+/// Runs every parser over `s`; the property is that none panics.
+fn parse_all(s: &str) {
+    let _ = (parse_bytes(s), parse_rate(s), parse_percent(s));
+    let _ = (parse_duration(s), parse_celsius(s), parse_clock_window(s));
+    let _ = (parse_count(s), parse_decimal(s), parse_name(s));
+}
+
 proptest! {
     #![proptest_config(config())]
+
+    #[test]
+    fn no_parser_panics_on_any_text(s in any::<String>()) {
+        parse_all(&s);
+    }
+
+    #[test]
+    fn no_parser_panics_near_its_grammar(s in NEAR) {
+        parse_all(&s);
+    }
 
     #[test]
     fn sizes_and_rates_round_trip(n in any::<u64>()) {

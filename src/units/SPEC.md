@@ -71,7 +71,7 @@ T6|x|`ClockWindow` parse & contains(time), midnight wrap|V7
 T7|x|`Count` parse|V9
 T8|x|locale-independent number lexer|V8
 T9|x|render ∀ type + round-trip proptest|V11
-T10|.|no-panic proptest ∀ parser|V10
+T10|x|no-panic proptest ∀ parser|V10
 T11|x|`UnitError` w/ input & expected form|V12
 T12|x|`Name` parse & reject list|V13
 T13|x|threshold range checks|V14
