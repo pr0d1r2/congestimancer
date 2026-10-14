@@ -46,8 +46,8 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|macOS IO latency|open: IOKit block storage stats expose total read/write time & op counts per physical disk?|-
-R2|APFS physical disk|open: map volume → container → physical disk (IOKit parent walk \| `DADisk`)|-
+R1|macOS IO latency|`IOBlockStorageDriver` `Statistics` R\|W `Bytes`, `Operations`, `Total Time` ns. latency = time/ops deltas. ⊥ in-flight ∴ queue ⊥. Intel unverified|`IOBlockStorageDriver.h`
+R2|APFS physical disk|IOKit ⊥ `DADisk`: `f_mntfromname` → `IOBSDNameMatching` → parents until `IOBlockStorageDriver`|`IOBSD.h`
 
 ## §V INVARIANTS
 
@@ -56,7 +56,7 @@ V2: macOS APFS: measure physical disk under container, ⊥ volume.
 V3: mount w/o block device (tmpfs, NFS, FUSE) → `Unsupported` (69) + hint `--io-device`.
 V4: rates averaged over poll interval; first sample `Warming`.
 V5: `--io-read X` ⇔ read B/s < X; `--io-write X` ⇔ write B/s < X; `--io X` ⇔ sum < X.
-V6: `--io-busy X` ⇔ busy % < X (Linux `io_ticks`; macOS total time deltas).
+V6: `--io-busy X` ⇔ busy % < X (Linux `io_ticks`; macOS min(100, total time delta/interval), upper bound).
 V7: `--io-latency D` ⇔ avg time per completed request over interval < D; 0 requests → passes.
 V8: `--io-queue X` ⇔ in-flight < X. Linux only.
 V9: `--io-pressure X` ⇔ PSI `some avg10` < X; `-full` ⇔ `full avg10` < X. Linux only; cgroup `io.pressure` when inside cgroup.
@@ -74,7 +74,7 @@ T6|.|`--io-latency` both OS|V7
 T7|.|`--io-queue`|V8
 T8|.|`--io-pressure` & `-full`|V9
 T9|.|`--io-device` override & validation|V1,V10
-T10|.|SPIKE: settle R1–R2 on M4 & Intel Mac|-
+T10|x|SPIKE: settle R1–R2 on M4 & Intel Mac|-
 
 ## §B BUGS
 
