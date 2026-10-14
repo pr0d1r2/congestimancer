@@ -38,7 +38,7 @@ V8: commits atomic, one topic each, human readable; commit-msg lint `type(scope)
 V9: ∀ flake input pins TAG, bumped in own reviewed commit. `nixpkgs-lock` & `nix-hk` exempt.
 V10: `cargo deny check` gates: `licenses allow` per `deny.toml`, `multiple-versions = "deny"`, unknown registry|git denied, yanked denied.
 V11: `allow(unsafe_code)` ∈ `src/sys` only; ∀ unsafe block ! `// SAFETY:` comment; hk step greps tree & FAILS on any other `allow(unsafe_code)`.
-V12: `ctrm check` gates tree via `.ctrm`: `*` ascii · `*.md` ascii+spec · `README.md` `docs/**/*.md` ascii · `AGENTS.md` ascii+caveman.
+V12: `ctrm check` gates tree via `.ctrm`, last match wins: `*` ascii · `*.md` ascii+spec · `README.md` `docs/**/*.md` ascii · `AGENTS.md` ascii+caveman · `**/SPEC.md` `FORMAT.md` `FORMAT-EXTENSIONS.md` ascii+spec (LAST ∵ `docs/SPEC.md` ∈ `docs/**`) · `pkl/Config.pkl` any (vendored).
 V13: `xnl check` gates: one language per file, ⊥ embedded foreign code.
 V14: `rekall` gate: rules & skills extracted from agent memory & CLAUDE.md stay honest.
 V15: guardrails installed on dev-shell entry (pklith `lib.devShell`, tracked `.githooks/`); hook install refuses loudly when `hk` absent.
