@@ -7,7 +7,9 @@
 
 mod error;
 mod number;
+mod percent;
 mod size;
 
 pub use error::UnitError;
+pub use percent::{Percent, parse_percent};
 pub use size::{Bytes, Rate, parse_bytes, parse_rate};
