@@ -5,12 +5,14 @@
 //! public surface is re-exported here and again from the crate root
 //! (src:V3).
 
+mod celsius;
 mod duration;
 mod error;
 mod number;
 mod percent;
 mod size;
 
+pub use celsius::{Celsius, parse_celsius};
 pub use duration::parse_duration;
 pub use error::UnitError;
 pub use percent::{Percent, parse_percent};

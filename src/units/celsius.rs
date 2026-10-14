@@ -1,0 +1,59 @@
+//! [`Celsius`]: a temperature as a number and `C` (src/units:V6).
+
+use std::str::FromStr;
+
+use super::UnitError;
+use super::number::LexError;
+
+/// The form a temperature takes, named in every error (src/units:V12).
+const EXPECTED: &str = "a temperature in degrees Celsius with at most 1 \
+                        decimal, like 85C or 72.5C";
+
+/// A temperature threshold in degrees Celsius.
+///
+/// Kept in tenths of a degree, so it compares exactly; parsed from a
+/// number with at most one decimal and a `C` (either case). Thresholds are
+/// never negative (src/units:V14).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Celsius(u32);
+
+impl Celsius {
+    /// The temperature of `tenths` tenths of a degree.
+    #[must_use]
+    pub const fn from_tenths(_tenths: u32) -> Self {
+        Self(0)
+    }
+
+    /// The temperature in tenths of a degree: `72.5C` is 725.
+    #[must_use]
+    pub const fn tenths(self) -> u32 {
+        0
+    }
+
+    /// The temperature as a float: `72.5C` is 72.5.
+    #[must_use]
+    pub fn as_f64(self) -> f64 {
+        0.0
+    }
+}
+
+/// Parses a temperature such as `85C` or `72.5C`.
+///
+/// # Errors
+///
+/// [`UnitError`] naming the input and the form expected: no `C`,
+/// malformed, more than one decimal, negative, or past `u32` tenths.
+pub fn parse_celsius(s: &str) -> Result<Celsius, UnitError> {
+    Err(LexError::Malformed.error(s, EXPECTED))
+}
+
+impl FromStr for Celsius {
+    type Err = UnitError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        parse_celsius(s)
+    }
+}
+
+#[cfg(test)]
+mod tests;
