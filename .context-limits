@@ -1,0 +1,66 @@
+# Per-path token ceilings, gated by `itok check` (SPEC.md rows) and
+# `sherd budget` (directory rows = chain: root + hub + node).
+#
+# A ceiling caps ENTRY COST: what a session loads before any work begins.
+# Set ~12% over measured so ordinary edits fit; raising one is a reviewed
+# decision in its own commit, with the reason. Caps (root V3): a SPEC.md file
+# <= 3500, a chain <= 5500. A node that would pass its cap splits
+# (`sherd split <dir>`), it does not raise.
+#
+# MEASURED 2026-10-14 with `sherd budget` at the commit that wrote this file.
+# File rows are derived as chain minus parent chain.
+
+# Files
+SPEC.md                      2830
+dev/SPEC.md                  220
+docs/SPEC.md                 370
+src/SPEC.md                  390
+src/cgroup/SPEC.md           540
+src/cli/SPEC.md              550
+src/cpu/SPEC.md              640
+src/disk/SPEC.md             280
+src/gate/SPEC.md             480
+src/gpu/SPEC.md              320
+src/io/SPEC.md               740
+src/launch/SPEC.md           510
+src/limits/SPEC.md           290
+src/mem/SPEC.md              720
+src/net/SPEC.md              470
+src/power/SPEC.md            450
+src/presence/SPEC.md         330
+src/procs/SPEC.md            320
+src/remote/SPEC.md           300
+src/report/SPEC.md           390
+src/signal/SPEC.md           670
+src/slot/SPEC.md             640
+src/sys/SPEC.md              940
+src/units/SPEC.md            700
+src/wait/SPEC.md             510
+tests/SPEC.md                430
+
+# Chains
+dev                          3050
+docs                         3200
+src                          3220
+src/cgroup                   3750
+src/cli                      3770
+src/cpu                      3850
+src/disk                     3490
+src/gate                     3700
+src/gpu                      3540
+src/io                       3950
+src/launch                   3720
+src/limits                   3500
+src/mem                      3940
+src/net                      3680
+src/power                    3670
+src/presence                 3540
+src/procs                    3530
+src/remote                   3520
+src/report                   3600
+src/signal                   3880
+src/slot                     3850
+src/sys                      4150
+src/units                    3910
+src/wait                     3720
+tests                        3260
