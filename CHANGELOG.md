@@ -17,3 +17,4 @@ is a development series, not for production.
 - `Bytes` and `parse_bytes`: sizes like `10GB` or `1.5GiB`; `KB` is 1000,
   `KiB` is 1024, units are case insensitive, fractions round down.
 - `Rate` and `parse_rate`: a size per second, like `50MB/s`.
+- `Percent` and `parse_percent`: 0 to 100 with an optional `%`, like `12.5%`.

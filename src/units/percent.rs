@@ -4,6 +4,7 @@
 use std::str::FromStr;
 
 use super::UnitError;
+use super::number;
 
 /// The form a percent takes, named in every error (src/units:V12).
 const EXPECTED: &str = "a percent from 0 to 100 with at most 2 decimals, \
@@ -22,20 +23,23 @@ impl Percent {
 
     /// The percent of `hundredths` hundredths, if it is at most 100%.
     #[must_use]
-    pub const fn from_hundredths(_hundredths: u16) -> Option<Self> {
-        None
+    pub const fn from_hundredths(hundredths: u16) -> Option<Self> {
+        if hundredths > Self::FULL.0 {
+            return None;
+        }
+        Some(Self(hundredths))
     }
 
     /// The percent in hundredths: `12.5%` is 1250.
     #[must_use]
     pub const fn hundredths(self) -> u16 {
-        0
+        self.0
     }
 
     /// The percent as a float: `12.5%` is 12.5.
     #[must_use]
     pub fn as_f64(self) -> f64 {
-        0.0
+        f64::from(self.0) / 100.0
     }
 }
 
@@ -46,10 +50,17 @@ impl Percent {
 /// [`UnitError`] naming the input and the form expected: malformed, more
 /// than two decimals, negative, or past 100.
 pub fn parse_percent(s: &str) -> Result<Percent, UnitError> {
-    Err(UnitError::Malformed {
-        input: s.to_owned(),
-        expected: EXPECTED,
-    })
+    let number = s.strip_suffix('%').unwrap_or(s);
+    let hundredths = number::lex(number)
+        .and_then(|l| l.scaled(2))
+        .map_err(|e| e.error(s, EXPECTED))?;
+    u16::try_from(hundredths)
+        .ok()
+        .and_then(Percent::from_hundredths)
+        .ok_or_else(|| UnitError::OutOfRange {
+            input: s.to_owned(),
+            expected: EXPECTED,
+        })
 }
 
 impl FromStr for Percent {
