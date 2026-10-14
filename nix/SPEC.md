@@ -77,3 +77,4 @@ T19|.|build harness workflow + `.cgmr` `build` profile|V27,`.:V1`
 
 id|date|cause|fix
 B1|2026-10-14|`nix:T6` added `src/lib.rs`, `src/main.rs` & `dev/src/*.rs` w/ ⊥ `test:` commit before them ∵ scaffold had ⊥ behaviour to pin (empty `fn main`, ⊥ re-exports)|exempted in `nix/guard/tdd-order.exempt` by full id; V7 unchanged
+B2|2026-10-15|`build(src)` scaffold added 23 `src/*/mod.rs` w/ ⊥ `test:` commit before ∵ files hold only `use crate::X as _;` edges for `sherd wave`, ⊥ behaviour|exempted in `nix/guard/tdd-order.exempt` by full id; V7 unchanged
