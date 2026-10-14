@@ -160,3 +160,47 @@ Ordered by usefulness for a gate:
 - GNU `parallel` `--load`, `--memfree`; `sem` (slots).
 - `nice`, `batch` (at).
 - Differentiator: standalone gate with disk, IO and pressure checks, plus agent-friendly output.
+
+# Decisions (2026-10-14)
+
+1. Units: accept both decimal (`KB`, `MB`, `GB`, `TB` = powers of 1000) and binary (`KiB`,
+   `MiB`, `GiB`, `TiB` = powers of 1024); each means exactly what it says. Rates add `/s`.
+2. `--load` uses the 1-minute load average by default; `--load-window 1m|5m|15m` overrides.
+3. IO rates (`--io-read`, `--io-write`, `--io`) are averaged over the poll interval.
+4. cgmr `exec`s the command once gates pass (no parent process left): exit code and signals
+   pass through naturally. `--slots` locks use `flock` on an open file descriptor without
+   close-on-exec, so the lock is held by the command and released when it exits.
+5. Exit codes: the command's own code once it runs; reserved codes otherwise:
+   124 = `--timeout` reached (like `timeout(1)`), 64 = bad arguments (EX_USAGE),
+   69 = gate unsupported on this OS (EX_UNAVAILABLE).
+6. Workspace split: `congestimancer` library crate (gates, metric readers, parsing) plus the
+   `cgmr` binary as a thin CLI over it, so agents and other tools can reuse the library.
+7. Testability invariant: every metric source sits behind a trait; tests use fakes (fake
+   `/proc` / `sysctl` inputs), never the live machine. Required for 1-to-1 unit coverage.
+8. Metric sources: one trait method per signal, exactly one source per signal per platform.
+   Never mix sources within one signal. Keep `sysinfo` adapters thin; custom readers are pure
+   parsers (text in, numbers out) unit-tested 1-to-1 with fixture files.
+
+   | Signal | Source |
+   |---|---|
+   | Load average | `sysinfo` (or `libc::getloadavg`) |
+   | Logical CPU count | `std::thread::available_parallelism` (respects cgroup CPU limits and affinity) |
+   | Free / available memory | `sysinfo` |
+   | Disk free for a path | `statvfs` on the path (`rustix` or `nix`); also gives free inodes |
+   | Disk IO rates | `sysinfo` per-disk IO stats if verified on both OSes; otherwise `/proc/diskstats` (Linux) and IOKit (macOS) |
+   | PSI cpu / memory / io | custom reader for `/proc/pressure/*` (Linux) |
+   | macOS memory pressure | custom `sysctl` reader for `kern.memorystatus_*` |
+   | cgroup limits | custom reader for `/sys/fs/cgroup` (Linux) |
+
+   First task before building IO gates: spike test proving `sysinfo` disk IO stats work on
+   Linux and macOS; record the outcome in the spec.
+9. License: MIT.
+10. MSRV and toolchain: same as the other Rust projects (`rust-version = "1.95"`).
+11. Platforms: the same 4 systems as the other Rust projects' flakes: `aarch64-darwin`,
+    `x86_64-darwin`, `x86_64-linux`, `aarch64-linux`. Windows and BSD are non-goals.
+12. Agent interface for v1: `--check` and `--json` only. MCP server and daemon mode are
+    non-goals for v1.
+13. Dogfood always: the project's own guardrails and heavy hooks (tests, coverage, builds)
+    run through `cgmr` as soon as it can gate them.
+14. Claim the crate name on crates.io with the first real pre-release, `0.1.0-rc.1`
+    (crates.io requires SemVer; `0.1.0.rc1` is not valid). Publishing needs explicit approval.
