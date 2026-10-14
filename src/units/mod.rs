@@ -5,11 +5,13 @@
 //! public surface is re-exported here and again from the crate root
 //! (src:V3).
 
+mod duration;
 mod error;
 mod number;
 mod percent;
 mod size;
 
+pub use duration::parse_duration;
 pub use error::UnitError;
 pub use percent::{Percent, parse_percent};
 pub use size::{Bytes, Rate, parse_bytes, parse_rate};
