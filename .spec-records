@@ -1,0 +1,8 @@
+# Considered-and-CLOSED records that must survive later edits: an option
+# REJECTED. Read by `mth check --records .spec-records SPEC.md`.
+#
+# Format: `<id>` then whitespace then a marker substring of the record.
+# Root records only; node ids repeat across specs.
+
+V21  bin `la` (taken; clashes `alias la`)
+V21  bin `cong` (US slur)
