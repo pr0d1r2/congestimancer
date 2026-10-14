@@ -63,7 +63,7 @@ T5|x|char & language gates: `.ctrm` + `ctrm check`, `xnl check`, rekall gate|V12
 T6|x|cargo workspace: lib + bin `cgmr` + `dev` crate; lints, `clippy.toml`, `rustfmt.toml`, `deny.toml`, `exclude`, `must-package`|V10,V11,`.:V21`
 T7|x|test gates: rust-mirror, tdd-order, module-size, coverage floor & `.coverage` ceiling w/ LLVM major check|V5,V6,V7,V16
 T8|x|commit-msg lint & changelog-touched; CHANGELOG, README (badges block), LICENSE MIT, AGENTS.md|V8
-T9|.|unsafe gate: hk step FAILS on `allow(unsafe_code)` outside `src/sys`|V11
+T9|x|unsafe gate: hk step FAILS on `allow(unsafe_code)` outside `src/sys`|V11
 T10|.|`ci.yml` 3-runner matrix|V23
 T11|.|`release.toml` + cargo-release pre-release hook|V20
 T12|.|dogfood wiring: shim + `CGMR_DOGFOOD`; heavy pre-push steps under `cgmr`|`.:V1`

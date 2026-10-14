@@ -19,6 +19,7 @@ rekall|lint|-|AGENTS.md, CLAUDE.md, rekall.toml|rekall check|-|-|agent prose dri
 cargo-test|coverage|-|**/*.rs, Cargo.toml, Cargo.lock, dev/Cargo.toml|cargo test --workspace --quiet|-|-|a test fails; fix the code or, if the spec changed, backprop it first
 rust-mirror|lint|-|**/*.rs, nix/guard/rust-mirror.sh|bash nix/guard/rust-mirror.sh|-|-|a Rust file with logic has no sibling tests.rs wired by #[cfg(test)] mod tests; (nix:V6)
 module-size|lint|-|**/*.rs, nix/guard/module-size.sh|bash nix/guard/module-size.sh|-|-|a Rust module is over 500 code lines or 1000 lines; split it (nix:V16)
+unsafe-scope|lint|-|**/*.rs, nix/guard/unsafe-scope.sh|bash nix/guard/unsafe-scope.sh|-|-|allow(unsafe_code) outside src/sys; keep unsafe behind the OS facade (nix:V11)
 tdd-order|coverage|-|**/*.rs, nix/guard/tdd-order.sh, nix/guard/tdd-order.exempt|bash nix/guard/tdd-order.sh|-|-|a commit adds Rust code with no test: commit before it in the push range (nix:V7)
 coverage|coverage|-|**/*.rs, .coverage, nix/guard/coverage.sh|bash nix/guard/coverage.sh|bash nix/guard/coverage.sh --fix|-|line coverage is below the floor, or .coverage overstates or lags the measurement (nix:V5)
 cargo-deny|lint|-|Cargo.toml, Cargo.lock, deny.toml, dev/Cargo.toml|cargo deny --all-features check bans licenses sources advisories|-|-|a dependency breaks deny.toml: banned or duplicate version, licence outside the allow list, unknown source, or advisory (nix:V10)
@@ -54,7 +55,7 @@ path:rekall.toml|rekall, taplo|-|-
 path:AGENTS.md|markdownlint, rekall|-|-
 toml|taplo|-|-
 awk|gawk-lint|-|-
-rs|rustfmt, clippy, cargo-test, rust-mirror, module-size, tdd-order, coverage|-|-
+rs|rustfmt, clippy, cargo-test, rust-mirror, module-size, unsafe-scope, tdd-order, coverage|-|-
 path:Cargo.lock|cargo-deny|-|-
 path:Cargo.toml|taplo, cargo-deny|-|-
 path:dev/Cargo.toml|taplo, cargo-deny|-|-

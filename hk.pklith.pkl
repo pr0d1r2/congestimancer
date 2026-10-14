@@ -124,6 +124,10 @@ steps: Mapping<String, Config.Step> = new {
     glob = List("**/*.rs", "nix/guard/module-size.sh")
     check = "command -v bash >/dev/null 2>&1 || { echo 'module-size: bash is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; bash nix/guard/module-size.sh || { echo 'module-size: a Rust module is over 500 code lines or 1000 lines; split it (nix:V16)' >&2; exit 1; }"
   }
+  ["unsafe-scope"] {
+    glob = List("**/*.rs", "nix/guard/unsafe-scope.sh")
+    check = "command -v bash >/dev/null 2>&1 || { echo 'unsafe-scope: bash is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; bash nix/guard/unsafe-scope.sh || { echo 'unsafe-scope: allow(unsafe_code) outside src/sys; keep unsafe behind the OS facade (nix:V11)' >&2; exit 1; }"
+  }
   ["cargo-deny"] {
     glob = List("Cargo.toml", "Cargo.lock", "deny.toml", "dev/Cargo.toml")
     check = "command -v cargo >/dev/null 2>&1 || { echo 'cargo-deny: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; command -v cargo-deny >/dev/null 2>&1 || { echo 'cargo-deny: cargo-deny is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo deny --all-features check bans licenses sources advisories || { echo 'cargo-deny: a dependency breaks deny.toml: banned or duplicate version, licence outside the allow list, unknown source, or advisory (nix:V10)' >&2; exit 1; }"
