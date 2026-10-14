@@ -30,7 +30,7 @@ self|.|-
 - direct deps: `clap` (derive) → `src/cli` · `sysinfo`, `rustix`, `libc` → `src/sys`. candidate FFI deps, each decided by a node §R spike: `mach2`, `core-foundation`, `io-kit-sys`, `objc2`, `libloading`, `zbus` → `src/sys`. ∀ other dep ! justified in `docs/THIRD-PARTY-NOTICES.md` & owned by ONE facade node.
 - ⊥ `humantime`: durations parsed by `src/units`. ⊥ signal-handler crate (V22).
 - `unsafe_code = "deny"` crate-wide; `#[allow(unsafe_code)]` ONLY ∈ `src/sys` (`nix:V11`). `forbid` ⊥ usable ∵ inner `allow` cannot lift `forbid`.
-- clippy: fleet deny list (`unwrap_used expect_used panic indexing_slicing todo unimplemented dbg_macro arithmetic_side_effects too_many_lines cognitive_complexity excessive_nesting fn_params_excessive_bools struct_excessive_bools undocumented_unsafe_blocks unreachable_pub`) + fleet `clippy.toml` thresholds; `rustfmt.toml` `max_width = 80`.
+- clippy: fleet deny list (`unwrap_used expect_used panic indexing_slicing todo unimplemented dbg_macro arithmetic_side_effects too_many_lines cognitive_complexity excessive_nesting fn_params_excessive_bools struct_excessive_bools undocumented_unsafe_blocks`) + rustc `unreachable_pub` (`[lints.rust]`) + fleet `clippy.toml` thresholds; `rustfmt.toml` `max_width = 80`.
 - metric math ! checked | saturating ∵ `arithmetic_side_effects`.
 - platforms: `aarch64-darwin` `x86_64-darwin` `x86_64-linux` `aarch64-linux`. ⊥ Windows, ⊥ BSD. CI & hand-verified targets → `nix`.
 - federation = `sherd`: dir = node = Rust module (dir + `mod.rs`). repo gate, tooling, release → `nix` node.
@@ -61,3 +61,4 @@ T15|.|parity check `docs/CONGESTION.md` ↔ node specs|V18
 ## §B BUGS
 
 id|date|cause|fix
+B1|2026-10-14|§C listed `unreachable_pub` among clippy lints; it is a rustc lint, so `[lints.clippy]` rejects it as unknown (found by `nix:T6`)|§C moves it to rustc `[lints.rust]`; ⊥ new V: the compiler already rejects the wrong table
