@@ -40,12 +40,12 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §I INTERFACES
 
 - switches: `--gpu X` · `--gpu-mem X` · `--gpu-device I`.
-- sources: Linux NVML (NVIDIA), sysfs `gpu_busy_percent` & `mem_info_vram_total|used` (AMD) · macOS IOKit `PerformanceStatistics`.
+- sources: Linux NVML (NVIDIA), sysfs `gpu_busy_percent` & `mem_info_vram_total|used` (AMD) · macOS IOKit `PerformanceStatistics` (R1).
 
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|Apple Silicon GPU stats|open: `PerformanceStatistics` keys for utilisation & memory on M-series; Intel Mac dGPU|-
+R1|Apple Silicon GPU stats|settled: ∀ `IOAccelerator` svc, dict `PerformanceStatistics`, util = `Device Utilization %`; unprivileged. M4: idle ~20, Metal load 99. no memory total (unified RAM) ∴ `--gpu-mem` `Unsupported`. Intel Mac AMD: + `vramFreeBytes`, unverified|spike M4
 
 ## §V INVARIANTS
 
@@ -54,15 +54,16 @@ V2: `--gpu-mem X` ⇔ free GPU memory > X.
 V3: default = ∀ GPUs, worst wins; `--gpu-device I` selects index; unknown I → usage 64.
 V4: no GPU source → `Unsupported`.
 V5: `--gpu-device I`: I = index (`Count`) ∴ ⊥ path segment from user text.
+V6: device w/o free-memory key (Apple Silicon) → `--gpu-mem` `Unsupported`; util still read.
 
 ## §T TASKS
 
 id|status|task|cites
 T1|.|AMD sysfs parser|V1,V2
 T2|.|NVML reads|V1,V2,V4
-T3|.|macOS IOKit GPU stats|V1,V2,V4
+T3|.|macOS IOKit GPU stats|V1,V2,V4,V6
 T4|.|device selection & worst-wins|V3,V5
-T5|.|SPIKE: settle R1 on M4 & Intel Mac|-
+T5|~|SPIKE: settle R1 on M4 & Intel Mac|-
 
 ## §B BUGS
 
