@@ -27,7 +27,9 @@ mod sys;
 mod units;
 mod wait;
 
-pub use signal::{Level, Measure, Reading, Reason, SignalId};
+pub use signal::{
+    Clock, Level, Measure, Reading, Reason, SignalId, Source, SystemClock,
+};
 
 pub use units::{
     Bytes, Celsius, ClockTime, ClockWindow, Count, Decimal, Name, Percent,
