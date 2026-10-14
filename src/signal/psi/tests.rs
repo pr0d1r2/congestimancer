@@ -99,4 +99,6 @@ fn errors_read_as_sentences() {
         PsiError::MissingSome.to_string(),
         "PSI text has no `some` line"
     );
+    let twice = PsiError::Duplicate { kind: "full" };
+    assert_eq!(twice.to_string(), "PSI text has two `full` lines");
 }

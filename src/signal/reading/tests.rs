@@ -39,9 +39,10 @@ fn a_measure_renders_with_its_unit() {
 }
 
 /// One measure of each unit and the plain number it stands for.
-fn plain() -> [(Measure, f64); 9] {
+fn plain() -> [(Measure, f64); 10] {
     [
         (Measure::Number(Decimal::from_thousandths(1500)), 1.5),
+        (Measure::Celsius(Celsius::from_tenths(725)), 72.5),
         (Measure::Count(Count(4)), 4.0),
         (Measure::Percent(percent(1250)), 12.5),
         (Measure::Bytes(Bytes(1024)), 1024.0),
@@ -65,6 +66,7 @@ fn levels_rank_from_normal_to_critical() {
     assert!(Level::Normal < Level::Warning);
     assert!(Level::Warning < Level::Critical);
     assert_eq!(Level::Critical.to_string(), "critical");
+    assert_eq!(Level::Normal.to_string(), "normal");
 }
 
 #[test]
