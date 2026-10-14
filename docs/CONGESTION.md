@@ -63,7 +63,7 @@ All methods listed here are in scope. None is deferred.
 ## Verbs
 
 | Verb | Behaviour |
-|---|---|
+| --- | --- |
 | `run` (default) | Wait for all gates, then exec the command after `--`. Without a command, exit 0 once gates pass. |
 | `check` | Evaluate all gates once. Exit 0 if all pass, 1 if not. Never loops; rate and percentage signals take one extra sample after `--interval`. |
 | `advise` | Say how many parallel jobs fit now, what limits them, and whether to run, reduce or wait. `--json` for agents. |
@@ -85,7 +85,7 @@ cgmr advise --jobs 8 --needs-mem 2GB --json   # how many of 8 jobs fit
 A profile is a named set of switches, so a gate combination used in many
 places gets one name.
 
-```
+```ini
 # .cgmr (project) or ~/.config/cgmr/profiles (user)
 [heavy]
 --load 1
@@ -151,7 +151,7 @@ minutes. On Linux it also counts tasks blocked on IO (D state). It lags: a job
 that just started shows up fully only after about a minute.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--load X` | load / N < X |
 | `--all-load X` | load < X |
 | `--load-window 1m\|5m\|15m` | selects the average (default `1m`) |
@@ -164,7 +164,7 @@ The number of tasks ready to run right now. No lag, so it reacts to jobs that
 just started. Reduces the thundering herd.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--run-queue X` | running tasks / N < X |
 | `--all-run-queue X` | running tasks < X |
 
@@ -176,7 +176,7 @@ from `host_processor_info` or the closest native counter (macOS).
 Percentage of CPU time spent idle, measured over the poll interval.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--cpu-idle X` | idle percent > X |
 
 Sources: `/proc/stat` deltas (Linux); `host_processor_info` deltas (macOS).
@@ -187,7 +187,7 @@ Needs two samples, so the first result arrives after one interval.
 Percentage of time at least one task waited for a CPU (PSI `some avg10`).
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--cpu-pressure X` | `some avg10` < X |
 
 Sources: `/proc/pressure/cpu` or the cgroup's `cpu.pressure` (Linux).
@@ -199,7 +199,7 @@ Percentage of time the hypervisor gave this VM's CPU to someone else. High
 steal means the host is congested even when local load looks low.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--steal X` | steal percent < X |
 
 Sources: `steal` column in `/proc/stat` (Linux). macOS: unsupported.
@@ -213,7 +213,7 @@ Linux fills spare RAM with page cache, and macOS compresses memory and keeps
 many inactive pages, so "free" is misleading on both.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--mem X` | available / N > X |
 | `--all-mem X` | available > X |
 
@@ -226,7 +226,7 @@ already reserved by other cgmr jobs that are still running, so several
 waiting jobs do not all count the same free memory.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--needs-mem X` | available - reserved by running cgmr jobs > X |
 
 The reservation is recorded in the per-user slot directory and released when
@@ -238,7 +238,7 @@ Percentage of time tasks stalled waiting for memory (PSI). `some` means at
 least one task stalled; `full` means all non-idle tasks stalled at once.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--mem-pressure X` | `some avg10` < X |
 | `--mem-pressure-full X` | `full avg10` < X |
 
@@ -250,7 +250,7 @@ macOS: unsupported; use `--mem-level`.
 The kernel's own judgement of memory pressure.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--mem-level normal` | level is normal |
 | `--mem-level warning` | level is normal or warning |
 
@@ -266,7 +266,7 @@ Pages moved to and from swap per second. Shows thrashing. Swap *used* says
 little, because old pages can sit in swap without harm.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--swap-rate X/s` | swap in + swap out < X |
 
 Sources: `pswpin`/`pswpout` in `/proc/vmstat` (Linux); swapins/swapouts from
@@ -278,7 +278,7 @@ Data written to the page cache but not yet written to disk. A large backlog
 means writes are about to stall.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--dirty X` | `Dirty` + `Writeback` < X |
 
 Sources: `/proc/meminfo` (Linux). macOS: unsupported.
@@ -286,7 +286,7 @@ Sources: `/proc/meminfo` (Linux). macOS: unsupported.
 ## Disk space
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--disk X` | free space on the path > X |
 | `--inodes X` | free inodes on the path > X |
 | `--disk-path P` | selects the path (default: working directory) |
@@ -304,7 +304,7 @@ a hint to use `--io-device`.
 ### Throughput
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--io-read X/s` | read rate < X |
 | `--io-write X/s` | write rate < X |
 | `--io X/s` | read + write rate < X |
@@ -319,7 +319,7 @@ stats if they work on both OSes (verified by a spike test first); otherwise
 Percentage of time the device had at least one request in flight.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--io-busy X` | busy percent < X |
 
 Sources: `io_ticks` in `/proc/diskstats` (Linux); IOKit total read/write time
@@ -331,7 +331,7 @@ Waiting time per request reflects congestion better than throughput, because
 SSD and HDD limits differ widely.
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--io-latency X` | average time per request < X (duration, e.g. `20ms`) |
 | `--io-queue X` | requests in flight < X |
 
@@ -343,7 +343,7 @@ Sources: `/proc/diskstats` (Linux); IOKit statistics (macOS, latency only;
 Percentage of time tasks stalled waiting for IO (PSI).
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--io-pressure X` | `some avg10` < X |
 | `--io-pressure-full X` | `full avg10` < X |
 
@@ -353,7 +353,7 @@ macOS: unsupported; use `--io-busy` or `--io-latency`.
 ## Network
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--net-rx X/s` | receive rate < X |
 | `--net-tx X/s` | transmit rate < X |
 | `--net X/s` | receive + transmit rate < X |
@@ -367,7 +367,7 @@ uses a TCP connect probe (no raw sockets, no root), to port 443 unless
 ## System limits
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--fds X` | open files / system maximum < X percent |
 | `--pids X` | processes / system maximum < X percent |
 
@@ -378,7 +378,7 @@ Sources: `/proc/sys/fs/file-nr` and `/proc/sys/kernel/pid_max` (Linux);
 ## Thermal and power
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--cool` | the CPU is not thermally throttled |
 | `--temp X` | hottest thermal zone < X (e.g. `80C`) |
 | `--on-ac` | running on mains power |
@@ -386,6 +386,7 @@ Sources: `/proc/sys/fs/file-nr` and `/proc/sys/kernel/pid_max` (Linux);
 | `--no-low-power` | Low Power Mode / power saver is off |
 
 Sources:
+
 - `--cool`: `thermal_throttle` counters and `/sys/class/thermal` (Linux);
   thermal state from `NSProcessInfo.thermalState` or `pmset -g therm`
   (macOS, passes when nominal).
@@ -398,7 +399,7 @@ Sources:
 ## User presence and time
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--idle D` | no keyboard or mouse input for at least D |
 | `--between HH:MM-HH:MM` | local time is in the window (may wrap midnight) |
 
@@ -409,7 +410,7 @@ unsupported on headless hosts).
 ## GPU
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--gpu X` | GPU utilisation < X percent |
 | `--gpu-mem X` | free GPU memory > X |
 | `--gpu-device I` | selects the GPU (default: all, worst wins) |
@@ -421,7 +422,7 @@ source exists.
 ## Processes
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--max-procs NAME=N` | at most N processes named NAME are running |
 | `--max-user-procs USER=N` | at most N processes are owned by USER |
 
@@ -435,7 +436,7 @@ Inside a cgroup v2, host-wide `/proc` values describe the host, not the
 container. cgmr detects its cgroup and uses the cgroup's own files:
 
 | Signal | cgroup file |
-|---|---|
+| --- | --- |
 | CPU limit (N) | `cpu.max` (via `available_parallelism`) |
 | CPU throttling | `cpu.stat` (`nr_throttled`, `throttled_usec`) |
 | CPU pressure | `cpu.pressure` |
@@ -444,7 +445,7 @@ container. cgmr detects its cgroup and uses the cgroup's own files:
 | IO pressure | `io.pressure` |
 
 | Switch | Effect |
-|---|---|
+| --- | --- |
 | `--cgroup auto` (default) | use the cgroup if one limits this process |
 | `--cgroup host` | always use host values |
 | `--cgroup PATH` | use the given cgroup |
@@ -457,7 +458,7 @@ container's CPU count is wrong. cgmr warns and suggests `--cpu-pressure`.
 ## Remote hosts
 
 | Switch | Effect |
-|---|---|
+| --- | --- |
 | `--host H` | evaluate all gates on host H instead of locally |
 
 cgmr runs `ssh H cgmr check --json <gates>` and uses the result. H must have
@@ -467,7 +468,7 @@ for gating work sent to Nix remote builders.
 ## Custom gates
 
 | Switch | Passes when |
-|---|---|
+| --- | --- |
 | `--when CMD` | `sh -c CMD` exits 0 |
 | `--when-file PATH` | PATH exists |
 
@@ -477,7 +478,7 @@ a variable in the environment must not be able to inject a command.
 ## Waiting and release strategies
 
 | Switch | Effect |
-|---|---|
+| --- | --- |
 | `--interval D` | time between gate checks (default `2s`) |
 | `--backoff D` | while gates keep failing, double the interval up to D |
 | `--timeout D` | give up after D; exit 124 without running the command |
@@ -492,6 +493,7 @@ a variable in the environment must not be able to inject a command.
 | `--verbose` | report which gate blocks, with current value, threshold and trend |
 
 Notes:
+
 - Release order: gates pass, then `--settle` holds, then the FIFO ticket,
   then a slot, then `--rate` and `--spacing`, then the memory reservation,
   then `--jitter`, then the launch. A failure at any step goes back to the
@@ -517,7 +519,7 @@ Notes:
 ## Running the command
 
 | Switch | Effect |
-|---|---|
+| --- | --- |
 | (default) | `exec` the command; exit code and signals pass through |
 | `--govern` | keep watching after the start: stop the command (SIGSTOP to its process group) when gates fail, continue it (SIGCONT) when they pass again |
 | `--background` | lower the command's CPU and IO priority: `setpriority` plus `ioprio_set` idle class (Linux); `setpriority` plus background QoS / `setiopolicy_np` (macOS) |
@@ -538,7 +540,7 @@ accident.
 `yes` = native source; `no` = gate fails with exit 69.
 
 | Gate | Linux | macOS |
-|---|---|---|
+| --- | --- | --- |
 | `--load`, `--all-load` | yes | yes |
 | `--run-queue`, `--all-run-queue` | yes | yes |
 | `--cpu-idle` | yes | yes |

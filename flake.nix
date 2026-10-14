@@ -16,36 +16,52 @@
   inputs = {
     nixpkgs-lock.url = "github:pr0d1r2/nixpkgs-lock";
     nixpkgs.follows = "nixpkgs-lock/nixpkgs";
-    nix-hk.url = "github:pr0d1r2/nix-hk";
-    nix-hk.inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+    nix-hk = {
+      url = "github:pr0d1r2/nix-hk";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+    };
 
     # Spec form and spec operations (`mth`).
-    microlith.url = "github:pr0d1r2/microlith/v0.7.4";
-    microlith.inputs.nixpkgs-lock.follows = "nixpkgs-lock";
-    microlith.inputs.nix-hk.follows = "nix-hk";
+    microlith = {
+      url = "github:pr0d1r2/microlith/v0.7.4";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+      inputs.nix-hk.follows = "nix-hk";
+    };
     # Context limits (`itok check`).
-    itok.url = "github:pr0d1r2/itok/v0.3.1";
-    itok.inputs.nixpkgs-lock.follows = "nixpkgs-lock";
-    itok.inputs.hk.follows = "nix-hk";
+    itok = {
+      url = "github:pr0d1r2/itok/v0.3.1";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+      inputs.hk.follows = "nix-hk";
+    };
     # SPEC-DAG federation, budgets, waves.
-    sherd.url = "github:pr0d1r2/sherd/v0.5.4";
-    sherd.inputs.nixpkgs-lock.follows = "nixpkgs-lock";
-    sherd.inputs.nix-hk.follows = "nix-hk";
+    sherd = {
+      url = "github:pr0d1r2/sherd/v0.5.4";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+      inputs.nix-hk.follows = "nix-hk";
+    };
     # Allowed characters per file type (`ctrm`).
-    characterminator.url = "github:pr0d1r2/characterminator/v0.1.1";
-    characterminator.inputs.nixpkgs-lock.follows = "nixpkgs-lock";
-    characterminator.inputs.nix-hk.follows = "nix-hk";
+    characterminator = {
+      url = "github:pr0d1r2/characterminator/v0.1.1";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+      inputs.nix-hk.follows = "nix-hk";
+    };
     # Hook guardrails materialised from the repository's files.
-    pklith.url = "github:pr0d1r2/pklith/v0.1.0";
-    pklith.inputs.nixpkgs-lock.follows = "nixpkgs-lock";
-    pklith.inputs.nix-hk.follows = "nix-hk";
+    pklith = {
+      url = "github:pr0d1r2/pklith/v0.1.0";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+      inputs.nix-hk.follows = "nix-hk";
+    };
     # Rules extracted from agent memory, and the honesty gate on them.
-    rekall.url = "github:pr0d1r2/rekall/v0.4.0";
-    rekall.inputs.nixpkgs-lock.follows = "nixpkgs-lock";
-    rekall.inputs.nix-hk.follows = "nix-hk";
+    rekall = {
+      url = "github:pr0d1r2/rekall/v0.4.0";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+      inputs.nix-hk.follows = "nix-hk";
+    };
     # One language per file, 1:1 test mirror, TDD order (`xnl`).
-    xenolith.url = "github:pr0d1r2/xenolith/v0.1.0";
-    xenolith.inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+    xenolith = {
+      url = "github:pr0d1r2/xenolith/v0.1.0";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+    };
   };
 
   outputs =
@@ -108,6 +124,12 @@
           tools.${name}.packages.${system}.default;
       present = system: builtins.filter (p: p != null) (map (toolFor system) (builtins.attrNames tools));
       missing = system: unavailable.${system} or [ ];
+      # Systems pklith's `lib.devShell` supports.
+      pklithSystems = [
+        "aarch64-darwin"
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
     in
     {
       devShells = forAll (
@@ -115,27 +137,50 @@
         let
           system = pkgs.stdenv.hostPlatform.system;
           absent = missing system;
+          toolchain = [
+            pkgs.rustc
+            pkgs.cargo
+            pkgs.clippy
+            pkgs.rustfmt
+            # `nixfmt --check` gates this file.
+            pkgs.nixfmt
+          ]
+          ++ present system;
+          warn = pkgs.lib.optionalString (absent != [ ]) ''
+            echo "congestimancer(shell): no ${system} build of: ${builtins.concatStringsSep ", " absent} -- gates that need them FAIL here" >&2
+          '';
         in
         {
-          default = pkgs.mkShell {
-            packages = [
-              pkgs.rustc
-              pkgs.cargo
-              pkgs.clippy
-              pkgs.rustfmt
-              pkgs.git
-              # The gate runner; its ops live in `hk.pkl`.
-              pkgs.hk
-              # `nixfmt --check` gates this file.
-              pkgs.nixfmt
-            ]
-            ++ present system;
-            # Deterministic tool output across machines.
-            LANG = "C.UTF-8";
-            shellHook = pkgs.lib.optionalString (absent != [ ]) ''
-              echo "congestimancer(shell): no ${system} build of: ${builtins.concatStringsSep ", " absent} -- gates that need them FAIL here" >&2
-            '';
-          };
+          # pklith's shell adds hk, pkl, git, pklith and every tool its
+          # generated `nix/pklith.nix` names, and points git at the tracked
+          # `.githooks/` once `hk.pkl` exists (`nix:V15`). pklith has no
+          # x86_64-darwin build, so that system gets a plain shell without
+          # the hook wiring, and the gate cannot run there (`nix:V2`).
+          default =
+            if builtins.elem system pklithSystems then
+              (pklith.lib.devShell {
+                inherit pkgs;
+                src = ./.;
+                packages = toolchain;
+              }).overrideAttrs
+                (old: {
+                  # Our pinned tools FIRST on PATH: pklith's catalog carries
+                  # its own (older) microlith, sherd and itok, and mkShell puts
+                  # `packages` after them.
+                  nativeBuildInputs = toolchain ++ old.nativeBuildInputs;
+                  # Deterministic tool output across machines.
+                  LANG = "C.UTF-8";
+                  shellHook = old.shellHook + warn;
+                })
+            else
+              pkgs.mkShell {
+                packages = toolchain ++ [
+                  pkgs.hk
+                  pkgs.git
+                ];
+                LANG = "C.UTF-8";
+                shellHook = warn;
+              };
         }
       );
 

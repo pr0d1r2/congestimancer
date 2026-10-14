@@ -1,0 +1,5 @@
+# Vendored or historical text: not ours to correct.
+# - pkl/: hk's schema, vendored by pklith.
+# - SPEC-PROMPT.md: historical input, kept unchanged.
+[files]
+extend-exclude = ["pkl/", "SPEC-PROMPT.md"]

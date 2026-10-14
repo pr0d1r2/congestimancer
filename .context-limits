@@ -7,39 +7,40 @@
 # <= 3500, a chain <= 5500. A node that would pass its cap splits
 # (`sherd split <dir>`), it does not raise.
 #
-# MEASURED 2026-10-14 with `sherd budget --format json` (own_tokens, chain_tokens)
+# MEASURED 2026-10-14: file rows with `itok check` (whole file, incl. generated
+# §N rows), chain rows with `sherd budget --format json` (chain_tokens)
 # after the gap-closing pass (advise, profile, research rows, security).
 
 # Files
-SPEC.md                      1220
-dev/SPEC.md                  220
-docs/SPEC.md                 420
+SPEC.md                      1560
+dev/SPEC.md                  390
+docs/SPEC.md                 610
 nix/SPEC.md                  2520
-src/SPEC.md                  450
-src/advise/SPEC.md           560
-src/cgroup/SPEC.md           540
-src/cli/SPEC.md              870
-src/cpu/SPEC.md              660
-src/disk/SPEC.md             280
-src/gate/SPEC.md             560
-src/gpu/SPEC.md              400
-src/io/SPEC.md               800
-src/launch/SPEC.md           580
-src/limits/SPEC.md           290
-src/mem/SPEC.md              720
-src/net/SPEC.md              510
-src/power/SPEC.md            480
-src/presence/SPEC.md         350
-src/procs/SPEC.md            320
-src/profile/SPEC.md          570
-src/remote/SPEC.md           380
-src/report/SPEC.md           430
-src/signal/SPEC.md           670
-src/slot/SPEC.md             710
-src/sys/SPEC.md              1110
-src/units/SPEC.md            840
-src/wait/SPEC.md             680
-tests/SPEC.md                430
+src/SPEC.md                  1180
+src/advise/SPEC.md           1130
+src/cgroup/SPEC.md           1110
+src/cli/SPEC.md              1440
+src/cpu/SPEC.md              1290
+src/disk/SPEC.md             850
+src/gate/SPEC.md             1130
+src/gpu/SPEC.md              1020
+src/io/SPEC.md               1460
+src/launch/SPEC.md           1150
+src/limits/SPEC.md           860
+src/mem/SPEC.md              1300
+src/net/SPEC.md              1080
+src/power/SPEC.md            1180
+src/presence/SPEC.md         1000
+src/procs/SPEC.md            890
+src/profile/SPEC.md          1140
+src/remote/SPEC.md           960
+src/report/SPEC.md           1010
+src/signal/SPEC.md           1240
+src/slot/SPEC.md             1290
+src/sys/SPEC.md              1830
+src/units/SPEC.md            1410
+src/wait/SPEC.md             1250
+tests/SPEC.md                610
 
 # Chains
 dev                          1440

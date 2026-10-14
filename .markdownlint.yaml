@@ -1,0 +1,3 @@
+---
+# SPEC.md is never hard-wrapped (mth-fmt), so line length is not a rule.
+MD013: false
