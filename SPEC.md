@@ -38,7 +38,7 @@ self|.|-
 
 ## §I INTERFACES
 
-- cmd: `cgmr [run] [gates] [-- cmd...]` · `cgmr check [gates]` · `cgmr status [--json]` · `cgmr completions <shell>` · `cgmr man`. contract → `src/cli` §I.
+- cmd: `cgmr [run] [gates] [-- cmd...]` · `cgmr check [gates]` · `cgmr status [--json]` · `cgmr advise [--jobs J] [--json]` · `cgmr completions <shell>` · `cgmr man`. contract → `src/cli` §I.
 - gates & strategies: full list, semantics, sources → `docs/CONGESTION.md` (human) & domain nodes `src/*` §V (law).
 - env: `CGMR_<SWITCH>` default ∀ switch except `--when`; precedence flag > env > builtin. `CGMR_DOGFOOD`, hidden `CGMR_FIXTURE_ROOT`.
 - exit: cmd's own code once exec'd · 0 gates passed & no cmd · 1 `check` failed · 64 usage · 69 gate unsupported on this OS · 124 `--timeout` · 130/143 SIGINT/SIGTERM while waiting (default disposition).

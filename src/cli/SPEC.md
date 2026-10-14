@@ -30,6 +30,7 @@ sib|src/slot|per-user lock dir, slots, FIFO, rate, spacing, memory reservations,
 sib|src/launch|exec, no-cmd exit, govern, background priority, env cleanup
 sib|src/remote|`--host` evaluation over ssh
 sib|src/report|`status` human & JSON, verbose reasons, heartbeat text, colour
+sib|src/advise|`advise` verb: how many jobs fit now, what limits them, what to do
 
 ## §C CONSTRAINTS
 
@@ -37,7 +38,7 @@ sib|src/report|`status` human & JSON, verbose reasons, heartbeat text, colour
 
 ## §I INTERFACES
 
-- verbs: `run` (default) · `check` · `status [--json]` · `completions <shell>` · `man`.
+- verbs: `run` (default) · `check` · `status [--json]` · `advise [--jobs J] [--json]` · `completions <shell>` · `man`.
 - `cgmr [run] [gates] [-- cmd...]`; cmd only after `--`.
 - ∀ switch ∈ `docs/CONGESTION.md` w/ env `CGMR_<SWITCH>` (upper snake), except `--when`.
 - hidden: `CGMR_FIXTURE_ROOT` (tests), `CGMR_DOGFOOD`.

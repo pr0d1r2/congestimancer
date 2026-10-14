@@ -10,6 +10,7 @@ All methods listed here are in scope. None is deferred.
 
 - [Concepts](#concepts)
 - [Verbs](#verbs)
+- [Advice](#advice)
 - [Values and units](#values-and-units)
 - [CPU](#cpu)
 - [Memory](#memory)
@@ -64,6 +65,7 @@ All methods listed here are in scope. None is deferred.
 |---|---|
 | `run` (default) | Wait for all gates, then exec the command after `--`. Without a command, exit 0 once gates pass. |
 | `check` | Evaluate all gates once. Exit 0 if all pass, 1 if not. Never loops; rate and percentage signals take one extra sample after `--interval`. |
+| `advise` | Say how many parallel jobs fit now, what limits them, and whether to run, reduce or wait. `--json` for agents. |
 | `status` | Print every supported signal with its current value (rate signals take one extra sample). `--json` gives a versioned, machine-readable form. |
 
 Examples:
@@ -74,7 +76,25 @@ cgmr run --mem 2GB -- cargo test
 cgmr --load 2 && make              # no command: wait, then exit 0
 cgmr check --load 1 --disk 5GB     # one-shot, for scripts and agents
 cgmr status --json                 # readings for agents
+cgmr advise --jobs 8 --needs-mem 2GB --json   # how many of 8 jobs fit
 ```
+
+## Advice
+
+`cgmr advise` answers "how much work fits right now" without waiting.
+
+- CPU fit: `floor(N * L - load)`, where L is the `--load` threshold
+  (default 1.0). Never below 0.
+- Memory fit: `floor((available - reserved) / M)`, where M is
+  `--needs-mem` (default 1GiB) and reserved is memory held by running cgmr
+  jobs.
+- Jobs: the lowest of the CPU fit, the memory fit and `--jobs J` if given.
+  Any other requested gate that fails makes it 0.
+- Action: `run` when at least one job fits and J (if given) fits, `reduce`
+  when fewer than J fit, `wait` when none fit.
+- Output names the limiting resource, for example
+  `jobs=3 limit=mem action=reduce`, or JSON with the same schema version as
+  `status`.
 
 ## Values and units
 

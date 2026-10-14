@@ -29,6 +29,7 @@ sib|src/wait|poll loop: interval, backoff, timeout, settle, jitter, heartbeat
 sib|src/launch|exec, no-cmd exit, govern, background priority, env cleanup
 sib|src/remote|`--host` evaluation over ssh
 sib|src/report|`status` human & JSON, verbose reasons, heartbeat text, colour
+sib|src/advise|`advise` verb: how many jobs fit now, what limits them, what to do
 sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §C CONSTRAINTS

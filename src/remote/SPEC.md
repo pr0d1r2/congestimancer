@@ -29,6 +29,7 @@ sib|src/wait|poll loop: interval, backoff, timeout, settle, jitter, heartbeat
 sib|src/slot|per-user lock dir, slots, FIFO, rate, spacing, memory reservations, nested held marker
 sib|src/launch|exec, no-cmd exit, govern, background priority, env cleanup
 sib|src/report|`status` human & JSON, verbose reasons, heartbeat text, colour
+sib|src/advise|`advise` verb: how many jobs fit now, what limits them, what to do
 sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §C CONSTRAINTS
@@ -37,7 +38,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §I INTERFACES
 
-- switch: `--host H`.
+- switch: `--host H` (`run`, `check`, `status`, `advise`).
 - call: `ssh -o BatchMode=yes H cgmr check --json <gates>`.
 
 ## §V INVARIANTS

@@ -27,6 +27,7 @@ slot|per-user lock dir, slots, FIFO, rate, spacing, memory reservations, nested 
 launch|exec, no-cmd exit, govern, background priority, env cleanup|waiting|-
 remote|`--host` evaluation over ssh|local gates|-
 report|`status` human & JSON, verbose reasons, heartbeat text, colour|what is measured|-
+advise|`advise` verb: how many jobs fit now, what limits them, what to do|waiting, launching|-
 cli|clap verbs, flags, env defaults, exit codes, completions, man page|every verb's logic|-
 
 ## §N NAV
@@ -43,7 +44,7 @@ sib|nix|repo gate: dev shell, guardrails, hk steps, spec & token gates, CI, rele
 
 - module = dir + `mod.rs`. `mod.rs` composes, ⊥ implements.
 - ∀ external dep ! ONE facade node: `sysinfo`, `rustix`, `libc` → `src/sys` · `clap` → `src/cli`.
-- dep order (waves): `units` → `signal` → `sys` → `cgroup` → domains (`cpu mem disk io net limits power presence gpu procs`) → `gate` → `report` → `wait`, `slot`, `remote` → `launch` → `cli`.
+- dep order (waves): `units` → `signal` → `sys` → `cgroup` → domains (`cpu mem disk io net limits power presence gpu procs`) → `gate` → `report` → `wait`, `slot`, `remote` → `advise` → `launch` → `cli`.
 - domain node = pure parsers (text|bytes in, numbers out) + mapping to `Signal`; ∀ OS access via `src/sys`.
 
 ## §V INVARIANTS
