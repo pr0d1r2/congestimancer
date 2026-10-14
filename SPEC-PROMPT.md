@@ -205,6 +205,8 @@ scope for building; nothing is deferred.
     `ioprio_set`, `setiopolicy_np`). That module allows `unsafe` with a comment on every block
     explaining why it is sound, and exposes only safe functions. Prefer safe crates
     (`sysinfo`, `rustix`) where they cover a signal.
+    Rust cannot lift `forbid` with an inner `allow`, so the crate sets `unsafe_code = "deny"`
+    and a gate step fails on any `allow(unsafe_code)` outside `src/sys`, the FFI module.
 36. Environment: remove `CGMR_*` variables from the command's environment with
     `Command::env_remove` before exec (except the held-slot marker). Never call `set_var` or
     `remove_var` (unsafe in edition 2024).
