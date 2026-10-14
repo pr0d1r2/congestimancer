@@ -16,7 +16,7 @@ ctrm|lint|-|**/*|ctrm check {{files}}|ctrm fix {{files}}|-|a file holds a charac
 xnl-check|lint|-|**/*.nix, **/*.pkl, **/*.awk, .envrc, .githooks/*|xnl check {{files}}|-|-|a host file embeds a non-trivial program in another language; extract it with xnl extract (nix:V13)
 xnl-lint|lint|-|**/*.nix, **/*.pkl, **/*.awk, .envrc, .githooks/*|xnl lint {{files}}|xnl lint --fix {{files}}|-|an embedded or extracted program fails its own language's linter (nix:V13)
 rekall|lint|-|AGENTS.md, CLAUDE.md, rekall.toml|rekall check|-|-|agent prose drifted from the rules rekall extracted from it; run rekall scan and settle the drift (nix:V14)
-cargo-test|test|-|**/*.rs, Cargo.toml, Cargo.lock, dev/Cargo.toml|cargo test --workspace --quiet|-|-|a test fails; fix the code or, if the spec changed, backprop it first
+cargo-test|coverage|-|**/*.rs, Cargo.toml, Cargo.lock, dev/Cargo.toml|cargo test --workspace --quiet|-|-|a test fails; fix the code or, if the spec changed, backprop it first
 rust-mirror|lint|-|**/*.rs, nix/guard/rust-mirror.sh|bash nix/guard/rust-mirror.sh|-|-|a Rust file with logic has no sibling tests.rs wired by #[cfg(test)] mod tests; (nix:V6)
 module-size|lint|-|**/*.rs, nix/guard/module-size.sh|bash nix/guard/module-size.sh|-|-|a Rust module is over 500 code lines or 1000 lines; split it (nix:V16)
 tdd-order|coverage|-|**/*.rs, nix/guard/tdd-order.sh, nix/guard/tdd-order.exempt|bash nix/guard/tdd-order.sh|-|-|a commit adds Rust code with no test: commit before it in the push range (nix:V7)

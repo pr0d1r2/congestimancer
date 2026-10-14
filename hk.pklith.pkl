@@ -162,10 +162,6 @@ steps: Mapping<String, Config.Step> = new {
     glob = List(".context-limits", "nix/ceiling-cap.awk")
     check = "command -v awk >/dev/null 2>&1 || { echo 'ceiling-cap: awk is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; awk -f nix/ceiling-cap.awk .context-limits || { echo 'ceiling-cap: a .context-limits ceiling is over its cap (SPEC.md file 3500, chain 5500); split the node with sherd split instead of raising (nix:V3)' >&2; exit 1; }"
   }
-  ["cargo-test"] {
-    glob = List("**/*.rs", "Cargo.toml", "Cargo.lock", "dev/Cargo.toml")
-    check = "command -v cargo >/dev/null 2>&1 || { echo 'cargo-test: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo test --workspace --quiet || { echo 'cargo-test: a test fails; fix the code or, if the spec changed, backprop it first' >&2; exit 1; }"
-  }
   ["gen-check"] {
     glob = List(".pklith", "hk.pklith.pkl", "nix/pklith.nix")
     check = "command -v pklith >/dev/null 2>&1 || { echo 'gen-check: pklith is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; pklith gen --check || { echo 'gen-check: hk.pklith.pkl or nix/pklith.nix no longer matches .pklith; run pklith gen' >&2; exit 1; }"
@@ -174,6 +170,10 @@ steps: Mapping<String, Config.Step> = new {
 }
 
 push: Mapping<String, Config.Step> = new {
+  ["cargo-test"] {
+    glob = List("**/*.rs", "Cargo.toml", "Cargo.lock", "dev/Cargo.toml")
+    check = "command -v cargo >/dev/null 2>&1 || { echo 'cargo-test: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo test --workspace --quiet || { echo 'cargo-test: a test fails; fix the code or, if the spec changed, backprop it first' >&2; exit 1; }"
+  }
   ["tdd-order"] {
     glob = List("**/*.rs", "nix/guard/tdd-order.sh", "nix/guard/tdd-order.exempt")
     check = "command -v bash >/dev/null 2>&1 || { echo 'tdd-order: bash is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; bash nix/guard/tdd-order.sh || { echo 'tdd-order: a commit adds Rust code with no test: commit before it in the push range (nix:V7)' >&2; exit 1; }"
