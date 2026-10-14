@@ -31,5 +31,5 @@ pub use units::{
     Bytes, Celsius, ClockTime, ClockWindow, Count, Decimal, Name, Percent,
     Rate, UnitError, parse_bytes, parse_celsius, parse_clock_window,
     parse_count, parse_decimal, parse_duration, parse_name, parse_percent,
-    parse_rate,
+    parse_rate, render_duration,
 };

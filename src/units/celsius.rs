@@ -1,5 +1,6 @@
 //! [`Celsius`]: a temperature as a number and `C` (src/units:V6).
 
+use std::fmt;
 use std::str::FromStr;
 
 use super::UnitError;
@@ -59,6 +60,12 @@ impl FromStr for Celsius {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_celsius(s)
+    }
+}
+
+impl fmt::Display for Celsius {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
     }
 }
 

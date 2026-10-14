@@ -1,6 +1,7 @@
 //! [`Decimal`]: a load-like threshold that takes decimals, like `0.5`
 //! (src/units:V14).
 
+use std::fmt;
 use std::str::FromStr;
 
 use super::UnitError;
@@ -62,6 +63,12 @@ impl FromStr for Decimal {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_decimal(s)
+    }
+}
+
+impl fmt::Display for Decimal {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
     }
 }
 

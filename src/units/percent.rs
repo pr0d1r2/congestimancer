@@ -1,6 +1,7 @@
 //! [`Percent`]: a number from 0 to 100 and an optional `%`
 //! (src/units:V4).
 
+use std::fmt;
 use std::str::FromStr;
 
 use super::UnitError;
@@ -68,6 +69,12 @@ impl FromStr for Percent {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_percent(s)
+    }
+}
+
+impl fmt::Display for Percent {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
     }
 }
 

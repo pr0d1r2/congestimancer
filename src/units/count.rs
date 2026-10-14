@@ -1,5 +1,6 @@
 //! [`Count`]: a whole number of things (src/units:V9, V14).
 
+use std::fmt;
 use std::str::FromStr;
 
 use super::UnitError;
@@ -35,6 +36,12 @@ impl FromStr for Count {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_count(s)
+    }
+}
+
+impl fmt::Display for Count {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
     }
 }
 

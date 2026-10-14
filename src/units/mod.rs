@@ -20,7 +20,7 @@ pub use celsius::{Celsius, parse_celsius};
 pub use clock::{ClockTime, ClockWindow, parse_clock_window};
 pub use count::{Count, parse_count};
 pub use decimal::{Decimal, parse_decimal};
-pub use duration::parse_duration;
+pub use duration::{parse_duration, render_duration};
 pub use error::UnitError;
 pub use name::{Name, parse_name};
 pub use percent::{Percent, parse_percent};

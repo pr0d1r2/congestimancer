@@ -61,6 +61,12 @@ path = "src/main.rs"
 # (src:C): clap -> src/cli; sysinfo, rustix, libc -> src/sys.
 [dependencies]
 
+# Test only (tests:C): proptest drives the no-panic and round-trip
+# properties of src/units (src/units:V10, V11). Default features off: no
+# fork or timeout machinery, so no tempfile or rustix in the test graph.
+[dev-dependencies]
+proptest = { version = "1.11", default-features = false, features = ["std"] }
+
 # NVIDIA GPU stats load NVML at runtime; on by default, and the build without
 # it is gated (src/gpu:C, nix:V24).
 [features]

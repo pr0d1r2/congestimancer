@@ -1,6 +1,7 @@
 //! [`ClockWindow`]: a daily window `HH:MM-HH:MM` in local time that wraps
 //! midnight when it starts after it ends (src/units:V7).
 
+use std::fmt;
 use std::str::FromStr;
 
 use super::UnitError;
@@ -131,6 +132,18 @@ impl FromStr for ClockWindow {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_clock_window(s)
+    }
+}
+
+impl fmt::Display for ClockTime {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
+    }
+}
+
+impl fmt::Display for ClockWindow {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
     }
 }
 

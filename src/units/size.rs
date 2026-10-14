@@ -1,5 +1,6 @@
 //! Sizes: [`Bytes`] with decimal and binary suffixes (src/units:V1, V2).
 
+use std::fmt;
 use std::str::FromStr;
 
 use super::UnitError;
@@ -103,6 +104,18 @@ impl FromStr for Rate {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_rate(s)
+    }
+}
+
+impl fmt::Display for Bytes {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
+    }
+}
+
+impl fmt::Display for Rate {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
     }
 }
 

@@ -1,6 +1,7 @@
 //! [`Name`]: a safe identifier for profiles, slots and custom gates
 //! (src/units:V13).
 
+use std::fmt;
 use std::str::FromStr;
 
 use super::UnitError;
@@ -67,6 +68,12 @@ impl FromStr for Name {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_name(s)
+    }
+}
+
+impl fmt::Display for Name {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
     }
 }
 
