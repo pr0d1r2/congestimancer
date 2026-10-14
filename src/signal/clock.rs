@@ -27,7 +27,7 @@ impl Clock for SystemClock {
     }
 
     fn sleep(&mut self, d: Duration) {
-        let _ = d;
+        std::thread::sleep(d);
     }
 }
 
@@ -53,7 +53,7 @@ impl ManualClock {
 
     /// Moves the clock forward by `d`.
     pub(crate) fn advance(&mut self, d: Duration) {
-        let _ = d;
+        self.now = self.now.checked_add(d).unwrap_or(self.now);
     }
 
     /// Every `sleep` asked for so far, in order.
@@ -69,7 +69,8 @@ impl Clock for ManualClock {
     }
 
     fn sleep(&mut self, d: Duration) {
-        let _ = d;
+        self.sleeps.push(d);
+        self.advance(d);
     }
 }
 

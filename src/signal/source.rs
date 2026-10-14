@@ -60,22 +60,29 @@ impl FakeSource {
         id: SignalId,
         readings: impl IntoIterator<Item = Reading>,
     ) -> &mut Self {
-        let _ = (id, readings.into_iter());
+        let mut readings: Vec<Reading> = readings.into_iter().collect();
+        readings.reverse();
+        self.script.insert(id, readings);
         self
     }
 
     /// How many times `id` was read.
     pub(crate) fn reads(&self, id: SignalId) -> usize {
-        let _ = id;
-        0
+        self.reads.get(&id).copied().unwrap_or(0)
     }
 }
 
 #[cfg(test)]
 impl Source for FakeSource {
     fn read(&mut self, id: SignalId, _: Instant) -> Reading {
-        let _ = (&self.script, &self.reads, id);
-        Reading::Warming
+        let count = self.reads.entry(id).or_insert(0);
+        *count = count.saturating_add(1);
+        let Some(left) = self.script.get_mut(&id) else {
+            return Reading::unsupported("not scripted");
+        };
+        let next = if left.len() > 1 { left.pop() } else { None };
+        next.or_else(|| left.last().cloned())
+            .unwrap_or_else(|| Reading::unsupported("script ran dry"))
     }
 }
 

@@ -36,3 +36,5 @@ is a development series, not for production.
 - `Reading`, `Measure`, `Reason` and `Level`: a signal reads a value with
   its unit (rendered as its switch takes it: `12.5%`, `50MB/s`, `72.5C`),
   `warming up` before a rate has two samples, or `unsupported: <reason>`.
+- `Source` and `Clock` traits, and `SystemClock`: every reading is taken at
+  a monotonic instant, and every interval is measured on a `Clock`.
