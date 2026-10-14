@@ -28,9 +28,9 @@ mod units;
 mod wait;
 
 pub use signal::{
-    Clock, Counter, Level, Measure, Reading, Reason, Root, Sample, Sampled,
-    Sampler, Signal, SignalId, SignalSet, Source, SystemClock, Trend, Trends,
-    refresh,
+    Clock, Counter, Level, Measure, Psi, PsiError, PsiLine, Reading, Reason,
+    Root, Sample, Sampled, Sampler, Signal, SignalId, SignalSet, Source,
+    SystemClock, Trend, Trends, parse_psi, refresh,
 };
 
 pub use units::{
