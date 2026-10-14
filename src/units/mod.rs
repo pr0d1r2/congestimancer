@@ -6,6 +6,7 @@
 //! (src:V3).
 
 mod celsius;
+mod clock;
 mod duration;
 mod error;
 mod number;
@@ -13,6 +14,7 @@ mod percent;
 mod size;
 
 pub use celsius::{Celsius, parse_celsius};
+pub use clock::{ClockTime, ClockWindow, parse_clock_window};
 pub use duration::parse_duration;
 pub use error::UnitError;
 pub use percent::{Percent, parse_percent};

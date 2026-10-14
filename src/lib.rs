@@ -28,6 +28,7 @@ mod units;
 mod wait;
 
 pub use units::{
-    Bytes, Celsius, Percent, Rate, UnitError, parse_bytes, parse_celsius,
-    parse_duration, parse_percent, parse_rate,
+    Bytes, Celsius, ClockTime, ClockWindow, Percent, Rate, UnitError,
+    parse_bytes, parse_celsius, parse_clock_window, parse_duration,
+    parse_percent, parse_rate,
 };
