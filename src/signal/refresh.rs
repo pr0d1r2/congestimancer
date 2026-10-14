@@ -42,7 +42,7 @@ impl SignalSet {
 
     /// Whether `id` is in the set.
     #[must_use]
-    pub const fn contains(self, id: SignalId) -> bool {
+    pub fn contains(self, id: SignalId) -> bool {
         self.0 & bit(id) != 0
     }
 
@@ -76,11 +76,8 @@ impl SignalSet {
 
 /// The bit that stands for `id`: its place in the declaration order,
 /// which [`SignalId::ALL`] keeps under 64.
-const fn bit(id: SignalId) -> u64 {
-    match 1_u64.checked_shl(id as u32) {
-        Some(bit) => bit,
-        None => 0,
-    }
+fn bit(id: SignalId) -> u64 {
+    1_u64.checked_shl(id as u32).unwrap_or(0)
 }
 
 impl FromIterator<SignalId> for SignalSet {
