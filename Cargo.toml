@@ -1,0 +1,85 @@
+[workspace]
+members = ["dev"]
+
+[package]
+# The crate carries the meaning, the binary carries the muscle memory
+# (`ripgrep`/`rg`): crate `congestimancer`, bin `cgmr` (.:V21).
+name = "congestimancer"
+# Unpublished until the first release candidate (.:T14).
+version = "0.0.0"
+edition = "2024"
+# The fleet pin: nixpkgs-lock (nixos-26.05) carries rustc 1.95.
+rust-version = "1.95"
+license = "MIT"
+description = "gate commands on machine congestion: wait until load, memory, disk, IO and other gates pass, then run"
+readme = "README.md"
+repository = "https://github.com/pr0d1r2/congestimancer"
+keywords = ["load", "congestion", "scheduler", "cli", "agents"]
+categories = ["command-line-utilities", "development-tools"]
+# Dev environment and gate machinery: meaningful only inside the repository.
+exclude = [
+  ".envrc",
+  ".github/",
+  ".gitignore",
+  ".githooks/",
+  "flake.nix",
+  "flake.lock",
+  "hk.pkl",
+  "hk.pklith.pkl",
+  ".pklith",
+  "pkl/",
+  "nix/",
+  ".format-upstream",
+  ".ctrm",
+  ".ctrm-sets",
+  ".typos.toml",
+  ".markdownlint.yaml",
+  ".markdownlintignore",
+  "rekall.toml",
+  "SPEC-PROMPT.md",
+  "release.toml",
+]
+
+# What a published `.crate` MUST carry, asserted by the package gate step
+# against `cargo package --list` (nix:T16).
+[package.metadata.congestimancer]
+must-package = [
+  "SPEC.md",
+  ".spec-records",
+  ".context-limits",
+  "FORMAT.md",
+  "FORMAT-EXTENSIONS.md",
+  "clippy.toml",
+  "rustfmt.toml",
+]
+
+[[bin]]
+name = "cgmr"
+path = "src/main.rs"
+
+# Each dependency arrives with the node that uses it, behind its facade
+# (src:C): clap -> src/cli; sysinfo, rustix, libc -> src/sys.
+[dependencies]
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+arithmetic_side_effects = "deny"
+too_many_lines = "deny"
+cognitive_complexity = "deny"
+excessive_nesting = "deny"
+fn_params_excessive_bools = "deny"
+struct_excessive_bools = "deny"
+undocumented_unsafe_blocks = "deny"
+
+[lints.rust]
+unreachable_pub = "deny"
+# `deny`, not `forbid`: src/sys is the one node that may lift it with
+# `#[allow(unsafe_code)]`, and an inner `allow` cannot lift `forbid`. A gate
+# step rejects `allow(unsafe_code)` anywhere else (nix:V11).
+unsafe_code = "deny"

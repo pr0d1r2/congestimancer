@@ -16,6 +16,7 @@ ctrm|lint|-|**/*|ctrm check {{files}}|ctrm fix {{files}}|-|a file holds a charac
 xnl-check|lint|-|**/*.nix, **/*.pkl, **/*.awk, .envrc, .githooks/*|xnl check {{files}}|-|-|a host file embeds a non-trivial program in another language; extract it with xnl extract (nix:V13)
 xnl-lint|lint|-|**/*.nix, **/*.pkl, **/*.awk, .envrc, .githooks/*|xnl lint {{files}}|xnl lint --fix {{files}}|-|an embedded or extracted program fails its own language's linter (nix:V13)
 rekall|lint|-|AGENTS.md, CLAUDE.md, rekall.toml|rekall check|-|-|agent prose drifted from the rules rekall extracted from it; run rekall scan and settle the drift (nix:V14)
+cargo-deny|lint|-|Cargo.toml, Cargo.lock, deny.toml, dev/Cargo.toml|cargo deny --all-features check bans licenses sources advisories|-|-|a dependency breaks deny.toml: banned or duplicate version, licence outside the allow list, unknown source, or advisory (nix:V10)
 pklith-check|coverage|-|**/*|pklith check|-|-|a tracked file type has no row in .pklith, a row matches nothing, or a claimed check never reaches its files
 
 ## types
@@ -46,4 +47,9 @@ path:rekall.toml|rekall, taplo|-|-
 path:AGENTS.md|markdownlint, rekall|-|-
 toml|taplo|-|-
 awk|gawk-lint|-|-
+rs|rustfmt, clippy|-|-
+path:Cargo.lock|cargo-deny|-|-
+path:Cargo.toml|taplo, cargo-deny|-|-
+path:dev/Cargo.toml|taplo, cargo-deny|-|-
+path:deny.toml|taplo, cargo-deny|-|-
 yaml|yamllint|-|-

@@ -142,6 +142,8 @@
             pkgs.cargo
             pkgs.clippy
             pkgs.rustfmt
+            # Dependency policy gate (deny.toml, nix:V10).
+            pkgs.cargo-deny
             # `nixfmt --check` gates this file.
             pkgs.nixfmt
           ]

@@ -54,9 +54,18 @@ steps: Mapping<String, Config.Step> = new {
     check = "command -v taplo >/dev/null 2>&1 || { echo 'taplo: taplo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; taplo fmt --check {{files}} || { echo 'taplo: TOML not formatted or not parseable' >&2; exit 1; }"
     fix = "taplo fmt {{files}}"
   }
+  ["rustfmt"] {
+    glob = List("**/*.rs")
+    check = "command -v cargo >/dev/null 2>&1 || { echo 'rustfmt: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; command -v cargo-fmt >/dev/null 2>&1 || { echo 'rustfmt: cargo-fmt is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo fmt --check || { echo 'rustfmt: Rust not formatted' >&2; exit 1; }"
+    fix = "cargo fmt"
+  }
   ["typos"] {
     glob = List("**/*")
     check = "command -v typos >/dev/null 2>&1 || { echo 'typos: typos is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; typos --force-exclude {{files}} || { echo 'typos: misspelling; fix it or teach .typos.toml' >&2; exit 1; }"
+  }
+  ["clippy"] {
+    glob = List("**/*.rs", "Cargo.toml", "clippy.toml")
+    check = "command -v cargo >/dev/null 2>&1 || { echo 'clippy: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; command -v cargo-clippy >/dev/null 2>&1 || { echo 'clippy: cargo-clippy is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo clippy --workspace --all-targets -q -- -D warnings || { echo 'clippy: clippy finding' >&2; exit 1; }"
   }
   ["statix"] {
     glob = List("**/*.nix")
@@ -97,6 +106,10 @@ steps: Mapping<String, Config.Step> = new {
   ["rekall"] {
     glob = List("AGENTS.md", "CLAUDE.md", "rekall.toml")
     check = "command -v rekall >/dev/null 2>&1 || { echo 'rekall: rekall is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; rekall check || { echo 'rekall: agent prose drifted from the rules rekall extracted from it; run rekall scan and settle the drift (nix:V14)' >&2; exit 1; }"
+  }
+  ["cargo-deny"] {
+    glob = List("Cargo.toml", "Cargo.lock", "deny.toml", "dev/Cargo.toml")
+    check = "command -v cargo >/dev/null 2>&1 || { echo 'cargo-deny: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; command -v cargo-deny >/dev/null 2>&1 || { echo 'cargo-deny: cargo-deny is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo deny --all-features check bans licenses sources advisories || { echo 'cargo-deny: a dependency breaks deny.toml: banned or duplicate version, licence outside the allow list, unknown source, or advisory (nix:V10)' >&2; exit 1; }"
   }
   ["mth-fmt"] {
     glob = List("**/SPEC.md")
