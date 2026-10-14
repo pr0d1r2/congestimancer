@@ -27,6 +27,8 @@ mod sys;
 mod units;
 mod wait;
 
+pub use signal::SignalId;
+
 pub use units::{
     Bytes, Celsius, ClockTime, ClockWindow, Count, Decimal, Name, Percent,
     Rate, UnitError, parse_bytes, parse_celsius, parse_clock_window,
