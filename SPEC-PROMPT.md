@@ -191,3 +191,65 @@ scope for building; nothing is deferred.
 32. CI runs on 3 platforms: `x86_64-linux` (ubuntu-latest), `aarch64-linux`
     (ubuntu-24.04-arm), `aarch64-darwin` (macos-latest). `x86_64-darwin` stays a supported
     target, verified manually on the Intel Mac (no CI runner).
+
+# Decisions, round 3 (2026-10-14)
+
+33. Scope: every congestion method and strategy in docs/CONGESTION.md is buildable now.
+    Nothing is deferred. The specs form a corpus of features built overnight in parallel
+    (sherd waves), so each method must be specified as its own buildable unit.
+34. Argument parsing: `clap` (derive), even though the other Rust repos parse by hand.
+    Issues to move them to clap were filed 2026-10-14: characterminator#17, itok#63,
+    microlith#97, pklith#36, rekall#41, sherd#130, xenolith#51.
+35. `unsafe` code: `unsafe_code = "forbid"` everywhere except one platform FFI module (for
+    `sysctlbyname`, `getloadavg`, `host_processor_info`, `host_statistics64`, IOKit,
+    `ioprio_set`, `setiopolicy_np`). That module allows `unsafe` with a comment on every block
+    explaining why it is sound, and exposes only safe functions. Prefer safe crates
+    (`sysinfo`, `rustix`) where they cover a signal.
+36. Environment: remove `CGMR_*` variables from the command's environment with
+    `Command::env_remove` before exec (except the held-slot marker). Never call `set_var` or
+    `remove_var` (unsafe in edition 2024).
+37. Guardrails: use all the Rust guardrail tools from the other repos, each in its role:
+    - pklith: materialise hk git hooks from what the repository's files require; installed
+      when entering the dev shell (`lib.devShell`, tracked `.githooks/`).
+    - nix-hk: hk in the flake.
+    - sherd: SPEC.md federation over a directory DAG (SPEC-DAG), budgets, navigation and wave
+      builds in parallel subagents.
+    - microlith: spec operations (`mth fmt`, `mth check`, `mth archive`).
+    - itok: context limits (`itok check` against `.context-limits`).
+    - characterminator: allowed characters per file type (`ctrm check` against `.ctrm`).
+    - rekall: extract rules and skills from agent memory and CLAUDE.md, and gate that the
+      extraction stayed honest.
+    - xenolith: one language per file (no embedded foreign code); its `rust-mirror` 1-to-1
+      test layout and `tdd-order` checks.
+38. Conventions: copy those shared by the other Rust repos, conforming to a sherdified
+    SPEC-DAG and passing microlith and itok checks:
+    - Cargo: edition 2024, `rust-version = "1.95"`, MIT, `[lints.rust] unsafe_code` per
+      decision 35, the shared clippy deny list (`unwrap_used`, `expect_used`, `panic`,
+      `indexing_slicing`, `arithmetic_side_effects`, `too_many_lines`, ...). Because of
+      `arithmetic_side_effects`, all metric math uses checked or saturating operations.
+    - Shared `clippy.toml` thresholds and `rustfmt.toml` (`max_width = 80`).
+    - Workspace: library + `cgmr` binary, plus a `dev/` crate (`publish = false`) for README
+      badges, third-party notices and the AGENTS step table. `exclude` and `must-package` in
+      Cargo.toml.
+    - Flake: Rust from the `nixpkgs-lock` input (no rust-toolchain file), fleet tools pinned
+      by tag, `pr0d1r2.cachix.org` substituter, 4 systems, `.envrc` with `use flake`.
+    - Self-shim: in the dev shell `cgmr` runs `cargo run --manifest-path ...`, so a compile
+      error cannot lock you out; `CGMR_DOGFOOD` enables dogfooding.
+    - hk.pkl: `fast` steps pre-commit, `all` steps pre-push; commit-msg lint
+      (`type(scope): claim`, at most 72 characters) and changelog-touched check.
+    - Coverage: hard floor (`cargo llvm-cov --fail-under-lines`) plus `.coverage` ratchet
+      ceiling (fails if more than 0.5 above or below), aiming at 100%.
+    - Size limits: module size (500 code lines, 1000 total), ASCII-only via `.ctrm`.
+    - Spec: sections G/F/N/C/I/R/V/T/B, `.context-limits`, start with one SPEC.md and sherdify
+      when it exceeds its budget.
+    - cargo-deny (`deny.toml` as in the other repos; check that clap and sysinfo licenses and
+      versions pass early).
+    - CI: one `ci.yml`, 3 runners, `hk check --all` then `nix build`, actions pinned by SHA,
+      zizmor and actionlint.
+    - Release: `cargo-release` with `release.toml` and a pre-release hook running
+      `hk check --all`; Keep a Changelog; version ladder (even minor = stable).
+    - Tests: fixture roots passed as arguments; CLI tests in `tests/cli.rs`, dogfooding in
+      `tests/dogfood.rs`; fixtures in `tests/fixtures/<topic>/`.
+39. Dogfooding fit: cargo steps already run serially (target-dir lock), so cgmr gates the
+    heavy pre-push steps (coverage, package) and parallel sherd wave builds. Later, a pklith
+    check type could run any step under cgmr.
