@@ -74,5 +74,34 @@ impl FromStr for Bytes {
     }
 }
 
+/// The form a rate takes, named in every error (src/units:V12).
+const RATE_EXPECTED: &str = "a rate: a size per second, like 50MB/s or \
+                             1.5GiB/s";
+
+/// A rate in bytes per second.
+///
+/// Parsed from a size and `/s`; there is no other time base
+/// (src/units:V3).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Rate(pub u64);
+
+/// Parses a rate such as `50MB/s` or `1.5GiB/s`.
+///
+/// # Errors
+///
+/// [`UnitError`] naming the whole input and the form expected: no `/s`,
+/// or a size that does not parse (see [`parse_bytes`]).
+pub fn parse_rate(s: &str) -> Result<Rate, UnitError> {
+    Err(LexError::Malformed.error(s, RATE_EXPECTED))
+}
+
+impl FromStr for Rate {
+    type Err = UnitError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        parse_rate(s)
+    }
+}
+
 #[cfg(test)]
 mod tests;

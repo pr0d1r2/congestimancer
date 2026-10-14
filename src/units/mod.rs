@@ -10,4 +10,4 @@ mod number;
 mod size;
 
 pub use error::UnitError;
-pub use size::{Bytes, parse_bytes};
+pub use size::{Bytes, Rate, parse_bytes, parse_rate};

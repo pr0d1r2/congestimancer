@@ -1,4 +1,4 @@
-use super::{Bytes, parse_bytes};
+use super::{Bytes, Rate, parse_bytes, parse_rate};
 use crate::units::UnitError;
 
 const K: u64 = 1000;
@@ -95,4 +95,48 @@ fn the_error_names_the_input_and_the_form() {
 #[test]
 fn from_str_is_parse_bytes() {
     assert_eq!("4KiB".parse::<Bytes>(), Ok(Bytes(4096)));
+}
+
+fn rate(s: &str) -> Result<u64, UnitError> {
+    parse_rate(s).map(|r| r.0)
+}
+
+#[test]
+fn a_rate_is_a_size_per_second() {
+    assert_eq!(rate("50MB/s"), Ok(50 * K.pow(2)));
+    assert_eq!(rate("1KiB/s"), Ok(KI));
+    assert_eq!(rate("1.5GB/s"), Ok(1_500_000_000));
+    assert_eq!(rate("10kb/S"), Ok(10 * K));
+    assert_eq!(rate("0B/s"), Ok(0));
+}
+
+#[test]
+fn a_rate_has_no_other_time_base() {
+    let bad = [
+        "50MB", "50MB/m", "50MB/h", "50MB/sec", "50MBps", "50/s", "/s", "",
+        "50MB/s/s", "50MB /s",
+    ];
+    for s in bad {
+        assert!(
+            matches!(parse_rate(s), Err(UnitError::Malformed { .. })),
+            "{s}"
+        );
+    }
+}
+
+#[test]
+fn a_rate_error_names_the_whole_input_and_the_rate_form() {
+    let Err(e) = parse_rate("17179869184GiB/s") else {
+        unreachable!("an overflowing rate parsed")
+    };
+    assert!(matches!(e, UnitError::Overflow { .. }), "{e:?}");
+    assert_eq!(e.input(), "17179869184GiB/s");
+    assert!(e.expected().contains("like 50MB/s"), "{}", e.expected());
+    let neg = parse_rate("-1MB/s");
+    assert!(matches!(neg, Err(UnitError::Negative { .. })), "{neg:?}");
+}
+
+#[test]
+fn from_str_is_parse_rate() {
+    assert_eq!("1KB/s".parse::<Rate>(), Ok(Rate(1000)));
 }

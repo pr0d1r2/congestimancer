@@ -27,4 +27,4 @@ mod sys;
 mod units;
 mod wait;
 
-pub use units::{Bytes, UnitError, parse_bytes};
+pub use units::{Bytes, Rate, UnitError, parse_bytes, parse_rate};
