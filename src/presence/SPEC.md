@@ -36,16 +36,17 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §C CONSTRAINTS
 
 - deps: `src/units`, `src/signal`, `src/sys`. only node using wall clock (`src/signal:V4`).
+- Linux: hand-rolled D-Bus over std `UnixStream`, pure codec (`src:V4`); ⊥ `zbus` (R1).
 
 ## §I INTERFACES
 
 - switches: `--idle D` · `--between HH:MM-HH:MM`.
-- sources: macOS IOKit `HIDIdleTime` · Linux logind session idle hint, X11|Wayland idle where available.
+- sources: macOS IOKit `HIDIdleTime` · Linux logind session `IdleSinceHint` (R1).
 
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|Linux idle source|open: logind `IdleHint`/`IdleSinceHint` via D-Bus (`zbus`) vs `/run/systemd/sessions/*` file; X11/Wayland without new deps?|-
+R1|Linux idle source|session file ⊥ idle ∴ D-Bus. Manager hint ⊥: idle headless, busy w/ ssh. graphical = hint ? now - `IdleSinceHint` : 0; tty: since = atime. `zbus` 66 crates, syn dup ∴ hand-rolled. X11, Wayland ⊥. unverified on host|`logind-session.c`
 
 ## §V INVARIANTS
 
@@ -53,15 +54,16 @@ V1: `--idle D` ⇔ no keyboard|mouse input for ≥ D.
 V2: headless Linux (no session idle source) → `Unsupported`.
 V3: `--between W` ⇔ local wall time ∈ W; wraps midnight (`src/units:V7`).
 V4: DST change → window evaluated on local time after change; ⊥ crash.
+V5: Linux idle = min over logind sessions class `user` ∧ ¬`Remote`; none → V2.
 
 ## §T TASKS
 
 id|status|task|cites
 T1|.|macOS idle via `HIDIdleTime`|V1
-T2|.|Linux logind idle hint|V1,V2
+T2|.|Linux logind idle hint|V1,V2,V5
 T3|.|`--idle` gate|V1,V2
 T4|.|`--between` gate w/ injectable wall clock|V3,V4
-T5|.|SPIKE: settle R1 on Linux desktop & headless hosts|-
+T5|~|SPIKE: settle R1; left: run on GNOME, KDE, headless|V5
 
 ## §B BUGS
 
