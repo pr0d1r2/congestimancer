@@ -47,6 +47,7 @@ V17: cargo steps run serially ∵ target-dir lock.
 V19: hk `fast` = pre-commit; `all` = pre-push, `check`, `fix`; `fail_fast`.
 V20: release ! real-machine run (`cargo test -- --ignored`) on ∀ test hosts; x86_64-darwin ! hand-verified on Intel Mac.
 V23: CI = one `ci.yml`: `nix develop --command hk check --all --check --no-fail-fast` → `nix build .#default`; actions pinned by SHA, `permissions: contents: read`, `persist-credentials: false`, zizmor & actionlint gate.
+V24: hk `all` adds fleet release-grade steps: `cargo doc` w/ `RUSTDOCFLAGS=-D warnings` · `cargo package --locked` + `must-package` · `cargo semver-checks` (from first publish) · `--no-default-features` build (`nvml` = optional default feature, `src/gpu`).
 
 ## §T TASKS
 
@@ -64,6 +65,7 @@ T10|.|`ci.yml` 3-runner matrix|V23
 T11|.|`release.toml` + cargo-release pre-release hook|V20
 T12|.|dogfood wiring: shim + `CGMR_DOGFOOD`; heavy pre-push steps under `cgmr`|`.:V1`
 T13|.|real-machine test run on ∀ hosts; Intel Mac by hand|V20
+T16|.|hk `all`: rustdoc, package, semver-checks, no-default-features steps|V24
 
 ## §B BUGS
 

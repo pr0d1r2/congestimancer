@@ -33,7 +33,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §C CONSTRAINTS
 
-- deps: `src/units`, `src/signal`, `src/sys`. NVML loaded at runtime ∴ ⊥ link-time dep.
+- deps: `src/units`, `src/signal`, `src/sys`. NVML loaded at runtime ∴ ⊥ link-time dep; behind cargo feature `nvml` (default on); feature off → NVIDIA `Unsupported`.
 
 ## §I INTERFACES
 
