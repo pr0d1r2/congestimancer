@@ -8,3 +8,7 @@ Version ladder: an even minor (0.2, 0.4, ...) is a stable rung; an odd minor
 is a development series, not for production.
 
 ## [Unreleased]
+
+### Added
+
+- `UnitError`: every parse error names the input and the form expected.

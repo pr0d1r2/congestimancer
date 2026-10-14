@@ -72,7 +72,7 @@ T7|.|`Count` parse|V9
 T8|.|locale-independent number lexer|V8
 T9|.|render ∀ type + round-trip proptest|V11
 T10|.|no-panic proptest ∀ parser|V10
-T11|.|`UnitError` w/ input & expected form|V12
+T11|x|`UnitError` w/ input & expected form|V12
 T12|.|`Name` parse & reject list|V13
 T13|.|threshold range checks|V14
 

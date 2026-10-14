@@ -45,19 +45,36 @@ impl UnitError {
     /// The input as given.
     #[must_use]
     pub fn input(&self) -> &str {
-        ""
+        self.parts().0
     }
 
     /// The form expected, as a reader would write it.
     #[must_use]
     pub fn expected(&self) -> &'static str {
-        ""
+        self.parts().1
+    }
+
+    /// The input, the form expected, and what was wrong, in words.
+    fn parts(&self) -> (&str, &'static str, &'static str) {
+        match self {
+            Self::Malformed { input, expected } => {
+                (input, expected, "not valid")
+            }
+            Self::Negative { input, expected } => (input, expected, "negative"),
+            Self::OutOfRange { input, expected } => {
+                (input, expected, "out of range")
+            }
+            Self::Overflow { input, expected } => {
+                (input, expected, "too large")
+            }
+        }
     }
 }
 
 impl fmt::Display for UnitError {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (input, expected, wrong) = self.parts();
+        write!(f, "`{input}` is {wrong}: expected {expected}")
     }
 }
 
