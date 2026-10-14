@@ -36,7 +36,7 @@ V6: 1:1 unit mirror: ∀ `.rs` w/ fn bodies ! sibling `tests.rs` wired by `#[cfg
 V7: TDD: RED → GREEN → REFACTOR. `test:` commit ! precede impl commit in push range (xenolith `tdd-order`).
 V8: commits atomic, one topic each, human readable; commit-msg lint `type(scope): claim` ≤ 72 chars; feat|fix|perf ! touch CHANGELOG.
 V9: ∀ flake input pins TAG, bumped in own reviewed commit. `nixpkgs-lock` & `nix-hk` exempt.
-V10: `cargo deny check` gates: `licenses allow` per `deny.toml`, `multiple-versions = "deny"`, unknown registry|git denied, yanked denied.
+V10: `cargo deny check` gates: `licenses allow` = `MIT` + `Unicode-3.0` (`unicode-ident` via clap derive), `multiple-versions = "deny"`, unknown registry|git denied, yanked denied. `[graph] targets` = the 4 platform triples ∴ Windows-only crates ⊥ counted.
 V11: `allow(unsafe_code)` ∈ `src/sys` only; ∀ unsafe block ! `// SAFETY:` comment; hk step greps tree & FAILS on any other `allow(unsafe_code)`.
 V12: `ctrm check` gates tree via `.ctrm`, last match wins: `*` ascii · `*.md` ascii+spec · `README.md` `docs/**/*.md` ascii · `AGENTS.md` ascii+caveman · `**/SPEC.md` `FORMAT.md` `FORMAT-EXTENSIONS.md` ascii+spec (LAST ∵ `docs/SPEC.md` ∈ `docs/**`) · `pkl/Config.pkl` any (vendored).
 V13: `xnl check` gates: one language per file, ⊥ embedded foreign code.
