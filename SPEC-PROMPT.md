@@ -1,3 +1,7 @@
+HISTORICAL INPUT. This file was the prompt for the first ck:spec run on
+2026-10-14. SPEC.md and the node specs it federates are now the law; where
+they differ from this file, they win. Keep this file unchanged for context.
+
 congestimancer
 
 Tool for load awareness in the system that allow to calculate machine congestion from:
