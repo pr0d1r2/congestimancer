@@ -27,7 +27,7 @@ self|.|-
 
 - Rust edition 2024, stable, MSRV 1.95 = fleet pin (`nixpkgs-lock` → nixos-26.05). ⊥ rust-toolchain file. MIT.
 - workspace: crate `congestimancer` = lib + bin `cgmr` (V21); member `dev` (`publish = false`).
-- direct deps: `clap` (derive) → `src/cli` · `sysinfo`, `rustix`, `libc` → `src/sys`. candidate FFI deps, each decided by a node §R spike: `mach2`, `core-foundation`, `io-kit-sys`, `objc2`, `libloading`, `zbus` → `src/sys`. ∀ other dep ! justified in `docs/THIRD-PARTY-NOTICES.md` & owned by ONE facade node.
+- direct deps: `clap` (derive) → `src/cli` · `sysinfo`, `rustix`, `libc`, `objc2-io-kit`, `objc2-core-foundation` → `src/sys` (`src/sys` R1–R3; ⊥ `mach2`, `io-kit-sys`, `core-foundation`, `libloading`). still open: `objc2` + `objc2-foundation` (`src/sys` R4, iff `src/power` needs low power mode), `zbus` (`src/power`) → `src/sys`. ∀ other dep ! justified in `docs/THIRD-PARTY-NOTICES.md` & owned by ONE facade node.
 - ⊥ `humantime`: durations parsed by `src/units`. ⊥ signal-handler crate (V22).
 - `unsafe_code = "deny"` crate-wide; `#[allow(unsafe_code)]` ONLY ∈ `src/sys` (`nix:V11`). `forbid` ⊥ usable ∵ inner `allow` cannot lift `forbid`.
 - clippy: fleet deny list (`unwrap_used expect_used panic indexing_slicing todo unimplemented dbg_macro arithmetic_side_effects too_many_lines cognitive_complexity excessive_nesting fn_params_excessive_bools struct_excessive_bools undocumented_unsafe_blocks`) + rustc `unreachable_pub` (`[lints.rust]`) + fleet `clippy.toml` thresholds; `rustfmt.toml` `max_width = 80`.

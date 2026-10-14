@@ -36,7 +36,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §C CONSTRAINTS
 
 - deps: `src/units`, `src/signal` (PSI parser), `src/sys`, `src/cgroup` (scope).
-- throughput source decided by `src/sys` T1 spike: sysinfo per-disk stats if proven on both OS; else `/proc/diskstats` & IOKit. outcome ? recorded here.
+- throughput source decided by `src/sys` T1 spike: sysinfo per-disk stats if proven on both OS; else `/proc/diskstats` & IOKit. outcome (`src/sys:T1`): sysinfo `Disk::usage` = read|written bytes only (macOS probed: `IOBlockStorageDriver` Statistics, APFS volumes repeat whole-disk counters; Linux by source: `/proc/diskstats` sectors, unverified on host); ⊥ ops, busy, latency, queue ∴ ⊥ sysinfo here → `/proc/diskstats` & IOKit Statistics (`Operations`, `Total Time`, bytes) for ∀ metrics.
 
 ## §I INTERFACES
 

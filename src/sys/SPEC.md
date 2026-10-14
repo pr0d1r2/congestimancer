@@ -35,14 +35,14 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §C CONSTRAINTS
 
-- facade ∀ `sysinfo`, `rustix`, `libc` + spike-decided `mach2`, `core-foundation`, `io-kit-sys`, `objc2`, `libloading`, `zbus` (R1–R4). prefer safe crate over raw FFI when it covers the call.
+- facade ∀ `sysinfo`, `rustix`, `libc`, `objc2-io-kit`, `objc2-core-foundation` (R1–R3); `objc2-foundation` iff R4; `zbus` per `src/power`. prefer safe crate over raw FFI when it covers the call.
 - `#[allow(unsafe_code)]` scoped to FFI submodules here; ⊥ elsewhere (`nix:V11`).
 - `cfg(target_os)` per platform; other OS → `Unsupported`.
 
 ## §I INTERFACES
 
 - files: `read_text(root, path) -> io::Result<String>` (procfs, sysfs, cgroupfs).
-- sysinfo: shared lazily refreshed `System` snapshot: load avg, memory, processes, per-disk IO (if T1 spike passes).
+- sysinfo: shared lazily refreshed `System` snapshot: load avg, memory, processes. ⊥ per-disk IO (T1: bytes only) → `/proc/diskstats` & IOKit.
 - rustix: `statvfs(path)`, `flock(fd)`, `setpriority`, `exec`-safe fd handling.
 - macOS FFI: `sysctlbyname` (`kern.memorystatus_vm_pressure_level`, `kern.memorystatus_level`, `kern.num_files`, `kern.maxfiles`, `kern.num_tasks`, `kern.maxproc`, `vm.swapusage`), `host_processor_info`, `host_statistics64`, IOKit (block storage stats, power sources, `HIDIdleTime`, GPU `PerformanceStatistics`, thermal state), `setiopolicy_np`.
 - Linux FFI: `ioprio_set`; NVML via runtime `dlopen` (absent lib → `Unsupported`).
@@ -51,10 +51,10 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|mach & sysctl access|open: `mach2` vs raw `libc` for `host_processor_info`, `host_statistics64`|-
-R2|IOKit & CoreFoundation|open: `io-kit-sys` + `core-foundation` vs hand-written FFI; licence & size|-
-R3|NVML loading|open: `libloading` vs `libc::dlopen`|-
-R4|Objective-C calls|open: `objc2` needed only if `src/power` R1/R2 find no C API|-
+R1|mach & sysctl access|`libc` ⊥ `mach2`: `libc` has both fns + structs; `mach2` 0.7 ⊥ fns. `mach_host_self` deprecated → scoped `allow(deprecated)`. probed: kr=0|`libc` 0.2.190 `unix/bsd/apple/mod.rs`
+R2|IOKit & CoreFoundation|`objc2-io-kit` + `objc2-core-foundation` 0.3: already pulled by `sysinfo` `disk` ∴ 0 new crates; MIT option; `CFRetained` RAII. probed: block storage stats, power sources ok|`sysinfo` 0.39.6 `Cargo.toml`
+R3|NVML loading|`libc::dlopen` ⊥ `libloading`: ISC ⊥ `deny.toml`, still `unsafe`. Linux: by source, unverified on host|`libloading` 0.9 `Cargo.toml`
+R4|Objective-C calls|conditional on `src/power`: thermal → C `notify_get_state` (probed ok); low power mode ⊥ C API → iff kept, `objc2-foundation` `NSProcessInfo` (MIT)|SDK `OSThermalNotification.h`
 
 ## §V INVARIANTS
 
@@ -69,7 +69,7 @@ V7: `capture(root, out)` copies every raw source this node reads (procfs, sysfs,
 ## §T TASKS
 
 id|status|task|cites
-T1|.|SPIKE: prove `sysinfo` per-disk IO stats on Linux & macOS; record outcome in `src/io` §C|V5
+T1|x|SPIKE: prove `sysinfo` per-disk IO stats on Linux & macOS; record outcome in `src/io` §C|V5
 T2|.|`read_text` w/ `Root`|V4
 T3|.|`sysinfo` snapshot w/ selective refresh|V5
 T4|.|`statvfs`, `flock`, `setpriority` via rustix|V2
@@ -82,7 +82,7 @@ T10|.|macOS `setiopolicy_np`; Linux `ioprio_set`|V1,V2
 T11|.|Linux NVML via `dlopen`|V1,V4
 T12|.|`getifaddrs` interface counters (macOS)|V1,V3
 T13|.|TCP connect probe w/ timeout|V2
-T14|.|SPIKE: settle R1–R4; record finding & chosen crate; update root §C deps|-
+T14|x|SPIKE: settle R1–R4; record finding & chosen crate; update root §C deps|-
 T15|.|fixture capture of ∀ sources|V7
 
 ## §B BUGS
