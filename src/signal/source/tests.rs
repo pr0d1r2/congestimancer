@@ -24,6 +24,9 @@ fn an_unscripted_signal_is_unsupported() {
     let mut fake = FakeSource::new();
     let r = fake.read(SignalId::Gpu, Instant::now());
     assert!(matches!(r, Reading::Unsupported { .. }), "{r:?}");
+    fake.script(SignalId::Gpu, []);
+    let empty = fake.read(SignalId::Gpu, Instant::now());
+    assert!(matches!(empty, Reading::Unsupported { .. }), "{empty:?}");
 }
 
 #[test]
