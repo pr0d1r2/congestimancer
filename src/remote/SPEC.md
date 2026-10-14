@@ -47,6 +47,7 @@ V2: remote JSON `schema_version` ≠ supported → exit 69 w/ reason.
 V3: ssh failure (unreachable, auth) → round fails (keep waiting), reason in verbose|heartbeat; ⊥ exit.
 V4: remote `cgmr` missing (exit 127) → exit 69.
 V5: gate args passed as separate argv words, quoted for remote shell; ⊥ injection.
+V6: host H ⊥ starting `-` (refuse, 64) & passed after `--` in ssh argv ∴ ⊥ option injection (`-oProxyCommand=...`).
 
 ## §T TASKS
 
@@ -54,6 +55,7 @@ id|status|task|cites
 T1|.|build remote argv w/ safe quoting|V5
 T2|.|run ssh, parse JSON, version check|V1,V2
 T3|.|failure mapping|V3,V4
+T4|.|host validation & `--` separator|V6
 
 ## §B BUGS
 

@@ -52,6 +52,7 @@ V6: `--io-busy X` ⇔ busy % < X (Linux `io_ticks`; macOS total time deltas).
 V7: `--io-latency D` ⇔ avg time per completed request over interval < D; 0 requests → passes.
 V8: `--io-queue X` ⇔ in-flight < X. Linux only.
 V9: `--io-pressure X` ⇔ PSI `some avg10` < X; `-full` ⇔ `full avg10` < X. Linux only; cgroup `io.pressure` when inside cgroup.
+V10: `--io-device D`: D = `Name` (`src/units:V13`) ∴ ⊥ sysfs path escape.
 
 ## §T TASKS
 
@@ -64,7 +65,7 @@ T5|.|`--io-busy` both OS|V6
 T6|.|`--io-latency` both OS|V7
 T7|.|`--io-queue`|V8
 T8|.|`--io-pressure` & `-full`|V9
-T9|.|`--io-device` override & validation|V1
+T9|.|`--io-device` override & validation|V1,V10
 
 ## §B BUGS
 

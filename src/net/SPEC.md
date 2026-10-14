@@ -47,6 +47,7 @@ V2: `--net-rx X` ⇔ rx B/s < X; `--net-tx X` ⇔ tx B/s < X; `--net X` ⇔ sum 
 V3: `--rtt D` ⇔ TCP connect time to `--rtt-host` < D; port default 443; connect timeout = D (fail = gate fails, ⊥ error exit).
 V4: `--rtt` w/o `--rtt-host` → usage 64.
 V5: counter wrap (32-bit `if_data`) handled → `Warming`, ⊥ huge rate.
+V6: `--net-iface I`: I = `Name` (`src/units:V13`).
 
 ## §T TASKS
 
@@ -56,6 +57,7 @@ T2|.|macOS interface counters|V2,V5
 T3|.|iface selection|V1
 T4|.|`--net-rx` `--net-tx` `--net`|V2
 T5|.|`--rtt` + `--rtt-host`|V3,V4
+T6|.|iface name validation|V6
 
 ## §B BUGS
 

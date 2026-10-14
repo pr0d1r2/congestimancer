@@ -46,6 +46,7 @@ V1: `--gpu X` ⇔ utilisation % < X.
 V2: `--gpu-mem X` ⇔ free GPU memory > X.
 V3: default = ∀ GPUs, worst wins; `--gpu-device I` selects index; unknown I → usage 64.
 V4: no GPU source → `Unsupported`.
+V5: `--gpu-device I`: I = index (`Count`) ∴ ⊥ path segment from user text.
 
 ## §T TASKS
 
@@ -53,7 +54,7 @@ id|status|task|cites
 T1|.|AMD sysfs parser|V1,V2
 T2|.|NVML reads|V1,V2,V4
 T3|.|macOS IOKit GPU stats|V1,V2,V4
-T4|.|device selection & worst-wins|V3
+T4|.|device selection & worst-wins|V3,V5
 
 ## §B BUGS
 

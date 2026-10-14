@@ -37,7 +37,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §I INTERFACES
 
-- types: `Bytes(u64)`, `Rate` (bytes/s), `Percent` (0..=100), `Duration` (std), `Celsius`, `ClockWindow`, `Count(u64)`.
+- types: `Name` (safe identifier), `Bytes(u64)`, `Rate` (bytes/s), `Percent` (0..=100), `Duration` (std), `Celsius`, `ClockWindow`, `Count(u64)`.
 - fns: `parse_<type>(&str) -> Result<T, UnitError>` & `Display` ∀ type.
 
 ## §V INVARIANTS
@@ -54,6 +54,7 @@ V9: overflow → error, ⊥ wrap, ⊥ saturate.
 V10: ∀ parser never panics on any input (proptest).
 V11: `parse(render(x)) == x` ∀ type (proptest).
 V12: error names input & expected form → cli maps to exit 64.
+V13: `Name` = 1..=64 chars of `[A-Za-z0-9._-]`; ⊥ leading `-`, ⊥ `.` | `..` alone ∴ safe as filename, path segment & argv word. else → error (64).
 
 ## §T TASKS
 
@@ -69,6 +70,7 @@ T8|.|locale-independent number lexer|V8
 T9|.|render ∀ type + round-trip proptest|V11
 T10|.|no-panic proptest ∀ parser|V10
 T11|.|`UnitError` w/ input & expected form|V12
+T12|.|`Name` parse & reject list|V13
 
 ## §B BUGS
 

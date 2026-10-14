@@ -52,6 +52,7 @@ V6: `--spacing D`: ≥ D between consecutive starts for key.
 V7: reservation: `--needs-mem X` writes reservation file held by flock until cmd exits; total = Σ live reservations.
 V8: nested: key ∈ `CGMR_HELD_SLOTS` → slot treated as held, ⊥ deadlock.
 V9: slot checks run AFTER gates pass & settle, BEFORE jitter.
+V10: slot key = `src/units` `Name` (`src/units:V13`); cmd basename default sanitised to `Name` | refused ∴ ⊥ path escape from lock dir.
 
 ## §T TASKS
 
@@ -64,6 +65,7 @@ T5|.|spacing|V6
 T6|.|memory reservation ledger|V7
 T7|.|nested held marker|V8
 T8|.|ordering w/ gates, settle, jitter|V9
+T9|.|slot key validation|V10
 
 ## §B BUGS
 
