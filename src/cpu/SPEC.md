@@ -40,18 +40,18 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §I INTERFACES
 
 - switches: `--load X` · `--all-load X` · `--load-window 1m|5m|15m` · `--run-queue X` · `--all-run-queue X` · `--cpu-idle X` · `--cpu-pressure X` · `--steal X`.
-- sources: Linux `/proc/loadavg`|sysinfo, `/proc/stat` (`procs_running`, cpu times, `steal`), `/proc/pressure/cpu` · macOS sysinfo load, `host_processor_info`.
+- sources: Linux `/proc/loadavg`|sysinfo, `/proc/stat` (`procs_running`, cpu times, `steal`), `/proc/pressure/cpu` · macOS sysinfo load, `host_processor_info`, `processor_set_statistics` (run queue).
 
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|macOS run queue|open: does any mach\|sysctl counter give runnable tasks? else `--run-queue` `Unsupported` on macOS|-
+R1|macOS run queue|settled: `processor_set_statistics(processor_set_default, PROCESSOR_SET_LOAD_INFO).load_average` / 1000 = runnable threads, ~5s EWMA (xnu `compute_averages`); unprivileged, ~us. Rejected: `HOST_LOAD_INFO`/`vm.loadavg` (1m+ avg), no `kern.*` runq sysctl, `proc_pidinfo` `pti_numrunning` scan misses root pids. M4 26.5: base 5-8, +20 spinners 30-45 in 2s, back in 2s. Intel unverified (same xnu)|spike M4
 
 ## §V INVARIANTS
 
 V1: `--load X` passes ⇔ load / N < X; `--all-load X` ⇔ load < X.
 V2: `--load-window` default `1m`; selects 1|5|15 min average.
-V3: `--run-queue X` ⇔ running tasks / N < X; `--all-run-queue X` ⇔ running < X. Linux `procs_running`; macOS closest native run-state counter.
+V3: `--run-queue X` ⇔ running tasks / N < X; `--all-run-queue X` ⇔ running < X. Linux `procs_running`; macOS pset `load_average` / 1000 (R1).
 V4: `--cpu-idle X` ⇔ idle % over last interval > X; first sample `Warming`.
 V5: `--cpu-pressure X` ⇔ PSI `some avg10` < X. Linux only; macOS `Unsupported`. inside cgroup → cgroup `cpu.pressure` (`src/cgroup`).
 V6: `--steal X` ⇔ steal % over last interval < X. Linux only.
@@ -64,11 +64,11 @@ T1|.|N from `available_parallelism`, ≥ 1|V7
 T2|.|load avg reader both OS + `--load` `--all-load`|V1
 T3|.|`--load-window`|V2
 T4|.|`/proc/stat` parser: `procs_running`, cpu times, steal|V3,V4,V6
-T5|.|macOS run queue counter|V3
+T5|.|macOS run queue: pset `load_average` / 1000 via `src/sys`|V3
 T6|.|`--cpu-idle` both OS (deltas)|V4
 T7|.|`--cpu-pressure` via shared PSI parser|V5
 T8|.|`--steal`|V6
-T9|.|SPIKE: settle R1|-
+T9|x|SPIKE: settle R1|-
 
 ## §B BUGS
 
