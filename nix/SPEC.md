@@ -56,7 +56,7 @@ V27: overnight build harness = Claude Code workflow (sherd cannot execute waves 
 
 id|status|task|cites
 T1|x|vendor FORMAT files from microlith `v0.7.4`|V2
-T2|.|`flake.nix` dev shell + `.envrc` `use flake`; inputs follow `nixpkgs-lock`; tools pinned by tag. then ASK user to reload & continue|V9
+T2|x|`flake.nix` dev shell + `.envrc` `use flake`; inputs follow `nixpkgs-lock`; tools pinned by tag. then ASK user to reload & continue|V9
 T3|.|guardrails: pklith registry & `hk.pkl` (fast/all), `.githooks/`, hygiene steps, ripsecrets, typos, taplo, nixfmt, actionlint, zizmor, lychee. then ASK user to reload & continue|V15,V19
 T4|.|spec gates: `mth fmt/check`, `.spec-records`, `.context-limits` + `itok check`, `sherd check/budget/sync`, `ceiling-cap`|V2,V3,V4
 T5|.|char & language gates: `.ctrm` + `ctrm check`, `xnl check`, rekall gate|V12,V13,V14
