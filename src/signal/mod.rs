@@ -19,6 +19,7 @@ mod root;
 mod sampled;
 mod sampler;
 mod source;
+mod trend;
 
 pub use clock::{Clock, SystemClock};
 pub use id::SignalId;
@@ -28,6 +29,7 @@ pub use root::Root;
 pub use sampled::{Sample, Sampled, Signal};
 pub use sampler::{Counter, Sampler};
 pub use source::Source;
+pub use trend::{Trend, Trends};
 
 #[cfg(test)]
 pub(crate) use clock::ManualClock;

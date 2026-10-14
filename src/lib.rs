@@ -29,7 +29,8 @@ mod wait;
 
 pub use signal::{
     Clock, Counter, Level, Measure, Reading, Reason, Root, Sample, Sampled,
-    Sampler, Signal, SignalId, SignalSet, Source, SystemClock, refresh,
+    Sampler, Signal, SignalId, SignalSet, Source, SystemClock, Trend, Trends,
+    refresh,
 };
 
 pub use units::{
