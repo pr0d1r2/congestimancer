@@ -7,5 +7,7 @@
 
 mod error;
 mod number;
+mod size;
 
 pub use error::UnitError;
+pub use size::{Bytes, parse_bytes};
