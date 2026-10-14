@@ -14,6 +14,7 @@
 mod clock;
 mod id;
 mod reading;
+mod root;
 mod sampled;
 mod sampler;
 mod source;
@@ -21,6 +22,7 @@ mod source;
 pub use clock::{Clock, SystemClock};
 pub use id::SignalId;
 pub use reading::{Level, Measure, Reading, Reason};
+pub use root::Root;
 pub use sampled::{Sample, Sampled, Signal};
 pub use sampler::{Counter, Sampler};
 pub use source::Source;
