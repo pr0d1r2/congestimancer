@@ -62,7 +62,7 @@ V14: thresholds ⊥ negative; load-like values accept decimals (`--load 0.5`); c
 ## §T TASKS
 
 id|status|task|cites
-T1|.|`Bytes` parse decimal & binary suffixes|V1,V2,V9
+T1|x|`Bytes` parse decimal & binary suffixes|V1,V2,V9
 T2|.|`Rate` parse|V3
 T3|.|`Percent` parse|V4
 T4|.|`Duration` parse, own grammar|V5,V9

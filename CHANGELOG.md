@@ -14,3 +14,5 @@ is a development series, not for production.
 - `UnitError`: every parse error names the input and the form expected.
 - Numbers in every value take `.` as the decimal separator, whatever the
   locale, and a value past 64 bits is an error, never wrapped.
+- `Bytes` and `parse_bytes`: sizes like `10GB` or `1.5GiB`; `KB` is 1000,
+  `KiB` is 1024, units are case insensitive, fractions round down.

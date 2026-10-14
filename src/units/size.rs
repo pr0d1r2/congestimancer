@@ -3,6 +3,7 @@
 use std::str::FromStr;
 
 use super::UnitError;
+use super::number::{self, LexError};
 
 /// The form a size takes, named in every error (src/units:V12).
 const EXPECTED: &str = "a size: a number and B, KB, MB, GB, TB, KiB, MiB, \
@@ -25,10 +26,44 @@ pub struct Bytes(pub u64);
 /// [`UnitError`] naming the input and the form expected: malformed, no
 /// unit or an unknown one, negative, or past `u64` bytes (src/units:V9).
 pub fn parse_bytes(s: &str) -> Result<Bytes, UnitError> {
-    Err(UnitError::Malformed {
-        input: s.to_owned(),
-        expected: EXPECTED,
-    })
+    size(s, s, EXPECTED).map(Bytes)
+}
+
+/// The units a size takes and their multipliers, largest first.
+const UNITS: [(&str, u64); 9] = [
+    ("TiB", 1_099_511_627_776),
+    ("TB", 1_000_000_000_000),
+    ("GiB", 1_073_741_824),
+    ("GB", 1_000_000_000),
+    ("MiB", 1_048_576),
+    ("MB", 1_000_000),
+    ("KiB", 1024),
+    ("KB", 1000),
+    ("B", 1),
+];
+
+/// The bytes in `s`, a number and a unit; errors name `input` and
+/// `expected`, which a caller wrapping the size may widen.
+fn size(
+    s: &str,
+    input: &str,
+    expected: &'static str,
+) -> Result<u64, UnitError> {
+    let (number, unit) = number::split(s);
+    let lexed = number::lex(number).map_err(|e| e.error(input, expected))?;
+    let mult = multiplier(unit)
+        .ok_or_else(|| LexError::Malformed.error(input, expected))?;
+    lexed
+        .times_floor(mult)
+        .ok_or_else(|| LexError::Overflow.error(input, expected))
+}
+
+/// The multiplier of a unit, matched case insensitively.
+fn multiplier(unit: &str) -> Option<u64> {
+    UNITS
+        .iter()
+        .find(|(name, _)| name.eq_ignore_ascii_case(unit))
+        .map(|&(_, mult)| mult)
 }
 
 impl FromStr for Bytes {
