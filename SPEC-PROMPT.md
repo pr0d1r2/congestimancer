@@ -91,6 +91,8 @@ scope for building; nothing is deferred.
 4. cgmr `exec`s the command once gates pass (no parent process left): exit code and signals
    pass through naturally. `--slots` locks use `flock` on an open file descriptor without
    close-on-exec, so the lock is held by the command and released when it exits.
+   Exception: `--govern` (see docs/CONGESTION.md) spawns the command and stays as parent,
+   forwarding SIGINT, SIGTERM and SIGHUP and exiting with the command's exit code.
 5. Exit codes: the command's own code once it runs; reserved codes otherwise:
    124 = `--timeout` reached (like `timeout(1)`), 64 = bad arguments (EX_USAGE),
    69 = gate unsupported on this OS (EX_UNAVAILABLE).
@@ -141,24 +143,29 @@ scope for building; nothing is deferred.
     - `--mem X`: available / N > X; `--all-mem X`: available > X.
     - `--disk X`: free space on the path > X.
     - `--io-read X`, `--io-write X`, `--io X`: measured rate < X.
-    - `--*-pressure X`: PSI `some avg10` < X (percent) on Linux; macOS maps to its native
-      signal per the platform policy (e.g. pressure level must be normal).
-18. Fairness (FIFO queue among waiters) is a non-goal for v1; possible later as FIFO slots.
+    - `--*-pressure X`: PSI `some avg10` < X (percent), Linux only. macOS has its own gate,
+      `--mem-level normal|warning`, instead of a mapping.
+    - All other gates: see docs/CONGESTION.md.
+18. Fairness is in scope: `--fifo` with `--slots` starts waiters in arrival order.
 19. Every gate and control switch has an environment variable default (`CGMR_LOAD`,
     `CGMR_MEM`, `CGMR_TIMEOUT`, ...). Precedence: CLI flag > env var > built-in default.
+    Exception: `--when` has no environment variable, so the environment cannot inject a
+    command.
 20. Distribution: `cargo install congestimancer` and a nix flake package (`nix build`,
     `nix run`). No Homebrew tap or prebuilt binaries for now.
 21. stdout belongs to the command. cgmr writes diagnostics only to stderr; the only exception is
     `status` / `--json` output, which goes to stdout.
 22. JSON output has a `schema_version` field and stable field names; breaking changes bump it.
-23. SIGINT / SIGTERM while waiting: exit 130 / 143; the command never runs.
+23. SIGINT / SIGTERM while waiting: keep the default signal behaviour (the process dies and
+    the shell reports 130 / 143); the command never runs. No signal handler crate.
 24. Exit code collision: if the command itself exits 124, 64 or 69, the caller cannot tell it
     apart from cgmr's own code (same as `timeout(1)`). Document this; `--verbose` and `--json`
     show the source.
 25. cgmr must be cheap: 100 waiting instances must not add measurable load. Sleep between
     polls, refresh only the metrics the requested gates need, never busy-loop.
 26. Time: monotonic clock for `--settle`, `--timeout`, `--interval` and IO rate windows.
-    Durations parsed with `humantime` (`10s`, `1h`, `1h30m`).
+    Durations parsed by cgmr's own parser (`ms`, `s`, `m`, `h`, `d` and combinations such
+    as `1h30m`); no `humantime` dependency.
 27. Slot lock directory: per user, mode 0700, in `$XDG_RUNTIME_DIR` if set, otherwise
     `$TMPDIR` (macOS) or a per-user directory under `/tmp`. Never share locks between users.
 28. Non-standard working directories:
