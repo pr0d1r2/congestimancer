@@ -1,0 +1,4 @@
+# Commits exempt from tdd-order (nix:V7): full id, then the reason. Only a
+# commit already on main that cannot be rewritten belongs here, each with a
+# nix SPEC B row.
+baa383bc2a9f9ebdf16c7ead679cdc1cad933b64 nix T6 scaffold: lib.rs re-exports nothing and both main.rs files are an empty fn main, so there was no behaviour for a RED test to pin (nix:B1)

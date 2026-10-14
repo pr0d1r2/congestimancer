@@ -61,7 +61,7 @@ T3|x|guardrails: pklith registry & `hk.pkl` (fast/all), `.githooks/`, hygiene st
 T4|x|spec gates: `mth fmt/check`, `.spec-records`, `.context-limits` + `itok check`, `sherd check/budget/sync`, `ceiling-cap`|V2,V3,V4
 T5|x|char & language gates: `.ctrm` + `ctrm check`, `xnl check`, rekall gate|V12,V13,V14
 T6|x|cargo workspace: lib + bin `cgmr` + `dev` crate; lints, `clippy.toml`, `rustfmt.toml`, `deny.toml`, `exclude`, `must-package`|V10,V11,`.:V21`
-T7|~|test gates: rust-mirror, tdd-order, module-size, coverage floor & `.coverage` ceiling w/ LLVM major check|V5,V6,V7,V16
+T7|x|test gates: rust-mirror, tdd-order, module-size, coverage floor & `.coverage` ceiling w/ LLVM major check|V5,V6,V7,V16
 T8|.|commit-msg lint & changelog-touched; CHANGELOG, README (badges block), LICENSE MIT, AGENTS.md|V8
 T9|.|unsafe gate: hk step FAILS on `allow(unsafe_code)` outside `src/sys`|V11
 T10|.|`ci.yml` 3-runner matrix|V23

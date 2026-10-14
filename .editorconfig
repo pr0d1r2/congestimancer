@@ -9,3 +9,9 @@ indent_style = space
 
 [{Makefile,*.mk,go.mod,*.go}]
 indent_style = tab
+
+# shfmt reads its indent from here; case bodies stay unindented, as in the
+# guard scripts copied from xenolith.
+[*.sh]
+indent_size = 2
+switch_case_indent = false

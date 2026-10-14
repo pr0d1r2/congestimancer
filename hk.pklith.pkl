@@ -49,6 +49,11 @@ steps: Mapping<String, Config.Step> = new {
     check = "command -v nixfmt >/dev/null 2>&1 || { echo 'nixfmt: nixfmt is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; nixfmt --check {{files}} || { echo 'nixfmt: nix file not formatted' >&2; exit 1; }"
     fix = "nixfmt {{files}}"
   }
+  ["shfmt"] {
+    glob = List("**/*.sh", "**/*.bash")
+    check = "command -v shfmt >/dev/null 2>&1 || { echo 'shfmt: shfmt is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; shfmt --diff {{files}} || { echo 'shfmt: shell script not formatted' >&2; exit 1; }"
+    fix = "shfmt --write {{files}}"
+  }
   ["taplo"] {
     glob = List("**/*.toml")
     check = "command -v taplo >/dev/null 2>&1 || { echo 'taplo: taplo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; taplo fmt --check {{files}} || { echo 'taplo: TOML not formatted or not parseable' >&2; exit 1; }"
@@ -62,6 +67,10 @@ steps: Mapping<String, Config.Step> = new {
   ["typos"] {
     glob = List("**/*")
     check = "command -v typos >/dev/null 2>&1 || { echo 'typos: typos is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; typos --force-exclude {{files}} || { echo 'typos: misspelling; fix it or teach .typos.toml' >&2; exit 1; }"
+  }
+  ["shellcheck"] {
+    glob = List("**/*.sh", "**/*.bash", ".envrc")
+    check = "command -v shellcheck >/dev/null 2>&1 || { echo 'shellcheck: shellcheck is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; shellcheck {{files}} || { echo 'shellcheck: shell script finding' >&2; exit 1; }"
   }
   ["clippy"] {
     glob = List("**/*.rs", "Cargo.toml", "clippy.toml")
@@ -107,6 +116,14 @@ steps: Mapping<String, Config.Step> = new {
     glob = List("AGENTS.md", "CLAUDE.md", "rekall.toml")
     check = "command -v rekall >/dev/null 2>&1 || { echo 'rekall: rekall is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; rekall check || { echo 'rekall: agent prose drifted from the rules rekall extracted from it; run rekall scan and settle the drift (nix:V14)' >&2; exit 1; }"
   }
+  ["rust-mirror"] {
+    glob = List("**/*.rs", "nix/guard/rust-mirror.sh")
+    check = "command -v bash >/dev/null 2>&1 || { echo 'rust-mirror: bash is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; bash nix/guard/rust-mirror.sh || { echo 'rust-mirror: a Rust file with logic has no sibling tests.rs wired by #[cfg(test)] mod tests; (nix:V6)' >&2; exit 1; }"
+  }
+  ["module-size"] {
+    glob = List("**/*.rs", "nix/guard/module-size.sh")
+    check = "command -v bash >/dev/null 2>&1 || { echo 'module-size: bash is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; bash nix/guard/module-size.sh || { echo 'module-size: a Rust module is over 500 code lines or 1000 lines; split it (nix:V16)' >&2; exit 1; }"
+  }
   ["cargo-deny"] {
     glob = List("Cargo.toml", "Cargo.lock", "deny.toml", "dev/Cargo.toml")
     check = "command -v cargo >/dev/null 2>&1 || { echo 'cargo-deny: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; command -v cargo-deny >/dev/null 2>&1 || { echo 'cargo-deny: cargo-deny is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo deny --all-features check bans licenses sources advisories || { echo 'cargo-deny: a dependency breaks deny.toml: banned or duplicate version, licence outside the allow list, unknown source, or advisory (nix:V10)' >&2; exit 1; }"
@@ -145,6 +162,10 @@ steps: Mapping<String, Config.Step> = new {
     glob = List(".context-limits", "nix/ceiling-cap.awk")
     check = "command -v awk >/dev/null 2>&1 || { echo 'ceiling-cap: awk is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; awk -f nix/ceiling-cap.awk .context-limits || { echo 'ceiling-cap: a .context-limits ceiling is over its cap (SPEC.md file 3500, chain 5500); split the node with sherd split instead of raising (nix:V3)' >&2; exit 1; }"
   }
+  ["cargo-test"] {
+    glob = List("**/*.rs", "Cargo.toml", "Cargo.lock", "dev/Cargo.toml")
+    check = "command -v cargo >/dev/null 2>&1 || { echo 'cargo-test: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo test --workspace --quiet || { echo 'cargo-test: a test fails; fix the code or, if the spec changed, backprop it first' >&2; exit 1; }"
+  }
   ["gen-check"] {
     glob = List(".pklith", "hk.pklith.pkl", "nix/pklith.nix")
     check = "command -v pklith >/dev/null 2>&1 || { echo 'gen-check: pklith is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; pklith gen --check || { echo 'gen-check: hk.pklith.pkl or nix/pklith.nix no longer matches .pklith; run pklith gen' >&2; exit 1; }"
@@ -153,6 +174,15 @@ steps: Mapping<String, Config.Step> = new {
 }
 
 push: Mapping<String, Config.Step> = new {
+  ["tdd-order"] {
+    glob = List("**/*.rs", "nix/guard/tdd-order.sh", "nix/guard/tdd-order.exempt")
+    check = "command -v bash >/dev/null 2>&1 || { echo 'tdd-order: bash is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; bash nix/guard/tdd-order.sh || { echo 'tdd-order: a commit adds Rust code with no test: commit before it in the push range (nix:V7)' >&2; exit 1; }"
+  }
+  ["coverage"] {
+    glob = List("**/*.rs", ".coverage", "nix/guard/coverage.sh")
+    check = "command -v bash >/dev/null 2>&1 || { echo 'coverage: bash is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; bash nix/guard/coverage.sh || { echo 'coverage: line coverage is below the floor, or .coverage overstates or lags the measurement (nix:V5)' >&2; exit 1; }"
+    fix = "bash nix/guard/coverage.sh --fix"
+  }
   ["pklith-check"] {
     glob = List("**/*")
     check = "command -v pklith >/dev/null 2>&1 || { echo 'pklith-check: pklith is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; pklith check || { echo 'pklith-check: a tracked file type has no row in .pklith, a row matches nothing, or a claimed check never reaches its files' >&2; exit 1; }"

@@ -137,6 +137,11 @@
         let
           system = pkgs.stdenv.hostPlatform.system;
           absent = missing system;
+          coverageLlvm = pkgs.llvmPackages_21.llvm;
+          coverageEnv = {
+            LLVM_COV = "${coverageLlvm}/bin/llvm-cov";
+            LLVM_PROFDATA = "${coverageLlvm}/bin/llvm-profdata";
+          };
           toolchain = [
             pkgs.rustc
             pkgs.cargo
@@ -144,6 +149,10 @@
             pkgs.rustfmt
             # Dependency policy gate (deny.toml, nix:V10).
             pkgs.cargo-deny
+            # Line coverage (nix:V5); the llvm that reads its data must match
+            # the LLVM major rustc was built against (21 for rustc 1.95).
+            pkgs.cargo-llvm-cov
+            coverageLlvm
             # `nixfmt --check` gates this file.
             pkgs.nixfmt
           ]
@@ -172,6 +181,7 @@
                   nativeBuildInputs = toolchain ++ old.nativeBuildInputs;
                   # Deterministic tool output across machines.
                   LANG = "C.UTF-8";
+                  inherit (coverageEnv) LLVM_COV LLVM_PROFDATA;
                   shellHook = old.shellHook + warn;
                 })
             else
@@ -181,6 +191,7 @@
                   pkgs.git
                 ];
                 LANG = "C.UTF-8";
+                inherit (coverageEnv) LLVM_COV LLVM_PROFDATA;
                 shellHook = warn;
               };
         }
