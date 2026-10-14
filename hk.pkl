@@ -13,6 +13,21 @@ hooks {
     stash = "git"
     steps = generated.steps
   }
+  // nix:V8: the message style, then the changelog rule. Only the message
+  // says which kind a change is, so both live here, not in pre-commit.
+  ["commit-msg"] {
+    steps {
+      ["commit-msg"] {
+        check = "cargo run -q -p congestimancer-dev -- commit-msg {{commit_msg_file}}"
+      }
+      // After commit-msg, never beside it: two cargo runs at once contend
+      // for the target directory lock (nix:V17).
+      ["changelog-touched"] {
+        check = "cargo run -q -p congestimancer-dev -- changelog {{commit_msg_file}}"
+        depends = List("commit-msg")
+      }
+    }
+  }
   ["pre-push"] {
     steps = all
   }
