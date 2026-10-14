@@ -69,7 +69,7 @@ T4|.|`Duration` parse, own grammar|V5,V9
 T5|.|`Celsius` parse|V6
 T6|.|`ClockWindow` parse & contains(time), midnight wrap|V7
 T7|.|`Count` parse|V9
-T8|.|locale-independent number lexer|V8
+T8|x|locale-independent number lexer|V8
 T9|.|render ∀ type + round-trip proptest|V11
 T10|.|no-panic proptest ∀ parser|V10
 T11|x|`UnitError` w/ input & expected form|V12

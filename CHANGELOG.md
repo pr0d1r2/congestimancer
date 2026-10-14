@@ -12,3 +12,5 @@ is a development series, not for production.
 ### Added
 
 - `UnitError`: every parse error names the input and the form expected.
+- Numbers in every value take `.` as the decimal separator, whatever the
+  locale, and a value past 64 bits is an error, never wrapped.
