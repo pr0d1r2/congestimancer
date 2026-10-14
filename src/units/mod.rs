@@ -6,5 +6,6 @@
 //! (src:V3).
 
 mod error;
+mod number;
 
 pub use error::UnitError;
