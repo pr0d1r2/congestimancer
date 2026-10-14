@@ -12,11 +12,12 @@ self|docs|human reference: `CONGESTION.md`, CLI guide, LLM disclaimer, third-par
 sib|src|the tool: units, signal model, OS facade, every congestion domain, gates, waiting, slots, launch, remote, report, CLI
 sib|tests|integration tests driving `cgmr` binary, dogfood tests, fixtures, real-machine tests
 sib|dev|`congestimancer-dev`, `publish = false`: README badges, notices closure, AGENTS step table & their drift checks
+sib|nix|repo gate: dev shell, guardrails, hk steps, spec & token gates, CI, release, real-machine runs
 
 ## §C CONSTRAINTS
 
 - files: `CONGESTION.md` (exists), `CLI.md`, `INTEGRATION.md`, `SECURITY.md`, `THIRD-PARTY-NOTICES.md`, `LLM-DISCLAIMER.md`.
-- plain prose, ASCII only (`.:V12`).
+- plain prose, ASCII only (`nix:V12`).
 
 ## §V INVARIANTS
 

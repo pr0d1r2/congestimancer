@@ -12,6 +12,7 @@ self|tests|integration tests driving `cgmr` binary, dogfood tests, fixtures, rea
 sib|src|the tool: units, signal model, OS facade, every congestion domain, gates, waiting, slots, launch, remote, report, CLI
 sib|docs|human reference: `CONGESTION.md`, CLI guide, LLM disclaimer, third-party notices
 sib|dev|`congestimancer-dev`, `publish = false`: README badges, notices closure, AGENTS step table & their drift checks
+sib|nix|repo gate: dev shell, guardrails, hk steps, spec & token gates, CI, release, real-machine runs
 
 ## §C CONSTRAINTS
 
@@ -23,7 +24,7 @@ sib|dev|`congestimancer-dev`, `publish = false`: README badges, notices closure,
 V1: CLI tests run binary w/ `CGMR_FIXTURE_ROOT` → fixture tree; ⊥ live machine.
 V2: ∀ exit code ∈ `.` §I covered by a CLI test.
 V3: ∀ switch ∈ `docs/CONGESTION.md` parsed & reaches its gate in a CLI test (parity, `.:V18`).
-V4: real-machine tests `#[ignore]`; run by `cargo test -- --ignored` on test hosts (`.:V20`); assert readings plausible, ⊥ exact values.
+V4: real-machine tests `#[ignore]`; run by `cargo test -- --ignored` on test hosts (`nix:V20`); assert readings plausible, ⊥ exact values.
 V5: dogfood test: `cgmr check` on own machine exits 0|1, ⊥ 64|69 for gates supported on host OS.
 V6: fixtures captured from real hosts named by OS & arch in path (e.g. `cpu/linux-x86_64/stat`).
 

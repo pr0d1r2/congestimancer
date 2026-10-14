@@ -37,6 +37,7 @@ self|src|the tool: units, signal model, OS facade, every congestion domain, gate
 sib|tests|integration tests driving `cgmr` binary, dogfood tests, fixtures, real-machine tests
 sib|docs|human reference: `CONGESTION.md`, CLI guide, LLM disclaimer, third-party notices
 sib|dev|`congestimancer-dev`, `publish = false`: README badges, notices closure, AGENTS step table & their drift checks
+sib|nix|repo gate: dev shell, guardrails, hk steps, spec & token gates, CI, release, real-machine runs
 
 ## §C CONSTRAINTS
 

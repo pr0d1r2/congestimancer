@@ -13,7 +13,7 @@ self|src/sys|OS facade: ∀ syscalls, FFI, `sysinfo`, `rustix`, `libc`; only nod
 ## §C CONSTRAINTS
 
 - facade ∀ `sysinfo`, `rustix`, `libc`. prefer safe crate over raw FFI when it covers the call.
-- `#[allow(unsafe_code)]` scoped to FFI submodules here; ⊥ elsewhere (`.:V11`).
+- `#[allow(unsafe_code)]` scoped to FFI submodules here; ⊥ elsewhere (`nix:V11`).
 - `cfg(target_os)` per platform; other OS → `Unsupported`.
 
 ## §I INTERFACES
