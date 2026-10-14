@@ -47,6 +47,16 @@ All methods listed here are in scope. None is deferred.
 - **Every switch has an environment variable**: `--foo-bar` reads
   `CGMR_FOO_BAR` when the flag is not given. A CLI flag beats the environment
   variable, which beats the built-in default.
+  - Value switches use the same text as on the command line.
+  - Boolean switches accept `1`, `true`, `yes` (on) and `0`, `false`,
+    `no` (off).
+  - Repeatable switches take comma-separated items, for example
+    `CGMR_MAX_PROCS="rustc*=4,cargo=2"`.
+  - An unknown `CGMR_*` variable gives a warning that names the closest
+    known one.
+- **Switches given twice are an error** (exit 64), except the repeatable
+  `--max-procs` and `--max-user-procs`.
+- **`--quiet`** hides warnings. **`--version`** prints the version.
 
 ## Verbs
 

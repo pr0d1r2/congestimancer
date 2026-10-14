@@ -52,6 +52,10 @@ V5: exit-code collision (cmd itself exits 124|64|69) documented in `--help` & `d
 V6: `--help` shows examples ∀ verb.
 V7: switch names & env names generated from one table ∴ `docs/CONGESTION.md` parity testable (`.:V18`).
 V8: `CGMR_FIXTURE_ROOT` read once in `main`, passed down as `Root`; ⊥ `set_var`.
+V9: single-value switch given twice → usage error 64; only `--max-procs`, `--max-user-procs` repeat.
+V10: env formats: value switch = same text as CLI · boolean switch = `1|true|yes` on, `0|false|no` off, else 64 · repeatable switch = comma-separated items (`CGMR_MAX_PROCS="rustc*=4,cargo=2"`).
+V11: unknown `CGMR_*` var (not in switch table & not `CGMR_DOGFOOD`, `CGMR_FIXTURE_ROOT`, `CGMR_HELD_SLOTS`, `CGMR_PROFILE_FILE`) → warning on stderr naming nearest known var; ⊥ exit.
+V12: `--quiet` suppresses warnings (⊥ errors, ⊥ `status` output); `--version` prints crate version.
 
 ## §T TASKS
 
@@ -62,6 +66,10 @@ T3|.|exit code mapping|V4
 T4|.|help text w/ examples & collision note|V5,V6
 T5|.|`completions` & `man` verbs|V6
 T6|.|fixture root & dogfood plumbing|V8
+T7|.|repeat rule|V9
+T8|.|env value formats|V10
+T9|.|unknown env warning w/ nearest-name hint|V11
+T10|.|`--quiet` & `--version`|V12
 
 ## §B BUGS
 

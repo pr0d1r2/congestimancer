@@ -48,6 +48,7 @@ V3: colour only when stream is a TTY & `NO_COLOR` unset.
 V4: `--verbose` names each blocking gate w/ value, threshold, trend.
 V5: unsupported signals listed in `status` w/ reason, ⊥ hidden.
 V6: numbers rendered w/ `.` decimal, locale ignored.
+V7: warnings go through one fn honouring `--quiet` (`src/cli:V12`).
 
 ## §T TASKS
 
@@ -57,6 +58,7 @@ T2|.|human status table|V5,V6
 T3|.|stream routing|V2
 T4|.|colour policy|V3
 T5|.|verbose reasons & heartbeat line|V4
+T6|.|warning sink w/ quiet|V7
 
 ## §B BUGS
 
