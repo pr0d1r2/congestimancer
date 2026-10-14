@@ -1,0 +1,5 @@
+# Sets this repository declares, over ctrm's built-in presets.
+
+# Spec notation: caveman logic symbols plus the dashes and minus sign the
+# specs use (`R1-R4` ranges, `a - b` arithmetic, em dash in goal lines).
+spec caveman typography

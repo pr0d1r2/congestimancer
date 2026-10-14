@@ -89,6 +89,15 @@ steps: Mapping<String, Config.Step> = new {
     glob = List("**/*.md")
     check = "command -v lychee >/dev/null 2>&1 || { echo 'lychee: lychee is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; lychee --offline --no-progress {{files}} || { echo 'lychee: a markdown link points at a file or anchor that does not exist; fix the link (offline: external URLs are not fetched)' >&2; exit 1; }"
   }
+  ["ctrm"] {
+    glob = List("**/*")
+    check = "command -v ctrm >/dev/null 2>&1 || { echo 'ctrm: ctrm is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; ctrm check {{files}} || { echo 'ctrm: a file holds a character its set does not grant; fix it, or grant it in .ctrm and say why in the commit (nix:V12)' >&2; exit 1; }"
+    fix = "ctrm fix {{files}}"
+  }
+  ["rekall"] {
+    glob = List("AGENTS.md", "CLAUDE.md", "rekall.toml")
+    check = "command -v rekall >/dev/null 2>&1 || { echo 'rekall: rekall is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; rekall check || { echo 'rekall: agent prose drifted from the rules rekall extracted from it; run rekall scan and settle the drift (nix:V14)' >&2; exit 1; }"
+  }
   ["mth-fmt"] {
     glob = List("**/SPEC.md")
     check = #"command -v mth >/dev/null 2>&1 || { echo 'mth-fmt: mth is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; (for f in {{files}}; do mth fmt --check "$f" || exit 1; done) || { echo 'mth-fmt: SPEC.md is hard-wrapped or over the line cap' >&2; exit 1; }"#

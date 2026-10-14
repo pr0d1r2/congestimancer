@@ -1,0 +1,17 @@
+# Written by `rekall init`. Roots are what existed when it ran.
+#
+# PROJECT roots only. A USER root -- your memory dir, your `~/.claude` --
+# is deliberately absent even when `init` found one: this file is TRACKED,
+# and a home path here would follow the repo into every checkout & drag
+# private memory into anyone else`s scan (V36).
+#
+# Nothing is lost. `[sources].roots` UNION across scopes, so your own
+# `~/.config/rekall/rekall.toml` still contributes its roots -- which is
+# the entire reason two scopes exist.
+
+[sources]
+roots = ["AGENTS.md"]
+
+# Looked for and not found. Uncomment to add:
+#   "CLAUDE.md"
+#   ".claude/skills"

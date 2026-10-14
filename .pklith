@@ -12,11 +12,15 @@ lychee|lint|lychee|**/*.md|lychee --offline --no-progress {{files}}|-|-|a markdo
 gen-check|gate|-|.pklith, hk.pklith.pkl, nix/pklith.nix|pklith gen --check|pklith gen|-|hk.pklith.pkl or nix/pklith.nix no longer matches .pklith; run pklith gen
 spec-records|spec|microlith|SPEC.md, .spec-records|mth check --records .spec-records SPEC.md|-|-|a rejected option recorded in .spec-records was edited out of SPEC.md; restore the record or remove it from .spec-records in its own reviewed commit
 ceiling-cap|spec|gawk|.context-limits, nix/ceiling-cap.awk|awk -f nix/ceiling-cap.awk .context-limits|-|-|a .context-limits ceiling is over its cap (SPEC.md file 3500, chain 5500); split the node with sherd split instead of raising (nix:V3)
+ctrm|lint|-|**/*|ctrm check {{files}}|ctrm fix {{files}}|-|a file holds a character its set does not grant; fix it, or grant it in .ctrm and say why in the commit (nix:V12)
+xnl-check|lint|-|**/*.nix, **/*.pkl, **/*.awk, .envrc, .githooks/*|xnl check {{files}}|-|-|a host file embeds a non-trivial program in another language; extract it with xnl extract (nix:V13)
+xnl-lint|lint|-|**/*.nix, **/*.pkl, **/*.awk, .envrc, .githooks/*|xnl lint {{files}}|xnl lint --fix {{files}}|-|an embedded or extracted program fails its own language's linter (nix:V13)
+rekall|lint|-|AGENTS.md, CLAUDE.md, rekall.toml|rekall check|-|-|agent prose drifted from the rules rekall extracted from it; run rekall scan and settle the drift (nix:V14)
 pklith-check|coverage|-|**/*|pklith check|-|-|a tracked file type has no row in .pklith, a row matches nothing, or a claimed check never reaches its files
 
 ## types
 type|checks|min|exempt
-*|trailing-whitespace, final-newline, line-endings, no-bom, no-merge-conflict, no-case-conflict, no-broken-symlinks, no-private-key, ripsecrets, typos, editorconfig-checker, no-local-paths, itok, pklith-check|-|-
+*|trailing-whitespace, final-newline, line-endings, no-bom, no-merge-conflict, no-case-conflict, no-broken-symlinks, no-private-key, ripsecrets, typos, editorconfig-checker, no-local-paths, itok, pklith-check, ctrm|-|-
 editorconfig|-|-|written by pklith (seed or gen)
 gitattributes|-|-|written by pklith (seed or gen)
 md|markdownlint, lychee|-|-
@@ -36,6 +40,10 @@ path:FORMAT.md|-|-|vendored from microlith v0.7.4, unmodified (`.format-upstream
 path:FORMAT-EXTENSIONS.md|-|-|vendored from microlith v0.7.4, unmodified
 path:SPEC-PROMPT.md|-|-|historical input, kept unchanged
 path:.markdownlintignore|-|-|ignore list read by markdownlint, no syntax to check
+path:.ctrm|-|-|ctrm config, read and validated by the ctrm step on every file
+path:.ctrm-sets|-|-|ctrm set declarations, read and validated by the ctrm step
+path:rekall.toml|rekall, taplo|-|-
+path:AGENTS.md|markdownlint, rekall|-|-
 toml|taplo|-|-
 awk|gawk-lint|-|-
 yaml|yamllint|-|-
