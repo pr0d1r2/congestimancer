@@ -68,7 +68,7 @@ T3|x|`Percent` parse|V4
 T4|x|`Duration` parse, own grammar|V5,V9
 T5|x|`Celsius` parse|V6
 T6|x|`ClockWindow` parse & contains(time), midnight wrap|V7
-T7|.|`Count` parse|V9
+T7|x|`Count` parse|V9
 T8|x|locale-independent number lexer|V8
 T9|.|render ∀ type + round-trip proptest|V11
 T10|.|no-panic proptest ∀ parser|V10

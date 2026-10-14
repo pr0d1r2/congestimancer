@@ -1,11 +1,6 @@
 //! The number lexer every parser shares: `digits[.digits]`, with `.` the
 //! only decimal separator and the locale never read (src/units:V8).
 
-#![cfg_attr(
-    not(test),
-    expect(dead_code, reason = "the parsers that use it land next")
-)]
-
 use super::UnitError;
 
 /// The most fractional digits a number may carry, trailing zeros aside:

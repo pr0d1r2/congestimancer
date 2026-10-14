@@ -3,7 +3,7 @@
 use std::str::FromStr;
 
 use super::UnitError;
-use super::number::LexError;
+use super::number::{self, LexError};
 
 /// The form a count takes, named in every error (src/units:V12).
 const EXPECTED: &str = "a whole number, like 4";
@@ -22,7 +22,12 @@ pub struct Count(pub u64);
 /// [`UnitError`] naming the input and the form expected: not digits alone,
 /// negative, or past `u64`.
 pub fn parse_count(s: &str) -> Result<Count, UnitError> {
-    Err(LexError::Malformed.error(s, EXPECTED))
+    let whole = if s.contains('.') {
+        Err(LexError::Malformed)
+    } else {
+        number::lex(s).and_then(|l| l.whole().ok_or(LexError::Malformed))
+    };
+    whole.map(Count).map_err(|e| e.error(s, EXPECTED))
 }
 
 impl FromStr for Count {

@@ -23,3 +23,4 @@ is a development series, not for production.
 - `Celsius` and `parse_celsius`: temperatures like `85C` or `72.5C`.
 - `ClockWindow`, `ClockTime` and `parse_clock_window`: daily windows like
   `22:00-06:00` in local time, wrapping midnight when start is after end.
+- `Count` and `parse_count`: whole numbers of things; a decimal is an error.
