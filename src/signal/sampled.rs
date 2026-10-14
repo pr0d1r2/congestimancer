@@ -59,8 +59,14 @@ impl<S> Sampled<S> {
 
 impl<S: Signal> Source for Sampled<S> {
     fn read(&mut self, id: SignalId, now: Instant) -> Reading {
-        let _ = (&mut self.sampler, id, now);
-        Reading::Warming
+        match self.signal.sample(id) {
+            Sample::Gauge(measure) => Reading::Value(measure),
+            Sample::Counter(counter) => self.sampler.update(id, counter, now),
+            Sample::Unsupported(reason) => {
+                self.sampler.forget(id);
+                Reading::Unsupported { reason }
+            }
+        }
     }
 }
 

@@ -38,3 +38,7 @@ is a development series, not for production.
   `warming up` before a rate has two samples, or `unsupported: <reason>`.
 - `Source` and `Clock` traits, and `SystemClock`: every reading is taken at
   a monotonic instant, and every interval is measured on a `Clock`.
+- `Signal`, `Sample`, `Sampled`, `Sampler` and `Counter`: rates and
+  interval percents come from two samples of a running total; the first
+  sample, and any sample after a counter goes back, reads `warming up`,
+  never zero and never negative.
