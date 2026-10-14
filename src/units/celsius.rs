@@ -3,7 +3,7 @@
 use std::str::FromStr;
 
 use super::UnitError;
-use super::number::LexError;
+use super::number::{self, LexError};
 
 /// The form a temperature takes, named in every error (src/units:V12).
 const EXPECTED: &str = "a temperature in degrees Celsius with at most 1 \
@@ -20,20 +20,20 @@ pub struct Celsius(u32);
 impl Celsius {
     /// The temperature of `tenths` tenths of a degree.
     #[must_use]
-    pub const fn from_tenths(_tenths: u32) -> Self {
-        Self(0)
+    pub const fn from_tenths(tenths: u32) -> Self {
+        Self(tenths)
     }
 
     /// The temperature in tenths of a degree: `72.5C` is 725.
     #[must_use]
     pub const fn tenths(self) -> u32 {
-        0
+        self.0
     }
 
     /// The temperature as a float: `72.5C` is 72.5.
     #[must_use]
     pub fn as_f64(self) -> f64 {
-        0.0
+        f64::from(self.0) / 10.0
     }
 }
 
@@ -44,7 +44,14 @@ impl Celsius {
 /// [`UnitError`] naming the input and the form expected: no `C`,
 /// malformed, more than one decimal, negative, or past `u32` tenths.
 pub fn parse_celsius(s: &str) -> Result<Celsius, UnitError> {
-    Err(LexError::Malformed.error(s, EXPECTED))
+    let number = s.strip_suffix(['C', 'c']);
+    let tenths = number
+        .ok_or(LexError::Malformed)
+        .and_then(number::lex)
+        .and_then(|l| l.scaled(1))
+        .and_then(|t| u32::try_from(t).map_err(|_| LexError::Overflow))
+        .map_err(|e| e.error(s, EXPECTED))?;
+    Ok(Celsius(tenths))
 }
 
 impl FromStr for Celsius {

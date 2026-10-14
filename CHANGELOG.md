@@ -20,3 +20,4 @@ is a development series, not for production.
 - `Percent` and `parse_percent`: 0 to 100 with an optional `%`, like `12.5%`.
 - `parse_duration`: durations like `1h30m` or `500ms`, units `d h m s ms`
   largest first; a bare number is an error.
+- `Celsius` and `parse_celsius`: temperatures like `85C` or `72.5C`.
