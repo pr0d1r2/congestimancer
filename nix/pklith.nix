@@ -4,6 +4,7 @@
 catalog: [
   catalog.deadnix
   catalog.editorconfig-checker
+  catalog.gawk
   catalog.gnugrep
   catalog.itok
   catalog.lychee

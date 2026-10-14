@@ -77,6 +77,10 @@ steps: Mapping<String, Config.Step> = new {
     glob = List("**/*.yml", "**/*.yaml")
     check = "command -v yamllint >/dev/null 2>&1 || { echo 'yamllint: yamllint is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; yamllint {{files}} || { echo 'yamllint: YAML error; yamllint names the rule' >&2; exit 1; }"
   }
+  ["gawk-lint"] {
+    glob = List("**/*.awk")
+    check = #"command -v gawk >/dev/null 2>&1 || { echo 'gawk-lint: gawk is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; (for f in {{files}}; do gawk --lint=fatal --pretty-print=/dev/null -f "$f" || exit 1; done) || { echo 'gawk-lint: awk script does not parse, or trips gawk'\''s lint' >&2; exit 1; }"#
+  }
   ["editorconfig-checker"] {
     glob = List("**/*")
     check = "command -v editorconfig-checker >/dev/null 2>&1 || { echo 'editorconfig-checker: editorconfig-checker is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; editorconfig-checker {{files}} || { echo 'editorconfig-checker: file breaks its .editorconfig (indent, line ends, final newline)' >&2; exit 1; }"
@@ -110,6 +114,14 @@ steps: Mapping<String, Config.Step> = new {
   ["itok"] {
     glob = List("**/*", ".context-limits")
     check = "command -v itok >/dev/null 2>&1 || { echo 'itok: itok is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; itok check || { echo 'itok: a file registered in .context-limits is over its token ceiling' >&2; exit 1; }"
+  }
+  ["spec-records"] {
+    glob = List("SPEC.md", ".spec-records")
+    check = "command -v mth >/dev/null 2>&1 || { echo 'spec-records: mth is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; mth check --records .spec-records SPEC.md || { echo 'spec-records: a rejected option recorded in .spec-records was edited out of SPEC.md; restore the record or remove it from .spec-records in its own reviewed commit' >&2; exit 1; }"
+  }
+  ["ceiling-cap"] {
+    glob = List(".context-limits", "nix/ceiling-cap.awk")
+    check = "command -v awk >/dev/null 2>&1 || { echo 'ceiling-cap: awk is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; awk -f nix/ceiling-cap.awk .context-limits || { echo 'ceiling-cap: a .context-limits ceiling is over its cap (SPEC.md file 3500, chain 5500); split the node with sherd split instead of raising (nix:V3)' >&2; exit 1; }"
   }
   ["gen-check"] {
     glob = List(".pklith", "hk.pklith.pkl", "nix/pklith.nix")

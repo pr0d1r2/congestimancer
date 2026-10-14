@@ -58,7 +58,7 @@ id|status|task|cites
 T1|x|vendor FORMAT files from microlith `v0.7.4`|V2
 T2|x|`flake.nix` dev shell + `.envrc` `use flake`; inputs follow `nixpkgs-lock`; tools pinned by tag. then ASK user to reload & continue|V9
 T3|x|guardrails: pklith registry & `hk.pkl` (fast/all), `.githooks/`, hygiene steps, ripsecrets, typos, taplo, nixfmt, actionlint, zizmor, lychee. then ASK user to reload & continue|V15,V19
-T4|.|spec gates: `mth fmt/check`, `.spec-records`, `.context-limits` + `itok check`, `sherd check/budget/sync`, `ceiling-cap`|V2,V3,V4
+T4|x|spec gates: `mth fmt/check`, `.spec-records`, `.context-limits` + `itok check`, `sherd check/budget/sync`, `ceiling-cap`|V2,V3,V4
 T5|.|char & language gates: `.ctrm` + `ctrm check`, `xnl check`, rekall gate|V12,V13,V14
 T6|.|cargo workspace: lib + bin `cgmr` + `dev` crate; lints, `clippy.toml`, `rustfmt.toml`, `deny.toml`, `exclude`, `must-package`|V10,V11,`.:V21`
 T7|.|test gates: rust-mirror, tdd-order, module-size, coverage floor & `.coverage` ceiling w/ LLVM major check|V5,V6,V7,V16
