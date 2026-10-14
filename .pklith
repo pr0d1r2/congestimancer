@@ -60,6 +60,7 @@ path:Cargo.lock|cargo-deny|-|-
 path:Cargo.toml|taplo, cargo-deny|-|-
 path:dev/Cargo.toml|taplo, cargo-deny|-|-
 path:deny.toml|taplo, cargo-deny|-|-
+path:release.toml|taplo|-|-
 yml|yamllint|-|-
 path:.github/workflows/*.yml|yamllint, actionlint, zizmor|-|-
 sh|shellcheck, shfmt|-|-

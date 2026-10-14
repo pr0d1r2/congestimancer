@@ -149,6 +149,8 @@
             pkgs.rustfmt
             # Dependency policy gate (deny.toml, nix:V10).
             pkgs.cargo-deny
+            # Releases (release.toml, nix:T11).
+            pkgs.cargo-release
             # Line coverage (nix:V5); the llvm that reads its data must match
             # the LLVM major rustc was built against (21 for rustc 1.95).
             pkgs.cargo-llvm-cov
