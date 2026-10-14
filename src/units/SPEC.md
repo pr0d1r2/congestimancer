@@ -55,6 +55,7 @@ V10: ∀ parser never panics on any input (proptest).
 V11: `parse(render(x)) == x` ∀ type (proptest).
 V12: error names input & expected form → cli maps to exit 64.
 V13: `Name` = 1..=64 chars of `[A-Za-z0-9._-]`; ⊥ leading `-`, ⊥ `.` | `..` alone ∴ safe as filename, path segment & argv word. else → error (64).
+V14: thresholds ⊥ negative; load-like values accept decimals (`--load 0.5`); count-like values whole numbers; violation → 64.
 
 ## §T TASKS
 
@@ -71,6 +72,7 @@ T9|.|render ∀ type + round-trip proptest|V11
 T10|.|no-panic proptest ∀ parser|V10
 T11|.|`UnitError` w/ input & expected form|V12
 T12|.|`Name` parse & reject list|V13
+T13|.|threshold range checks|V14
 
 ## §B BUGS
 

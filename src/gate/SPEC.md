@@ -50,6 +50,7 @@ V4: `--when CMD` ⇔ `sh -c CMD` exits 0; stdout|stderr of CMD → cgmr stderr; 
 V5: `--when-file P` ⇔ P exists.
 V6: no gates given → overall pass immediately.
 V7: evaluation reads each signal once per round even if ∃ several gates on it.
+V8: `check` & `status`: any requested rate|percent signal → take 2nd sample after `--interval` (one wait, ⊥ loop) ∴ output ⊥ `Warming`.
 
 ## §T TASKS
 
@@ -59,6 +60,7 @@ T2|.|AND evaluation w/ warming & unsupported|V2,V3,V6
 T3|.|`--when`|V4
 T4|.|`--when-file`|V5
 T5|.|one read per signal per round|V7
+T6|.|one-shot two-sample evaluation for `check` & `status`|V8
 
 ## §B BUGS
 

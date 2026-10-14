@@ -50,6 +50,8 @@ V5: `--jitter D`: after release, sleep random ∈ [0, D) before start.
 V6: `--heartbeat D`: while waiting, one status line to stderr every D (text from `src/report`).
 V7: ∀ durations measured on monotonic clock; suspend behaviour = OS monotonic semantics, documented.
 V8: `Unsupported` → return at once (`src/gate:V3`).
+V9: release order: gates pass → `--settle` holds → FIFO ticket (`--fifo`) → slot (`--slots`) → `--rate` & `--spacing` → memory reservation (`--needs-mem`) → `--jitter` → launch. failure at any step → back to gates.
+V10: cost budget: one round w/ `--load` only ≤ 5 ms CPU; resident memory ≤ 10 MB; cold start of `cgmr check --load 1` ≤ 20 ms. benchmark gated in hk `all` (`nix:V25`).
 
 ## §T TASKS
 
@@ -61,6 +63,8 @@ T4|.|settle|V4
 T5|.|jitter|V5
 T6|.|heartbeat|V6
 T7|.|unsupported short-circuit|V8
+T8|.|release pipeline order|V9
+T9|.|benchmarks for round CPU, RSS, cold start|V10
 
 ## §B BUGS
 

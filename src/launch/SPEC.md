@@ -48,6 +48,7 @@ V4: `--govern`: spawn cmd in own process group; keep evaluating gates; gates fai
 V5: `--background`: lower CPU priority (`setpriority` nice 19) & IO priority (Linux `ioprio_set` idle class; macOS `setiopolicy_np` throttle) before exec.
 V6: `--or-background`: `--timeout` reached → start anyway as `--background` instead of exit 124.
 V7: stdout|stdin|stderr untouched; cmd owns stdout (`.` §I).
+V8: `--govern`: stopped cmd keeps its slot & reservation (held fds inherited); `--timeout` applies only before start; `--host` allowed (remote checks continue each round).
 
 ## §T TASKS
 
@@ -58,6 +59,7 @@ T3|.|env cleanup & held marker|V3
 T4|.|`--govern` spawn, stop/cont, forward signals|V4
 T5|.|`--background` both OS|V5
 T6|.|`--or-background`|V6
+T7|.|govern w/ slots, timeout & host|V8
 
 ## §B BUGS
 

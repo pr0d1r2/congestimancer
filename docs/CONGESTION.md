@@ -63,8 +63,8 @@ All methods listed here are in scope. None is deferred.
 | Verb | Behaviour |
 |---|---|
 | `run` (default) | Wait for all gates, then exec the command after `--`. Without a command, exit 0 once gates pass. |
-| `check` | Evaluate all gates once. Exit 0 if all pass, 1 if not. Never waits. |
-| `status` | Print every supported signal with its current value. `--json` gives a versioned, machine-readable form. |
+| `check` | Evaluate all gates once. Exit 0 if all pass, 1 if not. Never loops; rate and percentage signals take one extra sample after `--interval`. |
+| `status` | Print every supported signal with its current value (rate signals take one extra sample). `--json` gives a versioned, machine-readable form. |
 
 Examples:
 
@@ -438,6 +438,15 @@ a variable in the environment must not be able to inject a command.
 | `--verbose` | report which gate blocks, with current value, threshold and trend |
 
 Notes:
+- Release order: gates pass, then `--settle` holds, then the FIFO ticket,
+  then a slot, then `--rate` and `--spacing`, then the memory reservation,
+  then `--jitter`, then the launch. A failure at any step goes back to the
+  gates.
+- Thresholds are never negative. Load values may have decimals; counts are
+  whole numbers.
+- Cost budget: one check round with `--load` uses at most 5 ms of CPU, the
+  process stays under 10 MB of memory, and `cgmr check --load 1` starts in
+  at most 20 ms.
 - The first check of a rate or percentage signal needs two samples. cgmr
   waits one interval and never reports a fake zero.
 - cgmr must stay cheap: it sleeps between checks and refreshes only the
@@ -458,6 +467,9 @@ Notes:
 | (default) | `exec` the command; exit code and signals pass through |
 | `--govern` | keep watching after the start: stop the command (SIGSTOP to its process group) when gates fail, continue it (SIGCONT) when they pass again |
 | `--background` | lower the command's CPU and IO priority: `setpriority` plus `ioprio_set` idle class (Linux); `setpriority` plus background QoS / `setiopolicy_np` (macOS) |
+
+With `--govern`, a stopped command keeps its slot and memory reservation,
+`--timeout` applies only before the start, and `--host` keeps working.
 
 `--govern` needs cgmr to stay alive as the parent, so it spawns the command
 instead of using `exec`. cgmr then forwards SIGINT, SIGTERM and SIGHUP to the
