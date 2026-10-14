@@ -63,9 +63,11 @@ impl FromStr for Celsius {
     }
 }
 
+/// Renders with a `C` and no trailing zero: `72.5C`, `85C`.
 impl fmt::Display for Celsius {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        number::write_fixed(f, self.0.into(), 1)?;
+        f.write_str("C")
     }
 }
 

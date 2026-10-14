@@ -106,8 +106,21 @@ fn run(s: &str, keep: impl Fn(char) -> bool) -> usize {
 /// first: 5400 seconds is `1h30m`, zero is `0s`. Anything below a
 /// millisecond is dropped.
 #[must_use]
-pub fn render_duration(_d: Duration) -> String {
-    String::new()
+pub fn render_duration(d: Duration) -> String {
+    let mut left = d.as_millis();
+    let mut out = String::new();
+    for &(unit, per) in &UNITS {
+        let per = u128::from(per);
+        let count = left.checked_div(per).unwrap_or(0);
+        left = left.checked_rem(per).unwrap_or(0);
+        if count > 0 {
+            out.push_str(&format!("{count}{unit}"));
+        }
+    }
+    if out.is_empty() {
+        out.push_str("0s");
+    }
+    out
 }
 
 #[cfg(test)]

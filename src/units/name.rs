@@ -71,9 +71,10 @@ impl FromStr for Name {
     }
 }
 
+/// Renders as written.
 impl fmt::Display for Name {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
     }
 }
 

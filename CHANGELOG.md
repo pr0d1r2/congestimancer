@@ -28,3 +28,5 @@ is a development series, not for production.
   like `0.5`; no threshold of any kind is negative.
 - `Name` and `parse_name`: safe identifiers, 1 to 64 of `A-Z a-z 0-9 . _ -`,
   never a leading `-`, never `.` or `..`.
+- Every value renders back as the input that parses to it (`Display`, and
+  `render_duration` for durations): `1KiB`, `12.5%`, `1h30m`, `22:00-06:00`.

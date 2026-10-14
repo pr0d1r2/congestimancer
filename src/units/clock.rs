@@ -135,15 +135,17 @@ impl FromStr for ClockWindow {
     }
 }
 
+/// Renders as `HH:MM`.
 impl fmt::Display for ClockTime {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:02}:{:02}", self.hour, self.minute)
     }
 }
 
+/// Renders as `HH:MM-HH:MM`.
 impl fmt::Display for ClockWindow {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}-{}", self.start, self.end)
     }
 }
 

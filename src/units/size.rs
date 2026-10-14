@@ -107,15 +107,25 @@ impl FromStr for Rate {
     }
 }
 
+/// Renders in the largest unit that divides exactly, so it reads back
+/// unchanged: `1KiB`, `1536B`, `0B`.
 impl fmt::Display for Bytes {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let n = self.0;
+        let (count, unit) = UNITS
+            .iter()
+            .filter(|_| n != 0)
+            .find(|&&(_, mult)| n.checked_rem(mult) == Some(0))
+            .and_then(|&(unit, mult)| Some((n.checked_div(mult)?, unit)))
+            .unwrap_or((n, "B"));
+        write!(f, "{count}{unit}")
     }
 }
 
+/// Renders as its size per second: `50MB/s`.
 impl fmt::Display for Rate {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}/s", Bytes(self.0))
     }
 }
 

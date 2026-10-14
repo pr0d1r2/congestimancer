@@ -39,9 +39,10 @@ impl FromStr for Count {
     }
 }
 
+/// Renders as digits: `4`.
 impl fmt::Display for Count {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

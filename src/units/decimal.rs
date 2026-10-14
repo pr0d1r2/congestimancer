@@ -66,9 +66,10 @@ impl FromStr for Decimal {
     }
 }
 
+/// Renders with no trailing zeros: `0.5`, `4`.
 impl fmt::Display for Decimal {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        number::write_fixed(f, self.0, 3)
     }
 }
 

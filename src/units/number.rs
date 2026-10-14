@@ -1,7 +1,28 @@
 //! The number lexer every parser shares: `digits[.digits]`, with `.` the
-//! only decimal separator and the locale never read (src/units:V8).
+//! only decimal separator and the locale never read (src/units:V8); and
+//! its inverse, [`write_fixed`].
+
+use std::fmt;
 
 use super::UnitError;
+
+/// Writes `value` counted in `10^-places` as `int[.frac]`, trailing zeros
+/// dropped: what [`Lexed::scaled`] reads back as `value`.
+pub(super) fn write_fixed(
+    f: &mut fmt::Formatter<'_>,
+    value: u64,
+    places: u32,
+) -> fmt::Result {
+    let scale = 10_u64.checked_pow(places).unwrap_or(1);
+    let int = value.checked_div(scale).unwrap_or(value);
+    let frac = value.checked_rem(scale).unwrap_or(0);
+    if frac == 0 {
+        return write!(f, "{int}");
+    }
+    let width = usize::try_from(places).unwrap_or(0);
+    let digits = format!("{frac:0width$}");
+    write!(f, "{int}.{}", digits.trim_end_matches('0'))
+}
 
 /// The most fractional digits a number may carry, trailing zeros aside:
 /// past any unit's precision, and few enough that the arithmetic stays

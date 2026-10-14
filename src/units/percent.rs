@@ -72,9 +72,11 @@ impl FromStr for Percent {
     }
 }
 
+/// Renders with a `%` and no trailing zeros: `12.5%`, `80%`.
 impl fmt::Display for Percent {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        number::write_fixed(f, self.0.into(), 2)?;
+        f.write_str("%")
     }
 }
 
