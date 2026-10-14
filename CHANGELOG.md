@@ -18,3 +18,5 @@ is a development series, not for production.
   `KiB` is 1024, units are case insensitive, fractions round down.
 - `Rate` and `parse_rate`: a size per second, like `50MB/s`.
 - `Percent` and `parse_percent`: 0 to 100 with an optional `%`, like `12.5%`.
+- `parse_duration`: durations like `1h30m` or `500ms`, units `d h m s ms`
+  largest first; a bare number is an error.

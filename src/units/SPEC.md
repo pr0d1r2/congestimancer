@@ -65,7 +65,7 @@ id|status|task|cites
 T1|x|`Bytes` parse decimal & binary suffixes|V1,V2,V9
 T2|x|`Rate` parse|V3
 T3|x|`Percent` parse|V4
-T4|.|`Duration` parse, own grammar|V5,V9
+T4|x|`Duration` parse, own grammar|V5,V9
 T5|.|`Celsius` parse|V6
 T6|.|`ClockWindow` parse & contains(time), midnight wrap|V7
 T7|.|`Count` parse|V9
