@@ -4,9 +4,12 @@
 
 use std::io;
 
-use super::{is_cpu_cooling, parse_cpu_list, parse_sysfs_u64};
+use super::{
+    is_cpu_cooling, parse_cpu_list, parse_millicelsius, parse_sysfs_u64,
+};
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
 use crate::sys::{THERMAL_PRESSURE, notify_state, read_text};
+use crate::units::Celsius;
 
 /// The highest sysfs index probed for zones and cooling devices.
 const MAX_INDEX: u32 = 1024;
@@ -146,12 +149,19 @@ impl PowerSignal {
             .collect();
         (!states.is_empty()).then(|| states.iter().any(|&state| state > 0))
     }
+
+    /// `--temp`: the hottest thermal zone (src/power:V2).
+    fn temp(&self) -> Result<Celsius, Reason> {
+        let _ = parse_millicelsius;
+        Err(Reason::from(format!("{:?}", self.os)))
+    }
 }
 
 impl Signal for PowerSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
             SignalId::Cool => self.cool().map(Measure::Flag),
+            SignalId::Temp => self.temp().map(Measure::Celsius),
             _ => Err(Reason::from(format!("{id} is not a power signal"))),
         };
         sample.map_or_else(Sample::Unsupported, Sample::Gauge)

@@ -2,6 +2,7 @@ use std::path::Path;
 
 use super::{Os, PowerSignal};
 use crate::signal::{Measure, Root, Sample, Signal, SignalId};
+use crate::units::Celsius;
 
 /// The fixture tree `tests/fixtures/power/<case>`, laid out like `/`.
 fn root(case: &str) -> Root {
@@ -107,4 +108,41 @@ fn macos_cool_is_a_flag_from_thermal_pressure() {
     let sample =
         PowerSignal::on(root("none"), Os::Macos).sample(SignalId::Cool);
     assert!(shaped(&sample, |m| matches!(m, Measure::Flag(_))));
+}
+
+/// A temperature gauge of `tenths` tenths of a degree.
+const fn celsius(tenths: u32) -> Sample {
+    Sample::Gauge(Measure::Celsius(Celsius::from_tenths(tenths)))
+}
+
+#[test]
+fn temp_is_the_hottest_zone() {
+    assert_eq!(linux("intel").sample(SignalId::Temp), celsius(615));
+}
+
+#[test]
+fn a_zone_below_zero_never_wins() {
+    assert_eq!(linux("arm").sample(SignalId::Temp), celsius(520));
+}
+
+#[test]
+fn an_unparsable_zone_is_skipped() {
+    assert_eq!(linux("amd").sample(SignalId::Temp), celsius(700));
+}
+
+#[test]
+fn no_thermal_zone_is_unsupported() {
+    assert_eq!(
+        reason(linux("none").sample(SignalId::Temp)),
+        Some("no thermal zones under /sys/class/thermal".to_owned())
+    );
+}
+
+#[test]
+fn macos_temp_is_unsupported() {
+    let mut power = PowerSignal::on(root("intel"), Os::Macos);
+    assert_eq!(
+        reason(power.sample(SignalId::Temp)),
+        Some("no public temperature API on macOS".to_owned())
+    );
 }
