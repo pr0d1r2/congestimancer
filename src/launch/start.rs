@@ -7,6 +7,7 @@ use std::process::Command;
 
 use super::{background, clean_env, exec_command};
 use crate::slot::Release;
+use crate::sys::set_inheritable;
 
 /// How the command starts once released.
 #[derive(Debug, Default)]
@@ -76,7 +77,12 @@ where
 /// across exec, so the kernel lets go of them only when it exits
 /// (src/slot:V2, V7).
 fn hand_over(release: &Release) -> io::Result<()> {
-    let _ = release;
+    if let Some(slot) = release.slot() {
+        set_inheritable(slot.file())?;
+    }
+    if let Some(reservation) = release.reservation() {
+        set_inheritable(reservation.file())?;
+    }
     Ok(())
 }
 

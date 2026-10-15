@@ -2,6 +2,8 @@
 //! [`poll`](crate::wait::poll) serves a command with slot switches and one
 //! without (src/wait:V9, src/slot:V9).
 
+use std::time::SystemTime;
+
 use crate::slot::{Release, SlotError, Waiter};
 use crate::wait::Admit;
 
@@ -30,8 +32,12 @@ impl Admit for Slots {
 
     /// Runs the slot steps now; `Some(None)` when there are none.
     fn try_admit(&mut self) -> Result<Option<Option<Release>>, SlotError> {
-        let _ = self.0.is_some();
-        Ok(None)
+        match &mut self.0 {
+            None => Ok(Some(None)),
+            Some(waiter) => {
+                Ok(waiter.try_release(SystemTime::now())?.map(Some))
+            }
+        }
     }
 }
 

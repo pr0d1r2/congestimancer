@@ -416,3 +416,5 @@ is a development series, not for production.
   class (macOS throttle, Linux idle); a refused call is a warning.
 - `--or-background`: when `--timeout` runs out the command starts anyway,
   at background priority, instead of exiting 124.
+- `Slots`: the slot steps as the wait's admission; the command inherits
+  its slot and memory reservation locks, so they last until it exits.
