@@ -96,7 +96,7 @@ impl Places {
 /// (src/profile:V7), or the first parse error of a file read.
 pub fn discover(
     places: &Places,
-    reader: &impl ReadText,
+    reader: &dyn ReadText,
 ) -> Result<Catalog, ProfileError> {
     if let Some(path) = &places.explicit {
         let explicit = load(path, Origin::Explicit, reader)?;
@@ -113,7 +113,7 @@ pub fn discover(
 /// The nearest `.cgmr` from `cwd` up to the filesystem root, if any.
 fn project(
     cwd: &Path,
-    reader: &impl ReadText,
+    reader: &dyn ReadText,
 ) -> Result<Option<ProfileFile>, ProfileError> {
     for dir in cwd.ancestors() {
         let path = dir.join(PROJECT_FILE);
@@ -129,7 +129,7 @@ fn project(
 fn load(
     path: &Path,
     origin: Origin,
-    reader: &impl ReadText,
+    reader: &dyn ReadText,
 ) -> Result<Option<ProfileFile>, ProfileError> {
     match reader.read_text(path) {
         Ok(text) => parse_profiles(&text, path, origin).map(Some),

@@ -121,3 +121,25 @@ fn a_closure_reads_text() {
     let reader = |_: &Path| Ok("x".to_owned());
     assert_eq!(reader.read_text(Path::new("a")).ok().as_deref(), Some("x"));
 }
+
+/// Whether discovery from `places` fails with a read error when only
+/// `refused` is denied and every other file is missing.
+fn refused_at(places: &Places, refused: &Path) -> bool {
+    let reader = |p: &Path| {
+        let kind = if p == refused {
+            io::ErrorKind::PermissionDenied
+        } else {
+            io::ErrorKind::NotFound
+        };
+        Err::<String, _>(kind.into())
+    };
+    matches!(discover(places, &reader), Err(ProfileError::Read { .. }))
+}
+
+#[test]
+fn an_unreadable_explicit_or_user_file_is_an_error() {
+    let explicit = Places::new("/p").explicit(Some("/e".into()));
+    assert!(refused_at(&explicit, Path::new("/e")));
+    let user = Places::new("/p").config_home(Some("/x".into()));
+    assert!(refused_at(&user, Path::new("/x/cgmr/profiles")));
+}
