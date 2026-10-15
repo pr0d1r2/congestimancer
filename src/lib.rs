@@ -47,7 +47,8 @@ pub use sys::{
     cpu_ticks, gpu_usage, hid_idle_ns, interface_counters, io_priority,
     mount_source, nice, notify_state, nvml_gpus, physical_disk_stats,
     power_state, pset_load, read_text, set_io_priority, set_nice, statvfs,
-    swap_usage, sysctl_int, try_lock_exclusive, unlock, vm_stats,
+    swap_usage, sysctl_int, tcp_connect_time, try_lock_exclusive, unlock,
+    vm_stats,
 };
 
 pub use units::{

@@ -1,5 +1,4 @@
-//! Network: macOS per-interface counters and a TCP connect probe
-//! (src/sys:T12, T13, V1, V2, V3).
+//! Network: macOS per-interface counters (src/sys:T12, V1, V3).
 //!
 //! Counters come from the `NET_RT_IFLIST2` sysctl, whose `if_msghdr2`
 //! carries 64-bit `if_data64`; `getifaddrs` gives the 32-bit `if_data`,
