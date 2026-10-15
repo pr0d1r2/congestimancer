@@ -41,7 +41,9 @@ impl fmt::Display for CpuError {
                 write!(f, "malformed {file} line: `{line}`")
             }
             Self::Missing { file, key } => write!(f, "{file} has no `{key}`"),
-            Self::Window(input) => write!(f, "{input}"),
+            Self::Window(input) => {
+                write!(f, "--load-window takes 1m, 5m or 15m, not `{input}`")
+            }
         }
     }
 }

@@ -283,3 +283,5 @@ is a development series, not for production.
 - `CpuSignal` reads the load average for `--load X` (per CPU) and
   `--all-load X`: Linux `/proc/loadavg` (`parse_loadavg`, `Loads`), macOS
   `sysinfo`; a cgroup scope still reads the host load.
+- `--load-window 1m|5m|15m` picks the load average `--load` reads,
+  `1m` by default (`LoadWindow`, `parse_load_window`).

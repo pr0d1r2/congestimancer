@@ -59,8 +59,8 @@ impl CpuSignal {
     /// Reads the load average over `window` (`--load-window`,
     /// src/cpu:V2).
     #[must_use]
-    pub const fn with_window(self, window: LoadWindow) -> Self {
-        let _ = window;
+    pub const fn with_window(mut self, window: LoadWindow) -> Self {
+        self.window = window;
         self
     }
 }
@@ -91,8 +91,9 @@ impl CpuSignal {
     /// The value of a CPU signal that stands alone.
     fn gauge(&self, id: SignalId) -> Result<Measure, Reason> {
         match id {
-            SignalId::Load => self.loads().map(|l| Measure::Number(l.one)),
-            SignalId::Mem => Err(Reason::from(format!("{:?}", self.window))),
+            SignalId::Load => {
+                self.loads().map(|l| Measure::Number(l.pick(self.window)))
+            }
             _ => Err(Reason::from(format!("{id} is not a cpu signal"))),
         }
     }

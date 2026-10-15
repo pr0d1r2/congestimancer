@@ -22,15 +22,23 @@ pub enum LoadWindow {
 ///
 /// [`CpuError::Window`] naming any other input.
 pub fn parse_load_window(s: &str) -> Result<LoadWindow, CpuError> {
-    Err(CpuError::Window(s.to_owned()))
+    match s {
+        "1m" => Ok(LoadWindow::One),
+        "5m" => Ok(LoadWindow::Five),
+        "15m" => Ok(LoadWindow::Fifteen),
+        _ => Err(CpuError::Window(s.to_owned())),
+    }
 }
 
 impl Loads {
     /// The average over `window`.
     #[must_use]
     pub const fn pick(self, window: LoadWindow) -> Decimal {
-        let _ = window;
-        self.fifteen
+        match window {
+            LoadWindow::One => self.one,
+            LoadWindow::Five => self.five,
+            LoadWindow::Fifteen => self.fifteen,
+        }
     }
 }
 
