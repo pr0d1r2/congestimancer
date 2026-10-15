@@ -28,6 +28,7 @@ mod props;
 mod raw;
 mod snapshot;
 mod sysctl;
+mod users;
 
 pub use bus::{SYSTEM_BUS_SOCKET, system_bus_connect};
 pub use capture::capture;
@@ -48,3 +49,4 @@ pub use probe::tcp_connect_time;
 pub use props::{PropValue, Props};
 pub use snapshot::{LoadAverage, Memory, ProcessInfo, Snapshot};
 pub use sysctl::{SwapUsage, swap_usage, sysctl_int};
+pub use users::{current_uid, user_id, user_name};
