@@ -397,3 +397,7 @@ is a development series, not for production.
 - `parse_reply`, `RemoteReport`, `RemoteGate`, `RemoteSignal` and
   `RemoteVerdict`: the remote JSON read back, its gates joined as the local
   gate joins them; another `schema_version` exits 69 naming both.
+- `--host` failures: ssh's own failure (exit 255 or killed) fails only
+  that round and the wait goes on, with ssh's last stderr line as the
+  reason; a remote host with no `cgmr` exits 69 and a remote usage error
+  exits 64.

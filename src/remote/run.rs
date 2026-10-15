@@ -1,5 +1,5 @@
 //! [`check_remote`]: one round of `--host` gates, run over ssh
-//! (src/remote:T2, V1).
+//! (src/remote:T2, T3, V1, V3, V4).
 
 use std::io;
 use std::process::{Command, Stdio};
@@ -91,8 +91,61 @@ pub fn check_remote<T: Transport + ?Sized>(
             .map_err(|err| RemoteError::Spawn {
                 reason: err.to_string(),
             })?;
+    judge(host, &reply)
+}
+
+/// ssh's own exit code when it fails: unreachable, refused, auth.
+const SSH_FAILED: i32 = 255;
+
+/// The shell's exit code for a command it cannot find.
+const NOT_FOUND: i32 = 127;
+
+/// cgmr's exit code for a usage error.
+const USAGE: i32 = 64;
+
+/// What `reply` means: ssh's failure is one failed round (src/remote:V3);
+/// a remote cgmr that is missing (src/remote:V4) or refuses the switches
+/// ends the run; anything else is the remote cgmr's JSON.
+fn judge(host: &Host, reply: &SshReply) -> Result<Round, RemoteError> {
+    let said = last_line(&reply.stderr);
+    match reply.code {
+        None => Ok(retry(host, said, "killed by a signal")),
+        Some(SSH_FAILED) => Ok(retry(host, said, "exit 255")),
+        Some(NOT_FOUND) => Err(RemoteError::Missing {
+            host: host.as_str().to_owned(),
+        }),
+        Some(USAGE) => Err(RemoteError::Usage {
+            reason: said.unwrap_or_else(|| "usage error".to_owned()),
+        }),
+        Some(_) => read(reply, said),
+    }
+}
+
+/// A failed round, in ssh's words when it said any.
+fn retry(host: &Host, said: Option<String>, otherwise: &str) -> Round {
+    let why = said.unwrap_or_else(|| otherwise.to_owned());
+    Round::Retry(Reason::from(format!("ssh {}: {why}", host.as_str())))
+}
+
+/// The remote JSON; when unreadable, the error carries the remote
+/// stderr's last line, which says why far better than the parser.
+fn read(reply: &SshReply, said: Option<String>) -> Result<Round, RemoteError> {
     let stdout = String::from_utf8_lossy(&reply.stdout);
-    parse_reply(&stdout).map(Round::Report)
+    parse_reply(&stdout)
+        .map(Round::Report)
+        .map_err(|err| match (err, said) {
+            (RemoteError::Reply { reason }, Some(said)) => RemoteError::Reply {
+                reason: format!("{reason} ({said})"),
+            },
+            (err, _) => err,
+        })
+}
+
+/// The last line of `stderr` with text on it, trimmed.
+fn last_line(stderr: &[u8]) -> Option<String> {
+    let text = String::from_utf8_lossy(stderr);
+    let line = text.lines().map(str::trim).rfind(|l| !l.is_empty())?;
+    Some(line.to_owned())
 }
 
 #[cfg(test)]

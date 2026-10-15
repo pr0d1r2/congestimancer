@@ -56,7 +56,7 @@ V6: host H ⊥ starting `-` (refuse, 64) & passed after `--` in ssh argv ∴ ⊥
 id|status|task|cites
 T1|x|build remote argv w/ safe quoting|V5
 T2|x|run ssh, parse JSON, version check|V1,V2
-T3|.|failure mapping|V3,V4
+T3|x|failure mapping|V3,V4
 T4|x|host validation & `--` separator|V6
 
 ## §B BUGS

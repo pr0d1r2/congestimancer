@@ -163,6 +163,12 @@ fn a_reply_without_json_says_what_stderr_said() {
 }
 
 #[test]
+fn a_silent_remote_usage_error_still_says_so() {
+    let err = refusal(Some(64), "", "");
+    assert_eq!(err.to_string(), "remote cgmr: usage error");
+}
+
+#[test]
 fn a_garbled_reply_is_exit_69() {
     assert_eq!(refusal(Some(1), "{oops", "").exit_code(), 69);
 }
