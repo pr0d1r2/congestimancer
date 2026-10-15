@@ -388,3 +388,6 @@ is a development series, not for production.
 - `ssh_argv` and `shell_quote`: `--host` runs `ssh -o BatchMode=yes H
   cgmr check --json` with each gate word its own argv word, single-quoted
   for the remote shell so nothing in it expands.
+- `Host` and `parse_host`: `--host` takes any host form ssh does, but
+  refuses an empty host, one starting with `-` or holding whitespace (exit
+  64), and the host always follows `--` in ssh's argv.

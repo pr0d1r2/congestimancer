@@ -18,18 +18,25 @@ impl Host {
     }
 }
 
-/// Parses `--host H`.
+/// Parses `--host H`: any form ssh takes (`box`, `me@box.lan`, `::1`, a
+/// `~/.ssh/config` alias), but never empty, never starting with `-`, and
+/// with no whitespace or control character (src/remote:V6).
 ///
 /// # Errors
 ///
-/// [`RemoteError::Host`] when ssh may not take `s` as a host.
+/// [`RemoteError::Host`] (exit 64) when ssh may not take `s` as a host.
 pub fn parse_host(s: &str) -> Result<Host, RemoteError> {
+    let odd = |c: char| c.is_whitespace() || c.is_control();
+    if s.is_empty() || s.starts_with('-') || s.contains(odd) {
+        return Err(RemoteError::Host { host: s.to_owned() });
+    }
     Ok(Host(s.to_owned()))
 }
 
 /// The options every remote call takes: never prompt for a password or a
-/// host key, fail instead (src/remote:I).
-const OPTIONS: [&str; 2] = ["-o", "BatchMode=yes"];
+/// host key, fail instead (src/remote:I); then `--`, so the host after it
+/// is never read as an option (src/remote:V6).
+const OPTIONS: [&str; 3] = ["-o", "BatchMode=yes", "--"];
 
 /// The remote command before the gate words; fixed and plain, so it needs
 /// no quoting.
@@ -50,8 +57,8 @@ pub fn shell_quote(word: &str) -> String {
 }
 
 /// The arguments for [`SSH`] that run `cgmr check --json` with
-/// `gate_args` on `host`: every gate word its own argv word, quoted for
-/// the remote shell (src/remote:V5).
+/// `gate_args` on `host`: the host after `--` (src/remote:V6), every gate
+/// word its own argv word, quoted for the remote shell (src/remote:V5).
 #[must_use]
 pub fn ssh_argv(host: &Host, gate_args: &[String]) -> Vec<String> {
     let fixed = OPTIONS.into_iter().map(str::to_owned);
