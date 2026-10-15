@@ -23,7 +23,9 @@ impl fmt::Display for NetError {
             Self::UnknownIface { name } => {
                 write!(f, "--net-iface {name}: no such interface")
             }
-            Self::RttWithoutHost => f.write_str("--rtt: not yet"),
+            Self::RttWithoutHost => {
+                f.write_str("--rtt needs --rtt-host H[:PORT]")
+            }
         }
     }
 }

@@ -4,7 +4,8 @@
 use std::time::Duration;
 
 use super::NetError;
-use crate::signal::{Reason, Sample, Signal, SignalId};
+use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
+use crate::sys::tcp_connect_time;
 
 /// The port `--rtt-host H` connects to without one (src/net:V3).
 pub const RTT_PORT: u16 = 443;
@@ -33,17 +34,31 @@ impl RttSignal {
         rtt_host: Option<&str>,
         timeout: Duration,
     ) -> Result<Self, NetError> {
+        let host = rtt_host.map(str::trim).filter(|h| !h.is_empty());
+        let host = host.ok_or(NetError::RttWithoutHost)?;
         Ok(Self {
-            host: rtt_host.unwrap_or_default().to_owned(),
+            host: host.to_owned(),
             timeout,
         })
+    }
+
+    /// The connect time to the host; the timeout itself when no connect
+    /// succeeds in time, so `--rtt D` fails rather than exits
+    /// (src/net:V3).
+    fn probe(&self) -> Duration {
+        tcp_connect_time(&self.host, RTT_PORT, self.timeout)
+            .unwrap_or(self.timeout)
     }
 }
 
 impl Signal for RttSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
-        let _ = (&self.host, self.timeout, RTT_PORT);
-        Sample::Unsupported(Reason::from(format!("{id}: not yet")))
+        match id {
+            SignalId::Rtt => Sample::Gauge(Measure::Duration(self.probe())),
+            _ => Sample::Unsupported(Reason::from(format!(
+                "{id} is not a round-trip signal"
+            ))),
+        }
     }
 }
 

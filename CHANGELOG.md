@@ -202,3 +202,7 @@ is a development series, not for production.
 - `NetSignal::iface` reads only `--net-iface I`, up or not (`selected`);
   an `I` this machine does not list is `NetError::UnknownIface`, a usage
   error, and one that goes away later is unsupported.
+- `RttSignal` reads `--rtt D`: the TCP connect time to `--rtt-host H[:PORT]`,
+  port `RTT_PORT` (443) by default, given up after `D`; a failed connect
+  reads `D` so the gate fails, and `--rtt` without a host is
+  `NetError::RttWithoutHost`, a usage error.
