@@ -36,6 +36,8 @@ pub use cgroup::{
 
 pub use disk::{DiskError, DiskSignal, free_inodes, free_space};
 
+pub use gpu::{Gpu, GpuError, amd_gpus, parse_busy_percent, parse_vram};
+
 pub use limits::{
     FileNr, LimitsError, LimitsSignal, limit_share, parse_file_nr,
     parse_loadavg_tasks, parse_pid_max,

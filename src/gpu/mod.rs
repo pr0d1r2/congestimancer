@@ -1,11 +1,15 @@
 //! `src/gpu`: GPU utilisation & free memory.
 //!
-//! Scaffold: the node's code lands here (`src/gpu` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): each part lives in its own submodule, and the
+//! public surface is re-exported here and again from the crate root
+//! (src:V3). Linux AMD files are read through `crate::sys` under a
+//! [`Root`](crate::signal::Root), so tests read `tests/fixtures/gpu/`;
+//! NVIDIA (NVML) and macOS (IOKit) readings come from `crate::sys`.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod amd;
+mod device;
+mod error;
 
-use crate::signal as _;
-use crate::sys as _;
-use crate::units as _;
+pub use amd::{amd_gpus, parse_busy_percent, parse_vram};
+pub use device::Gpu;
+pub use error::GpuError;
