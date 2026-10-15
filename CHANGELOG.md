@@ -140,3 +140,7 @@ is a development series, not for production.
   `battery_charge`: Linux power supply `uevent` files and macOS IOKit power
   state as one supply list; a desktop without a battery counts as on mains
   power, and a mouse battery or an empty bay is never the machine's.
+- `PowerSignal`: `--cool` passes while the CPU is not thermally throttled:
+  on Linux the `thermal_throttle` counters did not grow since the last
+  sample, else no CPU cooling device is active; on macOS thermal pressure is
+  nominal.
