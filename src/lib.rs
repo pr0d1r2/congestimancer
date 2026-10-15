@@ -41,7 +41,10 @@ pub use cpu::{
 
 pub use disk::{DiskError, DiskSignal, free_inodes, free_space};
 
-pub use gate::{Adjust, Gate, Op, Threshold, Verdict};
+pub use gate::{
+    Adjust, Checked, Evaluation, Gate, Gates, Op, Overall, Subject, Threshold,
+    Verdict, evaluate,
+};
 
 pub use gpu::{
     Gpu, GpuError, GpuSignal, amd_gpus, parse_busy_percent, parse_vram,
