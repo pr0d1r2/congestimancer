@@ -48,3 +48,17 @@ fn each_error_says_what_went_wrong() {
     .to_string();
     assert_eq!(spawn, "cannot start ssh: gone");
 }
+
+#[test]
+fn remote_refusals_keep_their_codes() {
+    let missing = RemoteError::Missing {
+        host: "box".to_owned(),
+    };
+    assert_eq!(missing.exit_code(), 69);
+    assert_eq!(missing.to_string(), "no cgmr on box's PATH");
+    let usage = RemoteError::Usage {
+        reason: reason("bad --load"),
+    };
+    assert_eq!(usage.exit_code(), 64);
+    assert_eq!(usage.to_string(), "remote cgmr: bad --load");
+}

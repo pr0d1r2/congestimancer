@@ -29,6 +29,17 @@ pub enum RemoteError {
         /// Why, from the OS.
         reason: String,
     },
+    /// The remote host has no `cgmr` on its `PATH` (exit 127): exit 69
+    /// (src/remote:V4).
+    Missing {
+        /// The host.
+        host: String,
+    },
+    /// The remote cgmr refused the gate switches (exit 64): exit 64.
+    Usage {
+        /// What it said on stderr.
+        reason: String,
+    },
 }
 
 impl RemoteError {
@@ -37,8 +48,11 @@ impl RemoteError {
     #[must_use]
     pub const fn exit_code(&self) -> u8 {
         match self {
-            Self::Host { .. } => 64,
-            Self::Schema { .. } | Self::Reply { .. } | Self::Spawn { .. } => 69,
+            Self::Host { .. } | Self::Usage { .. } => 64,
+            Self::Schema { .. }
+            | Self::Reply { .. }
+            | Self::Spawn { .. }
+            | Self::Missing { .. } => 69,
         }
     }
 }
@@ -54,6 +68,8 @@ impl fmt::Display for RemoteError {
                 write!(f, "remote cgmr reply unreadable: {reason}")
             }
             Self::Spawn { reason } => write!(f, "cannot start ssh: {reason}"),
+            Self::Missing { host } => write!(f, "no cgmr on {host}'s PATH"),
+            Self::Usage { reason } => write!(f, "remote cgmr: {reason}"),
         }
     }
 }
