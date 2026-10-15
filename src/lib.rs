@@ -47,8 +47,8 @@ pub use gpu::{
 };
 
 pub use io::{
-    Direction, DiskStat, IoError, Mount, linux_device, macos_device, mount_of,
-    parse_diskstats, parse_mountinfo,
+    Direction, DiskStat, IoError, IoSignal, Mount, linux_device, macos_device,
+    mount_of, parse_diskstats, parse_mountinfo,
 };
 
 pub use limits::{
