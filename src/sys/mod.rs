@@ -15,6 +15,8 @@ mod fs;
 #[allow(unsafe_code, reason = "IOKit FFI (src/sys:C)")]
 mod iokit;
 mod mach;
+mod notify;
+mod power;
 mod props;
 mod raw;
 mod snapshot;
@@ -27,6 +29,8 @@ pub use disk::{
 pub use files::read_text;
 pub use fs::{FsStats, nice, set_nice, statvfs, try_lock_exclusive, unlock};
 pub use mach::{CpuTicks, PsetLoad, VmStats, cpu_ticks, pset_load, vm_stats};
+pub use notify::{LOW_POWER_MODE, THERMAL_PRESSURE, notify_state};
+pub use power::{PowerState, hid_idle_ns, power_state};
 pub use props::{PropValue, Props};
 pub use snapshot::{LoadAverage, Memory, ProcessInfo, Snapshot};
 pub use sysctl::{SwapUsage, swap_usage, sysctl_int};
