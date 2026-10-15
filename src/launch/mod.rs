@@ -5,9 +5,11 @@
 
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
 
+mod env;
 mod exec;
 mod start;
 
+pub use env::clean_env;
 pub use exec::{exec_command, exec_failure_code};
 pub use start::{Start, launch};
 
