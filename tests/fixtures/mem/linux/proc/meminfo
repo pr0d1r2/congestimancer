@@ -1,0 +1,8 @@
+MemTotal:       16303428 kB
+MemFree:          812344 kB
+MemAvailable:    9876543 kB
+Buffers:          234567 kB
+Cached:          7654321 kB
+Dirty:              1200 kB
+Writeback:           300 kB
+AnonPages:       3456789 kB

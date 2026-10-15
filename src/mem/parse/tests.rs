@@ -1,5 +1,8 @@
-use super::{SwapPages, parse_page_size, parse_vmstat};
+use super::{
+    DirtyPages, SwapPages, parse_meminfo, parse_page_size, parse_vmstat,
+};
 use crate::mem::MemError;
+use crate::units::Bytes;
 
 #[test]
 fn vmstat_gives_pages_swapped_in_and_out() {
@@ -100,4 +103,63 @@ fn a_page_size_past_64_bits_is_malformed() {
         parse_page_size(&line),
         Err(MemError::Malformed { .. })
     ));
+}
+
+#[test]
+fn meminfo_gives_dirty_and_writeback_bytes() {
+    let text = "MemFree: 9 kB\nDirty:  12 kB\nWriteback:   3 kB\n";
+    assert_eq!(
+        parse_meminfo(text),
+        Ok(DirtyPages {
+            dirty: Bytes(12 * 1024),
+            writeback: Bytes(3 * 1024)
+        })
+    );
+}
+
+#[test]
+fn meminfo_without_writeback_is_missing_it() {
+    assert_eq!(
+        parse_meminfo("Dirty: 1 kB\n"),
+        Err(MemError::Missing {
+            file: "/proc/meminfo",
+            key: "Writeback"
+        })
+    );
+}
+
+#[test]
+fn meminfo_with_a_bare_number_is_malformed() {
+    assert_eq!(
+        parse_meminfo("Dirty: 1\nWriteback: 0 kB\n"),
+        Err(MemError::Malformed {
+            file: "/proc/meminfo",
+            line: "Dirty: 1".to_owned()
+        })
+    );
+}
+
+#[test]
+fn writeback_does_not_match_writeback_tmp() {
+    let text = "WritebackTmp: 7 kB\nDirty: 0 kB\nWriteback: 1 kB\n";
+    let pages = parse_meminfo(text).map(|p| p.writeback);
+    assert_eq!(pages, Ok(Bytes(1024)));
+}
+
+#[test]
+fn the_dirty_backlog_is_dirty_plus_writeback() {
+    let pages = DirtyPages {
+        dirty: Bytes(5),
+        writeback: Bytes(7),
+    };
+    assert_eq!(pages.backlog(), Some(Bytes(12)));
+}
+
+#[test]
+fn a_dirty_backlog_past_64_bits_is_none() {
+    let pages = DirtyPages {
+        dirty: Bytes(u64::MAX),
+        writeback: Bytes(1),
+    };
+    assert_eq!(pages.backlog(), None);
 }

@@ -47,8 +47,9 @@ pub use limits::{
 };
 
 pub use mem::{
-    MemError, MemSignal, SwapPages, level_within, mem_per_cpu, mem_unreserved,
-    parse_page_size, parse_vmstat, pressure_level,
+    DirtyPages, MemError, MemSignal, SwapPages, level_within, mem_per_cpu,
+    mem_unreserved, parse_meminfo, parse_page_size, parse_vmstat,
+    pressure_level,
 };
 
 pub use net::{

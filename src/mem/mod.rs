@@ -16,5 +16,7 @@ mod signal;
 pub use error::MemError;
 pub use fit::{mem_per_cpu, mem_unreserved};
 pub use level::{level_within, pressure_level};
-pub use parse::{SwapPages, parse_page_size, parse_vmstat};
+pub use parse::{
+    DirtyPages, SwapPages, parse_meminfo, parse_page_size, parse_vmstat,
+};
 pub use signal::MemSignal;

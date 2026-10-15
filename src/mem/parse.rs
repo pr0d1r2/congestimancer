@@ -2,9 +2,13 @@
 //! (src/mem:T5, V6).
 
 use super::MemError;
+use crate::units::Bytes;
 
 /// `/proc/vmstat`: cumulative VM event counters, one `key value` a line.
 pub(super) const VMSTAT: &str = "/proc/vmstat";
+
+/// `/proc/meminfo`: memory sizes, one `Key: N kB` a line.
+pub(super) const MEMINFO: &str = "/proc/meminfo";
 
 /// `/proc/self/smaps`: this process's mappings, each with its
 /// `KernelPageSize`.
@@ -30,6 +34,39 @@ impl SwapPages {
             None => None,
         }
     }
+}
+
+/// Page cache not yet on disk, from `/proc/meminfo`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct DirtyPages {
+    /// Data written but not yet queued for disk (`Dirty`).
+    pub dirty: Bytes,
+    /// Data being written to disk now (`Writeback`).
+    pub writeback: Bytes,
+}
+
+impl DirtyPages {
+    /// `--dirty`: `Dirty` plus `Writeback`; `None` past 64 bits
+    /// (src/mem:V7).
+    #[must_use]
+    pub fn backlog(self) -> Option<Bytes> {
+        None
+    }
+}
+
+/// Parses `/proc/meminfo` for `Dirty` and `Writeback`.
+///
+/// # Errors
+///
+/// [`MemError::Malformed`] for one of them not `N kB`;
+/// [`MemError::Missing`] when either is absent.
+pub fn parse_meminfo(text: &str) -> Result<DirtyPages, MemError> {
+    let _ = text;
+    Err(MemError::Missing {
+        file: MEMINFO,
+        key: "Dirty",
+    })
 }
 
 /// Parses `/proc/vmstat` for `pswpin` and `pswpout`.

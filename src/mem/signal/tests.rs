@@ -4,7 +4,7 @@ use super::{MemSignal, Os, level_from, macos_swapped, swap_bytes};
 use crate::mem::parse_vmstat;
 use crate::signal::{Counter, Level, Measure, Root, Sample, Signal, SignalId};
 use crate::sys::VmStats;
-use crate::units::Percent;
+use crate::units::{Bytes, Percent};
 
 /// The fixture tree `tests/fixtures/mem/<case>`, laid out like `/`.
 fn root(case: &str) -> Root {
@@ -240,4 +240,35 @@ fn macos_swap_rate_is_a_byte_counter() {
         Sample::Gauge(_) | Sample::Counter(_) => false,
     };
     assert!(ok, "{sample:?}");
+}
+
+#[test]
+fn linux_dirty_is_dirty_plus_writeback_bytes() {
+    let sample = on("linux", Os::Linux).sample(SignalId::Dirty);
+    let bytes = Bytes((1200 + 300) * 1024);
+    assert_eq!(sample, Sample::Gauge(Measure::Bytes(bytes)));
+}
+
+#[test]
+fn linux_dirty_from_garbled_meminfo_is_unsupported() {
+    assert_eq!(
+        reason(on("garbled", Os::Linux).sample(SignalId::Dirty)),
+        Some("malformed /proc/meminfo line: `Dirty:  lots kB`".to_owned())
+    );
+}
+
+#[test]
+fn linux_dirty_without_meminfo_is_unsupported() {
+    assert_eq!(
+        reason(on("absent", Os::Linux).sample(SignalId::Dirty)),
+        Some("/proc/meminfo: not present".to_owned())
+    );
+}
+
+#[test]
+fn macos_dirty_is_unsupported() {
+    assert_eq!(
+        reason(on("linux", Os::Macos).sample(SignalId::Dirty)),
+        Some("no dirty page count on macOS".to_owned())
+    );
 }
