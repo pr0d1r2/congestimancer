@@ -37,7 +37,7 @@ src/remote/SPEC.md           960
 src/report/SPEC.md           1010
 src/signal/SPEC.md           1240
 src/slot/SPEC.md             1290
-src/sys/SPEC.md              1830
+src/sys/SPEC.md              2190
 src/units/SPEC.md            1410
 src/wait/SPEC.md             1250
 tests/SPEC.md                610
