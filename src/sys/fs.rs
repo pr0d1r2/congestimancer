@@ -113,8 +113,8 @@ pub fn set_inheritable(file: &File) -> io::Result<()> {
 /// The OS error, such as [`io::ErrorKind::NotFound`] for a path that does
 /// not exist.
 pub fn device_of(path: &Path) -> io::Result<(u32, u32)> {
-    let _ = path;
-    Err(io::Error::from(io::ErrorKind::Unsupported))
+    let dev = rustix::fs::stat(path)?.st_dev;
+    Ok((rustix::fs::major(dev), rustix::fs::minor(dev)))
 }
 
 /// This process's nice value.

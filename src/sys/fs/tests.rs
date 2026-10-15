@@ -126,12 +126,10 @@ fn an_inheritable_file_loses_close_on_exec() -> io::Result<()> {
 
 #[test]
 fn a_path_device_is_the_major_and_minor_of_its_st_dev() -> io::Result<()> {
-    use std::os::unix::fs::MetadataExt as _;
     let dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let dev = fs::metadata(dir)?.dev();
-    let raw = rustix::fs::Dev::try_from(dev).map_err(io::Error::other)?;
-    let want = (rustix::fs::major(raw), rustix::fs::minor(raw));
-    assert_eq!(device_of(dir)?, want);
+    let (major, minor) = device_of(dir)?;
+    let st_dev = rustix::fs::stat(dir)?.st_dev;
+    assert_eq!(rustix::fs::makedev(major, minor), st_dev);
     Ok(())
 }
 
