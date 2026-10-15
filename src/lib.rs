@@ -97,6 +97,8 @@ pub use profile::{
     parse_profiles, render_profiles,
 };
 
+pub use remote::{Host, RemoteError, SSH, parse_host, shell_quote, ssh_argv};
+
 pub use report::{
     Output, Paint, SCHEMA_VERSION, StatusReport, StatusRow, Stream, Streams,
     Style, Warnings, block_reasons, heartbeat_line, json_string, switch_name,
