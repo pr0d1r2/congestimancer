@@ -5,12 +5,13 @@
 //! (src:V3). Every file is read through `crate::sys` under a
 //! [`Root`](crate::signal::Root), so tests read `tests/fixtures/cgroup/`.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
-
 mod error;
+mod limits;
 mod membership;
 
 pub use error::CgroupError;
+pub use limits::{
+    CpuMax, memory_available, parse_cpu_max, parse_memory_current,
+    parse_memory_max,
+};
 pub use membership::{Cgroup, parse_proc_cgroup};
-
-use crate::units as _;
