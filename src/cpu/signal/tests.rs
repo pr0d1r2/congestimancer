@@ -303,3 +303,36 @@ fn in_a_cgroup_cpu_pressure_is_the_cgroups_own() {
     let want = Percent::from_hundredths(1_250).map(Measure::Percent);
     assert_eq!(read.measure().copied(), want);
 }
+
+#[test]
+fn linux_steal_counts_steal_of_all_ticks() {
+    let sample = on("linux", Os::Linux).sample(SignalId::Steal);
+    let share = Counter::Share {
+        part: 8,
+        whole: 558,
+    };
+    assert_eq!(sample, Sample::Counter(share));
+}
+
+#[test]
+fn linux_steal_past_64_bits_is_unsupported() {
+    assert_eq!(
+        reason(on("huge", Os::Linux).sample(SignalId::Steal)),
+        Some("/proc/stat cpu ticks past 64 bits".to_owned())
+    );
+}
+
+#[test]
+fn the_first_steal_reading_is_warming() {
+    let mut source = Sampled::new(on("linux", Os::Linux));
+    let reading = source.read(SignalId::Steal, Instant::now());
+    assert_eq!(reading, Reading::Warming);
+}
+
+#[test]
+fn macos_steal_is_unsupported() {
+    assert_eq!(
+        reason(on("linux", Os::Macos).sample(SignalId::Steal)),
+        Some("no steal time on macOS".to_owned())
+    );
+}
