@@ -1,8 +1,9 @@
 use std::path::Path;
 
-use super::{MemSignal, Os, level_from, swap_bytes};
+use super::{MemSignal, Os, level_from, macos_swapped, swap_bytes};
 use crate::mem::parse_vmstat;
 use crate::signal::{Counter, Level, Measure, Root, Sample, Signal, SignalId};
+use crate::sys::VmStats;
 use crate::units::Percent;
 
 /// The fixture tree `tests/fixtures/mem/<case>`, laid out like `/`.
@@ -194,4 +195,49 @@ fn swapped_bytes_past_64_bits_are_unsupported() {
     let pages = parse_vmstat(&text).ok();
     let bytes = pages.map(|p| swap_bytes(p, 4096).map_err(|r| r.to_string()));
     assert_eq!(bytes, Some(Err("swapped bytes past 64 bits".to_owned())));
+}
+
+/// VM statistics with `swapins` and `swapouts` pages moved.
+fn vm(swapins: u64, swapouts: u64) -> VmStats {
+    VmStats {
+        swapins,
+        swapouts,
+        ..VmStats::default()
+    }
+}
+
+#[test]
+fn macos_swapped_bytes_are_swapins_and_swapouts_in_pages() {
+    let bytes = macos_swapped(Ok(vm(10, 5)), Ok(16_384));
+    assert_eq!(bytes.ok(), Some(15 * 16_384));
+}
+
+#[test]
+fn macos_swap_with_a_negative_page_size_is_unsupported() {
+    let bytes = macos_swapped(Ok(vm(1, 1)), Ok(-1));
+    assert_eq!(
+        bytes.map_err(|r| r.to_string()),
+        Err("hw.pagesize: negative -1".to_owned())
+    );
+}
+
+#[test]
+fn macos_swap_without_vm_statistics_is_unsupported() {
+    let err = std::io::Error::other("no mach host");
+    let bytes = macos_swapped(Err(err), Ok(4096));
+    assert_eq!(
+        bytes.map_err(|r| r.to_string()),
+        Err("no mach host".to_owned())
+    );
+}
+
+#[test]
+fn macos_swap_rate_is_a_byte_counter() {
+    let sample = on("linux", Os::Macos).sample(SignalId::SwapRate);
+    let ok = match &sample {
+        Sample::Counter(Counter::Rate { .. }) => true,
+        Sample::Unsupported(_) => !cfg!(target_os = "macos"),
+        Sample::Gauge(_) | Sample::Counter(_) => false,
+    };
+    assert!(ok, "{sample:?}");
 }

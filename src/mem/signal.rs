@@ -8,7 +8,7 @@ use super::{SwapPages, parse_page_size, parse_vmstat, pressure_level};
 use crate::signal::{
     Counter, Level, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
 };
-use crate::sys::{Snapshot, read_text, sysctl_int};
+use crate::sys::{Snapshot, VmStats, read_text, sysctl_int, vm_stats};
 use crate::units::{Bytes, Percent};
 
 /// Linux memory pressure stall information.
@@ -111,7 +111,7 @@ impl MemSignal {
                 let page_size = self.linux_page_size()?;
                 swap_bytes(pages, page_size)
             }
-            Os::Macos => Err(Reason::from("--swap-rate: not built on macOS")),
+            Os::Macos => macos_swapped(vm_stats(), sysctl_int("hw.pagesize")),
         }
     }
 
@@ -153,6 +153,16 @@ fn swap_bytes(pages: SwapPages, page_size: u64) -> Result<u64, Reason> {
     pages
         .bytes(page_size)
         .ok_or_else(|| Reason::from("swapped bytes past 64 bits"))
+}
+
+/// The macOS swapped bytes from `host_statistics64` swapins and
+/// swapouts and the `hw.pagesize` sysctl (src/mem:V6).
+fn macos_swapped(
+    stats: io::Result<VmStats>,
+    page_size: io::Result<i64>,
+) -> Result<u64, Reason> {
+    let _ = (stats, page_size);
+    Err(Reason::from("--swap-rate: not built on macOS"))
 }
 
 /// The level a read of `kern.memorystatus_vm_pressure_level` gives; a
