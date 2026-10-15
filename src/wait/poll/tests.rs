@@ -6,7 +6,7 @@ use crate::signal::{
     Clock, FakeSource, ManualClock, Measure, Reading, SignalId,
 };
 use crate::units::Decimal;
-use crate::wait::{MIN_INTERVAL, Pacing};
+use crate::wait::{MIN_INTERVAL, Pacing, jitter_delay};
 
 const SEC: Duration = Duration::from_secs(1);
 
@@ -328,4 +328,35 @@ fn a_gate_that_turns_unsupported_mid_wait_ends_it() {
         Outcome::Unsupported(e) if e.overall == Overall::Unsupported
     ));
     assert_eq!(bench.sleeps(), [secs(2)]);
+}
+
+fn jitter(seed: u64, span: u64) -> Pacing {
+    let mut pacing = Pacing::new(SEC);
+    pacing.jitter = Some(secs(span));
+    pacing.seed = seed;
+    pacing
+}
+
+#[test]
+fn jitter_sleeps_its_seeded_pick_after_release() {
+    let mut bench = Bench::new(&[FAIL, PASS]);
+    assert!(released(&bench.open(&jitter(5, 10))));
+    let pick = jitter_delay(5, secs(10));
+    assert_eq!(bench.sleeps(), [SEC, pick]);
+}
+
+#[test]
+fn a_zero_pick_sleeps_nothing() {
+    let mut bench = Bench::new(&[PASS]);
+    assert!(released(&bench.open(&jitter(5, 0))));
+    assert!(bench.sleeps().is_empty());
+}
+
+#[test]
+fn no_jitter_after_a_timeout() {
+    let mut bench = Bench::new(&[FAIL]);
+    let mut pacing = jitter(5, 10);
+    pacing.timeout = Some(Duration::ZERO);
+    assert!(matches!(bench.open(&pacing), Outcome::TimedOut(_)));
+    assert!(bench.sleeps().is_empty());
 }

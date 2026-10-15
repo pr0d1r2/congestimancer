@@ -132,5 +132,6 @@ pub use units::{
 };
 
 pub use wait::{
-    Admit, DEFAULT_INTERVAL, MIN_INTERVAL, Open, Outcome, Pacing, Rig, poll,
+    Admit, DEFAULT_INTERVAL, MIN_INTERVAL, Open, Outcome, Pacing, Rig,
+    jitter_delay, poll,
 };

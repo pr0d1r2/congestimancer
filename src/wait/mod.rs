@@ -19,8 +19,10 @@
 //! suspended, so a `--timeout` or `--settle` pauses across a suspend
 //! and resumes on wake; the wall clock is never read.
 
+mod jitter;
 mod pacing;
 mod poll;
 
+pub use jitter::jitter_delay;
 pub use pacing::{DEFAULT_INTERVAL, MIN_INTERVAL, Pacing};
 pub use poll::{Admit, Open, Outcome, Rig, poll};
