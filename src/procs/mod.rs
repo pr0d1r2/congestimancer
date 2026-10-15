@@ -16,4 +16,3 @@ pub use limit::{ProcLimit, parse_proc_limit};
 
 use crate::signal as _;
 use crate::sys as _;
-use crate::units as _;

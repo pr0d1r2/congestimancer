@@ -160,3 +160,6 @@ is a development series, not for production.
   `PPD_STATE`).
 - `Glob`: process and user name patterns, `*` for any run of characters
   and `?` for exactly one, matched against the whole name.
+- `ProcLimit` and `parse_proc_limit`: the `PATTERN=N` value of
+  `--max-procs` and `--max-user-procs`; a value with no `=`, an empty
+  pattern or a bad count is a `ProcsError` (exit 64).

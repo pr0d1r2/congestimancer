@@ -5,7 +5,7 @@ use std::fmt;
 use std::str::FromStr;
 
 use super::{Glob, ProcsError};
-use crate::units::Count;
+use crate::units::{Count, parse_count};
 
 /// A pattern and the most processes it may match: `cargo=4`,
 /// `nixbld*=8`.
@@ -26,8 +26,17 @@ pub struct ProcLimit {
 /// [`ProcsError`] for a value with no `=`, an empty pattern, or a bad
 /// count; the CLI prints it and exits 64 (src/procs:V4).
 pub fn parse_proc_limit(s: &str) -> Result<ProcLimit, ProcsError> {
-    Err(ProcsError::NoEquals {
-        input: s.to_owned(),
+    let input = || s.to_owned();
+    let (pattern, count) = s
+        .rsplit_once('=')
+        .ok_or_else(|| ProcsError::NoEquals { input: input() })?;
+    if pattern.is_empty() {
+        return Err(ProcsError::EmptyPattern { input: input() });
+    }
+    let max = parse_count(count).map_err(ProcsError::Count)?;
+    Ok(ProcLimit {
+        pattern: Glob::new(pattern),
+        max,
     })
 }
 
