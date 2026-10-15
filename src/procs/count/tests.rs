@@ -16,7 +16,8 @@ fn by_name(pattern: &str) -> Count {
 #[test]
 fn lineage_is_me_and_my_ancestors() {
     let found = lineage(&table("table"), ME);
-    assert_eq!(found, HashSet::from([200, 100, 1]));
+    // launchd's parent, pid 0, is an ancestor too, though not listed.
+    assert_eq!(found, HashSet::from([200, 100, 1, 0]));
 }
 
 #[test]

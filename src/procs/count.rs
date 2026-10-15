@@ -1,7 +1,7 @@
 //! Counting processes that match a pattern, leaving out cgmr itself and
 //! its ancestors (src/procs:T3, T4, V1, V2, V3).
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use super::Glob;
 use crate::units::Count;
@@ -41,20 +41,43 @@ impl Proc {
     }
 }
 
-/// `me` and every ancestor of it in `procs`: the processes no count
-/// includes (src/procs:V3). A parent loop ends the walk.
+/// `me` and every ancestor of it, as far as `procs` names parents: the
+/// processes no count includes (src/procs:V3). A parent loop ends the
+/// walk.
 #[must_use]
 pub fn lineage(procs: &[Proc], me: u32) -> HashSet<u32> {
-    let _ = procs;
-    HashSet::from([me])
+    let parents: HashMap<u32, u32> = procs
+        .iter()
+        .filter_map(|p| Some((p.pid?, p.parent?)))
+        .collect();
+    let mut found = HashSet::from([me]);
+    let mut at = me;
+    while let Some(&parent) = parents.get(&at) {
+        if !found.insert(parent) {
+            break;
+        }
+        at = parent;
+    }
+    found
 }
 
 /// How many of `procs` have a name matching `pattern`, leaving out `me`
 /// and its ancestors (src/procs:V1, V3).
 #[must_use]
 pub fn count_by_name(procs: &[Proc], pattern: &Glob, me: u32) -> Count {
-    let _ = (procs, pattern, me);
-    Count(0)
+    count_where(procs, me, |p| pattern.matches(&p.name))
+}
+
+/// How many of `procs` outside `me`'s lineage pass `keep`.
+fn count_where(
+    procs: &[Proc],
+    me: u32,
+    mut keep: impl FnMut(&Proc) -> bool,
+) -> Count {
+    let skip = lineage(procs, me);
+    let outside = |p: &&Proc| p.pid.is_none_or(|pid| !skip.contains(&pid));
+    let n = procs.iter().filter(outside).filter(|p| keep(p)).count();
+    Count(u64::try_from(n).unwrap_or(u64::MAX))
 }
 
 #[cfg(test)]

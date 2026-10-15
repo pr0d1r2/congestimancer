@@ -163,3 +163,6 @@ is a development series, not for production.
 - `ProcLimit` and `parse_proc_limit`: the `PATTERN=N` value of
   `--max-procs` and `--max-user-procs`; a value with no `=`, an empty
   pattern or a bad count is a `ProcsError` (exit 64).
+- `ProcsSignal` reads `--max-procs`: how many processes have a name
+  matching the pattern (`count_by_name`), leaving out cgmr and its
+  ancestors where the process table gives pids (`lineage`).

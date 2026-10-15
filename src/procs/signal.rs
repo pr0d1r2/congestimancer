@@ -1,8 +1,8 @@
 //! [`ProcsSignal`]: `--max-procs` as a [`Signal`] over a process table
 //! (src/procs:T3, T4).
 
-use super::{Glob, Proc};
-use crate::signal::{Reason, Sample, Signal, SignalId};
+use super::{Glob, Proc, count_by_name};
+use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
 use crate::sys::Snapshot;
 
 /// Where a [`ProcsSignal`] lists processes: the machine, or a test table.
@@ -66,8 +66,16 @@ impl<T: ProcessTable> ProcsSignal<T> {
 
 impl<T: ProcessTable> Signal for ProcsSignal<T> {
     fn sample(&mut self, id: SignalId) -> Sample {
-        let _ = (id, &mut self.table, &self.by, self.me);
-        Sample::Unsupported(Reason::from("not yet"))
+        let count = match (id, &self.by) {
+            (SignalId::MaxProcs, ProcMatch::Name(glob)) => {
+                count_by_name(&self.table.processes(), glob, self.me)
+            }
+            _ => {
+                let why = format!("{id} is not this process gate's signal");
+                return Sample::Unsupported(Reason::from(why));
+            }
+        };
+        Sample::Gauge(Measure::Count(count))
     }
 }
 
