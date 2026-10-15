@@ -1,0 +1,10 @@
+55d0c0a00000-55d0c0a21000 r--p 00000000 fd:01 1234 /usr/bin/cgmr
+Size:                132 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Rss:                 128 kB
+7f0000000000-7f0000200000 rw-p 00000000 00:00 0
+Size:               2048 kB
+KernelPageSize:     2048 kB
+MMUPageSize:        2048 kB
+Rss:                2048 kB

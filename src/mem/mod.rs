@@ -7,10 +7,14 @@
 //! scope lays its own memory and pressure over these signals through
 //! `crate::cgroup::Scoped`.
 
+mod error;
 mod fit;
 mod level;
+mod parse;
 mod signal;
 
+pub use error::MemError;
 pub use fit::{mem_per_cpu, mem_unreserved};
 pub use level::{level_within, pressure_level};
+pub use parse::{SwapPages, parse_page_size, parse_vmstat};
 pub use signal::MemSignal;

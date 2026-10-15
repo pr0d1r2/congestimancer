@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use super::{MemSignal, Os, level_from};
-use crate::signal::{Level, Measure, Root, Sample, Signal, SignalId};
+use crate::signal::{Counter, Level, Measure, Root, Sample, Signal, SignalId};
 use crate::units::Percent;
 
 /// The fixture tree `tests/fixtures/mem/<case>`, laid out like `/`.
@@ -154,4 +154,35 @@ fn a_failed_level_read_is_unsupported() {
     let err = std::io::Error::other("no sysctl");
     let level = level_from(Err(err)).map_err(|r| r.to_string());
     assert_eq!(level, Err("no sysctl".to_owned()));
+}
+
+#[test]
+fn linux_swap_rate_counts_swapped_pages_in_bytes() {
+    let sample = on("linux", Os::Linux).sample(SignalId::SwapRate);
+    let total = (1200 + 3400) * 4096;
+    assert_eq!(sample, Sample::Counter(Counter::Rate { total }));
+}
+
+#[test]
+fn linux_swap_rate_from_garbled_vmstat_is_unsupported() {
+    assert_eq!(
+        reason(on("garbled", Os::Linux).sample(SignalId::SwapRate)),
+        Some("malformed /proc/vmstat line: `pswpin lots`".to_owned())
+    );
+}
+
+#[test]
+fn linux_swap_rate_without_a_page_size_is_unsupported() {
+    assert_eq!(
+        reason(on("partial", Os::Linux).sample(SignalId::SwapRate)),
+        Some("/proc/self/smaps has no `KernelPageSize`".to_owned())
+    );
+}
+
+#[test]
+fn linux_swap_rate_without_vmstat_is_unsupported() {
+    assert_eq!(
+        reason(on("absent", Os::Linux).sample(SignalId::SwapRate)),
+        Some("/proc/vmstat: not present".to_owned())
+    );
 }

@@ -1,0 +1,7 @@
+nr_free_pages 123456
+nr_dirty 120
+pgpgin 998877
+pgpgout 112233
+pswpin 1200
+pswpout 3400
+pgfault 5566778
