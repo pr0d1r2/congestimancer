@@ -6,13 +6,13 @@
 //! [`Root`](crate::signal::Root), so tests read `tests/fixtures/power/`;
 //! macOS goes through `crate::sys` notify and IOKit calls.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
-
 mod error;
+mod signal;
 mod supply;
 mod thermal;
 
 pub use error::PowerError;
+pub use signal::PowerSignal;
 pub use supply::{
     Supply, SupplyKind, battery_charge, on_mains, parse_supply_uevent,
     supplies_of,
@@ -20,5 +20,3 @@ pub use supply::{
 pub use thermal::{
     is_cpu_cooling, parse_cpu_list, parse_millicelsius, parse_sysfs_u64,
 };
-
-use crate::signal as _;
