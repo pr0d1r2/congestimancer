@@ -222,3 +222,5 @@ is a development series, not for production.
   field empty, never a fake number.
 - `Gpu::from(&NvmlGpu)`: NVIDIA busy percent and free memory from NVML;
   a reading NVML did not give stays empty.
+- `Gpu::from(&GpuUsage)`: macOS GPU busy percent from IOKit; Apple Silicon
+  has no free GPU memory (unified memory), an Intel Mac GPU reports VRAM.
