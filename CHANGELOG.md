@@ -99,3 +99,6 @@ is a development series, not for production.
 - `nvml_gpus`: NVIDIA GPU utilization and memory through NVML, loaded at run
   time (the `nvml` feature, on by default); no library, no driver or a build
   without the feature is `Unsupported`.
+- `interface_counters`: on macOS, every network interface with 64-bit
+  received and sent bytes, packets and errors, and whether it is up or
+  loopback.

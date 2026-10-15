@@ -78,8 +78,19 @@ const IFF_LOOPBACK: i32 = 0x8;
 /// Every routing message in a sysctl buffer: each starts with its own
 /// `u16` length; a length too short to hold a header ends the walk.
 fn messages(buf: &[u8]) -> Vec<&[u8]> {
-    let _ = (buf, ne_u16(buf, 0));
-    Vec::new()
+    let mut found = Vec::new();
+    let mut rest = buf;
+    while let Some(len) = ne_u16(rest, 0).map(usize::from) {
+        let Some((msg, tail)) = rest.split_at_checked(len) else {
+            break;
+        };
+        if len <= at::TYPE {
+            break;
+        }
+        found.push(msg);
+        rest = tail;
+    }
+    found
 }
 
 /// The interfaces in a `NET_RT_IFLIST2` buffer; other messages skipped.

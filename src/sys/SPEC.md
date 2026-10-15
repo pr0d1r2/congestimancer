@@ -80,7 +80,7 @@ T8|x|macOS IOKit: power sources, `HIDIdleTime`, thermal state|V1,V3
 T9|x|macOS IOKit: GPU `PerformanceStatistics`|V1,V3,V4
 T10|x|macOS `setiopolicy_np`; Linux `ioprio_set`|V1,V2
 T11|x|Linux NVML via `dlopen`|V1,V4
-T12|.|`getifaddrs` interface counters (macOS)|V1,V3
+T12|x|`getifaddrs` interface counters (macOS)|V1,V3
 T13|.|TCP connect probe w/ timeout|V2
 T14|x|SPIKE: settle R1–R4; record finding & chosen crate; update root §C deps|-
 T15|.|fixture capture of ∀ sources|V7
