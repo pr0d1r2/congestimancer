@@ -8,7 +8,6 @@ use std::path::Path;
 use std::process::Command;
 
 use rustix::fs::{FlockOperation, StatVfs};
-use rustix::io::FdFlags;
 
 /// Space and inodes of the filesystem holding a path.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -89,21 +88,6 @@ pub fn try_lock_exclusive(file: &File) -> io::Result<bool> {
 /// The OS error.
 pub fn unlock(file: &File) -> io::Result<()> {
     Ok(rustix::fs::flock(file, FlockOperation::Unlock)?)
-}
-
-/// Lets `file`'s descriptor survive `exec` by clearing its
-/// `FD_CLOEXEC` flag, so a slot lock passes to the governed command
-/// (src/sys:T19).
-///
-/// # Errors
-///
-/// The OS error.
-pub fn set_inheritable(file: &File) -> io::Result<()> {
-    let flags = rustix::io::fcntl_getfd(file)?;
-    Ok(rustix::io::fcntl_setfd(
-        file,
-        flags.difference(FdFlags::CLOEXEC),
-    )?)
 }
 
 /// Lets the child `command` spawns (or the image it execs into) inherit

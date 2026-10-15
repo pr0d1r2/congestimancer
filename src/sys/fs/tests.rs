@@ -9,7 +9,7 @@ use rustix::fs::{StatVfs, StatVfsMountFlags};
 use rustix::io::FdFlags;
 
 use super::{
-    FsStats, device_of, inherit_in, nice, set_inheritable, set_nice, statvfs,
+    FsStats, device_of, inherit_in, nice, set_nice, statvfs,
     try_lock_exclusive, unlock,
 };
 
@@ -113,16 +113,6 @@ fn setting_the_nice_value_it_has_is_allowed() -> io::Result<()> {
     let value = nice()?;
     set_nice(value)?;
     assert_eq!(nice()?, value);
-    Ok(())
-}
-
-#[test]
-fn an_inheritable_file_loses_close_on_exec() -> io::Result<()> {
-    let scratch = Scratch::new("cloexec");
-    let file = scratch.open()?;
-    assert!(rustix::io::fcntl_getfd(&file)?.contains(FdFlags::CLOEXEC));
-    set_inheritable(&file)?;
-    assert!(!rustix::io::fcntl_getfd(&file)?.contains(FdFlags::CLOEXEC));
     Ok(())
 }
 

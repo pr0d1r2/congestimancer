@@ -76,8 +76,6 @@ is a development series, not for production.
 - `statvfs` (space and inodes of the filesystem holding a path, byte totals
   saturating), `try_lock_exclusive` and `unlock` (`flock` locks that never
   wait), and `nice` and `set_nice` for this process.
-- `set_inheritable`: clears close-on-exec on an open file, so a slot lock
-  passes to the command started with `exec`.
 - `device_of`: the major and minor number of the device holding a path,
   following symlinks.
 - `sysctl_int` and `swap_usage`: macOS integer sysctls (such as
