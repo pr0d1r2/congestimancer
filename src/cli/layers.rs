@@ -147,7 +147,7 @@ pub(crate) fn resolve(
     profile: &[Switch],
 ) -> Result<Resolved, Failure> {
     let mut resolved = Resolved::default();
-    for spec in SWITCHES.iter().take(0) {
+    for spec in SWITCHES {
         if let Some(entry) = layered(spec, given, env, profile)? {
             resolved.0.insert(spec.name(), entry);
         }

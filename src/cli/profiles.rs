@@ -26,7 +26,7 @@ impl SwitchTable for CliTable {
         flag: &str,
         value: Option<&str>,
     ) -> Result<Arity, SwitchFault> {
-        let found = flag.strip_prefix("--x").and_then(spec);
+        let found = flag.strip_prefix("--").and_then(spec);
         let spec = found.filter(|s| !picks_profile(s.name(), s.role));
         let spec = spec.ok_or(SwitchFault::Unknown)?;
         value_fits(spec, value)?;
@@ -123,8 +123,7 @@ pub(crate) fn profile_layer(
     let catalog = catalog(&places(given, env, cwd)?, reader)?;
     let (_, profile) = catalog.lookup(&name).map_err(profile_failure)?;
     let above = |flag: &str| set_above(given, env, flag);
-    let _ = profile.layer(&CliTable, above).map_err(profile_failure);
-    Ok(Vec::new())
+    profile.layer(&CliTable, above).map_err(profile_failure)
 }
 
 /// A profile error as a failure, exit 64.

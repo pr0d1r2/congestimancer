@@ -444,6 +444,14 @@ is a development series, not for production.
   `docs/CONGESTION.md`, with its `CGMR_` environment name (none for
   `--when`); a single-value switch given twice is a usage error, only
   `--max-procs` and `--max-user-procs` repeat.
+- Every switch reads `CGMR_<SWITCH>` when the flag is not given: a flag
+  beats the variable, which beats a profile, which beats the built-in
+  default. Value variables take the flag's text, boolean ones `1`, `true`,
+  `yes` or `0`, `false`, `no`, repeatable ones comma-separated items;
+  `CGMR_WHEN` is never read. An unknown `CGMR_` variable gives a warning
+  naming the closest known one.
+- Profile lines are checked by the CLI's own switch table, so a profile
+  meets exactly the rules of the command line.
 
 ### Fixed
 

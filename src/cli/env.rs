@@ -70,7 +70,7 @@ impl Env {
         &self,
         spec: &SwitchSpec,
     ) -> Result<Option<Vec<String>>, Failure> {
-        let Some(name) = spec.env().filter(|_| false) else {
+        let Some(name) = spec.env() else {
             return Ok(None);
         };
         let Some(text) = self.text(&name)? else {
@@ -90,8 +90,7 @@ impl Env {
     pub(crate) fn unknown(&self) -> Vec<String> {
         let names = self.0.keys().filter_map(|k| k.to_str());
         let ours = names.filter(|k| k.starts_with(PREFIX));
-        let _ = ours.filter_map(warning);
-        Vec::new()
+        ours.filter_map(warning).collect()
     }
 }
 
