@@ -5,7 +5,8 @@ use std::io;
 use std::time::Duration;
 
 use super::{SystemWallClock, WallClock};
-use crate::signal::{Reason, Sample, Signal, SignalId};
+use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
+use crate::sys::hid_idle_ns;
 
 /// Which OS's idle source a [`PresenceSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,15 +63,32 @@ impl<W: WallClock> PresenceSignal<W> {
 
 /// macOS idle: `HIDIdleTime` nanoseconds as a duration (src/presence:V1).
 fn hid_idle(ns: io::Result<u64>) -> Result<Duration, Reason> {
-    let _ = ns;
-    Err(Reason::from("stub"))
+    ns.map(Duration::from_nanos).map_err(reason)
+}
+
+impl<W: WallClock> PresenceSignal<W> {
+    /// `--idle`: time since the last keyboard or mouse input.
+    fn idle(&self) -> Result<Duration, Reason> {
+        match self.os {
+            Os::Macos => hid_idle(hid_idle_ns()),
+            Os::Linux => Err(Reason::from("logind idle is not read yet")),
+        }
+    }
 }
 
 impl<W: WallClock> Signal for PresenceSignal<W> {
     fn sample(&mut self, id: SignalId) -> Sample {
-        let _ = (id, self.os, &self.wall, hid_idle);
-        Sample::Unsupported(Reason::from("stub"))
+        let sample = match id {
+            SignalId::Idle => self.idle().map(Measure::Duration),
+            _ => Err(Reason::from(format!("{id} is not a presence signal"))),
+        };
+        sample.map_or_else(Sample::Unsupported, Sample::Gauge)
     }
+}
+
+/// An error as the reason a signal has no value.
+fn reason(err: impl ToString) -> Reason {
+    Reason::from(err.to_string())
 }
 
 #[cfg(test)]

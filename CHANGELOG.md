@@ -208,3 +208,5 @@ is a development series, not for production.
   `NetError::RttWithoutHost`, a usage error.
 - `parse_net_iface`: `--net-iface I` is a name, so `..`, `/`, a leading `-`
   or a space is `NetError::BadIface`, a usage error naming the input.
+- `PresenceSignal`: `--idle` on macOS is the time since the last keyboard
+  or mouse input (IOKit `HIDIdleTime`); with no HID system it is unsupported.
