@@ -93,7 +93,7 @@ pub use profile::{
 
 pub use report::{
     Paint, SCHEMA_VERSION, StatusReport, StatusRow, Style, json_string,
-    switch_name, write_json,
+    switch_name, write_json, write_status,
 };
 
 pub use signal::{
