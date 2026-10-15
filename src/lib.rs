@@ -131,9 +131,9 @@ pub use sys::{
     VmStats, block_devices, capture, cpu_ticks, current_uid, gpu_usage,
     hid_idle_ns, interface_counters, io_priority, list_dir, local_time,
     mount_source, nice, notify_state, nvml_gpus, physical_disk_stats,
-    power_state, pset_load, read_text, set_io_priority, set_nice, statvfs,
-    swap_usage, sysctl_int, system_bus_connect, tcp_connect_time,
-    try_lock_exclusive, unlock, user_id, user_name, vm_stats,
+    power_state, pset_load, read_text, set_inheritable, set_io_priority,
+    set_nice, statvfs, swap_usage, sysctl_int, system_bus_connect,
+    tcp_connect_time, try_lock_exclusive, unlock, user_id, user_name, vm_stats,
 };
 
 pub use units::{

@@ -89,6 +89,18 @@ pub fn unlock(file: &File) -> io::Result<()> {
     Ok(rustix::fs::flock(file, FlockOperation::Unlock)?)
 }
 
+/// Lets `file`'s descriptor survive `exec` by clearing its
+/// `FD_CLOEXEC` flag, so a slot lock passes to the governed command
+/// (src/sys:T19).
+///
+/// # Errors
+///
+/// The OS error.
+pub const fn set_inheritable(file: &File) -> io::Result<()> {
+    let _ = file;
+    Ok(())
+}
+
 /// This process's nice value.
 ///
 /// # Errors

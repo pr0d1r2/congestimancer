@@ -38,7 +38,10 @@ pub use disk::{
     mount_source, physical_disk_stats,
 };
 pub use files::{list_dir, read_text};
-pub use fs::{FsStats, nice, set_nice, statvfs, try_lock_exclusive, unlock};
+pub use fs::{
+    FsStats, nice, set_inheritable, set_nice, statvfs, try_lock_exclusive,
+    unlock,
+};
 pub use gpu::{GpuUsage, gpu_usage};
 pub use iopolicy::{IoPriority, io_priority, set_io_priority};
 pub use mach::{CpuTicks, PsetLoad, VmStats, cpu_ticks, pset_load, vm_stats};
