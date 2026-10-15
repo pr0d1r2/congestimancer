@@ -127,3 +127,83 @@ fn exit_codes_follow_the_outcome() {
     assert_eq!(Outcome::Released(()).exit_code(), None);
     assert_eq!(Outcome::<()>::TimedOut(None).exit_code(), Some(124));
 }
+
+/// Slot steps that say wait `left` times, then let the command go;
+/// counts how often they were tried.
+#[derive(Default)]
+struct Turns {
+    left: usize,
+    tries: usize,
+}
+
+impl Admit for Turns {
+    type Held = ();
+    type Error = std::convert::Infallible;
+
+    fn try_admit(&mut self) -> Result<Option<()>, Self::Error> {
+        self.tries = self.tries.saturating_add(1);
+        if self.left == 0 {
+            return Ok(Some(()));
+        }
+        self.left = self.left.saturating_sub(1);
+        Ok(None)
+    }
+}
+
+fn backoff(interval: u64, cap: u64) -> Pacing {
+    let mut pacing = Pacing::new(secs(interval));
+    pacing.backoff = Some(secs(cap));
+    pacing
+}
+
+#[test]
+fn backoff_doubles_each_consecutive_failure_up_to_the_cap() {
+    let mut bench = Bench::new(&[FAIL, FAIL, FAIL, FAIL, FAIL, PASS]);
+    assert!(released(&bench.open(&backoff(1, 5))));
+    assert_eq!(
+        bench.sleeps(),
+        [secs(1), secs(2), secs(4), secs(5), secs(5)]
+    );
+}
+
+#[test]
+fn a_passing_round_resets_backoff_to_the_interval() {
+    let mut bench = Bench::new(&[FAIL, FAIL, FAIL, PASS, FAIL, PASS]);
+    let mut turns = Turns {
+        left: 1,
+        ..Turns::default()
+    };
+    assert!(bench.run(&backoff(1, 60), &mut turns).is_ok());
+    assert_eq!(
+        bench.sleeps(),
+        [secs(1), secs(2), secs(4), secs(1), secs(1)]
+    );
+}
+
+#[test]
+fn warming_neither_backs_off_nor_resets() {
+    let mut source = FakeSource::new();
+    let warm = Reading::Warming;
+    source.script(
+        SignalId::Load,
+        [load(FAIL), load(FAIL), warm.clone(), warm, load(PASS)],
+    );
+    let mut bench = Bench::new(&[]);
+    bench.source = source;
+    assert!(released(&bench.open(&backoff(1, 60))));
+    assert_eq!(bench.sleeps(), [secs(1), secs(2), secs(2), secs(2)]);
+}
+
+#[test]
+fn a_cap_below_the_interval_never_shortens_it() {
+    let mut bench = Bench::new(&[FAIL, FAIL, PASS]);
+    assert!(released(&bench.open(&backoff(4, 1))));
+    assert_eq!(bench.sleeps(), [secs(4), secs(4)]);
+}
+
+#[test]
+fn without_backoff_the_interval_stays_put() {
+    let mut bench = Bench::new(&[FAIL, FAIL, FAIL, PASS]);
+    assert!(released(&bench.open(&Pacing::new(SEC))));
+    assert_eq!(bench.sleeps(), [SEC, SEC, SEC]);
+}
