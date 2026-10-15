@@ -229,3 +229,9 @@ is a development series, not for production.
   `--gpu-device I` reads GPU number `I`, and an index past them is
   `GpuError::UnknownDevice`, a usage error. No GPU source, or `--gpu-mem`
   on Apple Silicon, is unsupported with the reason.
+- `LockDir`: the per-user slot dir (`$XDG_RUNTIME_DIR/cgmr`, else
+  `$TMPDIR/cgmr`, else `/tmp/cgmr-<uid>`), made 0700 and refused when it
+  is a symlink, not a directory, another user's or open to others
+  (`SlotError::UnsafeDir`, exit 69).
+- `slot_key`: `--slot-key` must be a safe name; without it the command's
+  basename is the key, unsafe characters turned to `_`.
