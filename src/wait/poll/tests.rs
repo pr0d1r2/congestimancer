@@ -383,7 +383,7 @@ fn heartbeat_says_why_it_waits_every_span() {
         .filter_map(|l| l.split(':').next())
         .collect();
     assert_eq!(waited, ["5s", "10s"], "{log}");
-    assert!(log.lines().all(|l| l.contains("--load")), "{log}");
+    assert!(log.lines().all(|l| l.contains("load: 3")), "{log}");
 }
 
 #[test]
@@ -411,7 +411,7 @@ fn verbose_names_the_blocking_gate_each_failing_round() {
     let log = bench.log();
     assert_eq!(log.lines().count(), 2, "{log}");
     assert!(
-        log.lines().all(|l| l.starts_with("blocked: --load")),
+        log.lines().all(|l| l.starts_with("blocked: --all-load: 3")),
         "{log}"
     );
 }

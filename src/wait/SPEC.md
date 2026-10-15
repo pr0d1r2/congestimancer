@@ -63,7 +63,7 @@ T2|x|backoff|V2
 T3|x|timeout|V3
 T4|x|settle|V4
 T5|x|jitter|V5
-T6|.|heartbeat|V6
+T6|x|heartbeat|V6
 T7|x|unsupported short-circuit|V8
 T8|.|release pipeline order|V9
 T9|.|benchmarks for round CPU, RSS, cold start|V10

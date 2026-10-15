@@ -22,6 +22,7 @@
 mod jitter;
 mod pacing;
 mod poll;
+mod run;
 
 pub use jitter::jitter_delay;
 pub use pacing::{DEFAULT_INTERVAL, MIN_INTERVAL, Pacing};

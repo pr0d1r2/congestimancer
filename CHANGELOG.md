@@ -367,3 +367,6 @@ is a development series, not for production.
 - `jitter_delay`: with `--jitter D`, a released command sleeps a pick in
   `[0, D)` before it starts, drawn from a seed (pid and start time) so
   waiters let go together spread out.
+- With `--heartbeat D`, a waiting command writes one line to stderr every
+  `D` saying how long it has waited and which gates block it; `--verbose`
+  names the blocking gates after every failing round.

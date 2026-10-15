@@ -3,11 +3,11 @@
 
 use std::convert::Infallible;
 use std::io::Write;
-use std::time::{Duration, Instant};
 
+use super::run::Run;
 use super::{Pacing, jitter_delay};
-use crate::gate::{Evaluation, Gates, Overall, evaluate};
-use crate::signal::{Clock, Source, Trends};
+use crate::gate::{Evaluation, Gates};
+use crate::signal::{Clock, Source};
 
 /// The slot steps that run once the gates pass and settle, before
 /// `--jitter` (src/wait:V9); `src/slot`'s `Waiter` is the real one.
@@ -116,12 +116,15 @@ where
     let mut run = Run::new(pacing, rig.clock.now());
     loop {
         let now = rig.clock.now();
-        if let Some(outcome) = run.round(&mut rig, now, admit)? {
+        if run.due(now)
+            && let Some(outcome) = run.round(&mut rig, now, admit)?
+        {
             scatter(&outcome, rig.clock, pacing);
             return Ok(outcome);
         }
+        run.beat(now, rig.log);
         if run.expired(now) {
-            return Ok(Outcome::TimedOut(run.last.take()));
+            return Ok(Outcome::TimedOut(run.take_last()));
         }
         rig.clock.sleep(run.pause(now));
     }
@@ -140,118 +143,6 @@ fn scatter<H, C: Clock + ?Sized>(
     let delay = jitter_delay(pacing.seed, pacing.jitter.unwrap_or_default());
     if !delay.is_zero() {
         clock.sleep(delay);
-    }
-}
-
-/// A round's result: the outcome when the wait is over, `None` to wait on.
-type Step<A> = Result<Option<Outcome<<A as Admit>::Held>>, <A as Admit>::Error>;
-
-/// One wait in progress: what the rounds so far have shown.
-struct Run<'p> {
-    /// The switches.
-    pacing: &'p Pacing,
-    /// Each signal's history, for the trend in a block reason.
-    trends: Trends,
-    /// The pause before the next round.
-    pause: Duration,
-    /// Whether the last round that decided anything failed.
-    failing: bool,
-    /// When `--timeout` runs out, if it can.
-    deadline: Option<Instant>,
-    /// The last round's evaluation.
-    last: Option<Evaluation>,
-    /// Since when the gates have passed without a break.
-    since: Option<Instant>,
-}
-
-impl<'p> Run<'p> {
-    /// A wait that starts at `start` and has not checked yet.
-    fn new(pacing: &'p Pacing, start: Instant) -> Self {
-        Self {
-            pacing,
-            trends: Trends::new(),
-            pause: pacing.base(),
-            failing: false,
-            deadline: pacing.timeout.and_then(|t| start.checked_add(t)),
-            last: None,
-            since: None,
-        }
-    }
-
-    /// Whether `--timeout` has run out at `now` (src/wait:V3).
-    fn expired(&self, now: Instant) -> bool {
-        self.deadline.is_some_and(|deadline| now >= deadline)
-    }
-
-    /// Evaluates the gates at `now`; the outcome when the wait is over.
-    fn round<S, C, A>(
-        &mut self,
-        rig: &mut Rig<'_, S, C>,
-        now: Instant,
-        admit: &mut A,
-    ) -> Step<A>
-    where
-        S: Source + ?Sized,
-        C: ?Sized,
-        A: Admit,
-    {
-        let evaluation = evaluate(rig.gates, rig.source, now, &mut self.trends);
-        let overall = evaluation.overall;
-        if overall == Overall::Unsupported {
-            return Ok(Some(Outcome::Unsupported(evaluation)));
-        }
-        self.pace(overall);
-        self.last = Some(evaluation);
-        if !self.settled(overall, now) {
-            return Ok(None);
-        }
-        Ok(admit.try_admit()?.map(Outcome::Released))
-    }
-
-    /// Whether the gates have passed without a break for `--settle` at
-    /// `now`, given this round's `overall`; anything but a pass starts the
-    /// span again (src/wait:V4).
-    fn settled(&mut self, overall: Overall, now: Instant) -> bool {
-        if !overall.is_pass() {
-            self.since = None;
-            return false;
-        }
-        let since = *self.since.get_or_insert(now);
-        let hold = self.pacing.settle.unwrap_or_default();
-        now.saturating_duration_since(since) >= hold
-    }
-
-    /// When the current pass will have held for `--settle`.
-    fn settles_at(&self) -> Option<Instant> {
-        self.since?.checked_add(self.pacing.settle?)
-    }
-
-    /// Sets the next pause from this round's `overall`: a pass resets it,
-    /// a failure after a failure backs it off, warming keeps it
-    /// (src/wait:V2).
-    fn pace(&mut self, overall: Overall) {
-        match overall {
-            Overall::Pass => {
-                self.pause = self.pacing.base();
-                self.failing = false;
-            }
-            Overall::Fail if self.failing => {
-                self.pause = self.pacing.backed_off(self.pause);
-            }
-            Overall::Fail => self.failing = true,
-            Overall::Warming | Overall::Unsupported => {}
-        }
-    }
-
-    /// How long to sleep at `now` before the next round: the pause, cut
-    /// short so a round falls on the deadline and on the end of settle.
-    fn pause(&self, now: Instant) -> Duration {
-        [self.deadline, self.settles_at()]
-            .into_iter()
-            .flatten()
-            .filter(|&at| at > now)
-            .map(|at| at.saturating_duration_since(now))
-            .fold(self.pause, Duration::min)
     }
 }
 
