@@ -55,7 +55,7 @@ V7: warnings go through one fn honouring `--quiet` (`src/cli:V12`).
 ## §T TASKS
 
 id|status|task|cites
-T1|.|JSON schema v1 + writer|V1,V6
+T1|x|JSON schema v1 + writer|V1,V6
 T2|.|human status table|V5,V6
 T3|.|stream routing|V2
 T4|.|colour policy|V3

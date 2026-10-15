@@ -340,3 +340,6 @@ is a development series, not for production.
 - `evaluate_once` and `sample_once`: `check` and `status` read a rate or
   interval percent twice, one `--interval` apart, so they never show a
   warming value; without one they read once and never wait.
+- `write_json` and `StatusReport`: `status --json` and `check --json`
+  write schema v1 (`schema_version`, `host`, `signals`, `gates`) with
+  stable field names; numbers use a `.` whatever the locale.

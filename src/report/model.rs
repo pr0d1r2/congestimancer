@@ -3,7 +3,7 @@
 
 use std::borrow::Cow;
 
-use crate::gate::{Checked, Subject};
+use crate::gate::{Adjust, Checked, Custom, Gate, Subject};
 use crate::signal::{Reading, SignalId, Trend};
 
 /// The source a row reads when the caller names none.
@@ -77,8 +77,27 @@ impl StatusReport {
 /// `needs-mem`, `when`.
 #[must_use]
 pub fn switch_name(subject: &Subject) -> String {
-    let _ = subject;
-    String::new()
+    match subject {
+        Subject::Signal(gate) => signal_switch(gate),
+        Subject::Custom(Custom::When(_)) => "when".to_owned(),
+        Subject::Custom(Custom::WhenFile(_)) => "when-file".to_owned(),
+    }
+}
+
+/// The switch of a signal gate: per-CPU signals read whole are the
+/// `all-` switches, memory less reservations is `needs-mem`.
+fn signal_switch(gate: &Gate) -> String {
+    let name = gate.signal.name();
+    match (gate.signal, gate.adjust) {
+        (SignalId::Mem, Adjust::Unreserved(_)) => "needs-mem".to_owned(),
+        (
+            SignalId::Load | SignalId::RunQueue | SignalId::Mem,
+            Adjust::Whole,
+        ) => {
+            format!("all-{name}")
+        }
+        _ => name.to_owned(),
+    }
 }
 
 #[cfg(test)]
