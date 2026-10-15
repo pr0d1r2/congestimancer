@@ -213,3 +213,6 @@ is a development series, not for production.
 - `--idle` on Linux is the least idle local user session logind knows, read
   over the system bus by a hand-written D-Bus client; a headless host or one
   without a bus is unsupported.
+- `WallClock` and `SystemWallClock`: `--between` samples the local time of
+  day from an injected wall clock; the machine clock does not read local
+  time yet, so there it is unsupported with that reason.

@@ -100,6 +100,7 @@ impl<W: WallClock> Signal for PresenceSignal<W> {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
             SignalId::Idle => self.idle().map(Measure::Duration),
+            SignalId::Between => self.wall.local_time().map(Measure::Clock),
             _ => Err(Reason::from(format!("{id} is not a presence signal"))),
         };
         sample.map_or_else(Sample::Unsupported, Sample::Gauge)
