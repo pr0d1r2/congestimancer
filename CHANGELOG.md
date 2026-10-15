@@ -294,3 +294,6 @@ is a development series, not for production.
 - `--cpu-idle X` passes while the CPUs were more than X% idle over the
   last interval: Linux `/proc/stat` idle plus iowait, macOS
   `host_processor_info` ticks; the first sample is warming.
+- `--cpu-pressure X` passes while `/proc/pressure/cpu` `some avg10` is
+  under X; in a cgroup it reads the cgroup's `cpu.pressure`; macOS is
+  unsupported.

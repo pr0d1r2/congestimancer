@@ -5,11 +5,16 @@ use std::io;
 
 use super::parse::{LOADAVG, STAT};
 use super::{LoadWindow, Loads, ProcStat, parse_loadavg, parse_stat};
-use crate::signal::{Counter, Measure, Reason, Root, Sample, Signal, SignalId};
+use crate::signal::{
+    Counter, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
+};
 use crate::sys::{
     CpuTicks, LoadAverage, PsetLoad, Snapshot, cpu_ticks, pset_load, read_text,
 };
-use crate::units::{Decimal, parse_decimal};
+use crate::units::{Decimal, Percent, parse_decimal};
+
+/// Linux CPU pressure stall information.
+const PRESSURE: &str = "/proc/pressure/cpu";
 
 /// Which OS's sources a [`CpuSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -115,6 +120,17 @@ impl CpuSignal {
     }
 }
 
+impl CpuSignal {
+    /// `--cpu-pressure`: PSI `some avg10`; Linux only (src/cpu:V5).
+    fn pressure(&self) -> Result<Percent, Reason> {
+        if self.os == Os::Macos {
+            return Err(Reason::from("no PSI on macOS"));
+        }
+        let text = read_text(&self.root, PRESSURE).map_err(reason)?;
+        parse_psi(&text).map(|psi| psi.some.avg10).map_err(reason)
+    }
+}
+
 impl Signal for CpuSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
@@ -133,6 +149,7 @@ impl CpuSignal {
                 self.loads().map(|l| Measure::Number(l.pick(self.window)))
             }
             SignalId::RunQueue => self.run_queue().map(Measure::Number),
+            SignalId::CpuPressure => self.pressure().map(Measure::Percent),
             _ => Err(Reason::from(format!("{id} is not a cpu signal"))),
         }
     }
