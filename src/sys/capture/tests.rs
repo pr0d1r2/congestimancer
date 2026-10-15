@@ -43,6 +43,8 @@ fn listed_files_present_are_copied_at_their_paths() {
         "proc/sys/fs/file-nr",
         "sys/block/sda/queue/rotational",
         "sys/block/sda/stat",
+        "sys/class/power_supply/AC/type",
+        "sys/class/power_supply/BAT0/type",
         "sys/class/thermal/thermal_zone0/temp",
         "sys/class/thermal/thermal_zone0/type",
     ];
