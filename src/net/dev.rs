@@ -5,7 +5,15 @@ use std::fmt;
 use std::io;
 
 use crate::signal::Root;
-use crate::sys::InterfaceCounters;
+use crate::sys::{InterfaceCounters, LinkCounters, read_text};
+
+/// Counters per `/proc/net/dev` line: 8 receive, then 8 transmit.
+const FIELDS: usize = 16;
+/// Where the transmit counters start.
+const TX: usize = 8;
+/// `IFF_UP`, `IFF_LOOPBACK` (`linux/if.h`).
+const IFF_UP: u32 = 0x1;
+const IFF_LOOPBACK: u32 = 0x8;
 
 /// A `/proc/net/dev` line that did not parse.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,16 +42,56 @@ impl std::error::Error for NetDevError {}
 /// [`NetDevError`] naming the first line after the two headers that is
 /// not `name: 16 counters`.
 pub fn parse_net_dev(
-    _text: &str,
+    text: &str,
 ) -> Result<Vec<InterfaceCounters>, NetDevError> {
-    Ok(Vec::new())
+    text.lines()
+        .enumerate()
+        .skip(2)
+        .filter(|(_, line)| !line.trim().is_empty())
+        .map(|(at, line)| {
+            interface(line).ok_or_else(|| NetDevError {
+                line: at.saturating_add(1),
+                text: line.to_owned(),
+            })
+        })
+        .collect()
+}
+
+/// One `name: counters` line, up and loopback left `false`.
+fn interface(line: &str) -> Option<InterfaceCounters> {
+    let (name, counters) = line.split_once(':')?;
+    let values = counters
+        .split_whitespace()
+        .map(|n| n.parse::<u64>().ok())
+        .collect::<Option<Vec<u64>>>()
+        .filter(|values| values.len() == FIELDS)?;
+    Some(InterfaceCounters {
+        name: name.trim().to_owned(),
+        up: false,
+        loopback: false,
+        rx: link(&values, 0)?,
+        tx: link(&values, TX)?,
+    })
+}
+
+/// Bytes, packets and errors: the first three counters from `from`.
+fn link(values: &[u64], from: usize) -> Option<LinkCounters> {
+    match values.get(from..)? {
+        [bytes, packets, errors, ..] => Some(LinkCounters {
+            bytes: *bytes,
+            packets: *packets,
+            errors: *errors,
+        }),
+        _ => None,
+    }
 }
 
 /// The `IFF_*` bits of a `/sys/class/net/<iface>/flags` file (`0x1003`);
 /// `None` when it is not `0x` hex.
 #[must_use]
-pub fn parse_if_flags(_text: &str) -> Option<u32> {
-    None
+pub fn parse_if_flags(text: &str) -> Option<u32> {
+    let hex = text.trim().strip_prefix("0x")?;
+    u32::from_str_radix(hex, 16).ok()
 }
 
 /// Every interface under `root`, with up and loopback from its flags
@@ -54,8 +102,27 @@ pub fn parse_if_flags(_text: &str) -> Option<u32> {
 ///
 /// `/proc/net/dev` unreadable (Unsupported when absent) or malformed
 /// ([`io::ErrorKind::InvalidData`]).
-pub fn linux_interfaces(_root: &Root) -> io::Result<Vec<InterfaceCounters>> {
-    Ok(Vec::new())
+pub fn linux_interfaces(root: &Root) -> io::Result<Vec<InterfaceCounters>> {
+    let text = read_text(root, "/proc/net/dev")?;
+    let mut found = parse_net_dev(&text)
+        .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?;
+    for iface in &mut found {
+        flag(root, iface);
+    }
+    Ok(found)
+}
+
+/// Sets up and loopback of `iface` from its sysfs flags file.
+fn flag(root: &Root, iface: &mut InterfaceCounters) {
+    let path = format!("/sys/class/net/{}/flags", iface.name);
+    let bits = read_text(root, &path).ok();
+    if let Some(bits) = bits.as_deref().and_then(parse_if_flags) {
+        iface.up = bits & IFF_UP != 0;
+        iface.loopback = bits & IFF_LOOPBACK != 0;
+    } else {
+        iface.up = true;
+        iface.loopback = iface.name == "lo";
+    }
 }
 
 #[cfg(test)]

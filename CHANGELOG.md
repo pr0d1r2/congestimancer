@@ -192,3 +192,6 @@ is a development series, not for production.
   unsupported.
 - `DiskSignal::at` reads the working directory, or `--disk-path P`; a `P`
   that does not exist is `DiskError::Missing`, a usage error.
+- `parse_net_dev`, `parse_if_flags` and `linux_interfaces`: Linux
+  interface totals from `/proc/net/dev`, up and loopback from
+  `/sys/class/net/<iface>/flags`; a torn line is a `NetDevError` naming it.

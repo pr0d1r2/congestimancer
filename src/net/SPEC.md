@@ -54,7 +54,7 @@ V6: `--net-iface I`: I = `Name` (`src/units:V13`).
 ## §T TASKS
 
 id|status|task|cites
-T1|.|`/proc/net/dev` parser|V2
+T1|x|`/proc/net/dev` parser|V2
 T2|.|macOS interface counters|V2,V5
 T3|.|iface selection|V1
 T4|.|`--net-rx` `--net-tx` `--net`|V2
