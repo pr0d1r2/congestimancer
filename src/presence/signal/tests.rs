@@ -4,7 +4,7 @@ use std::time::Duration;
 use super::{Os, PresenceSignal, hid_idle, logind_reading};
 use crate::presence::error::BusError;
 use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
-use crate::units::ClockTime;
+use crate::units::{ClockTime, parse_clock_window};
 
 /// A wall clock tests set by hand.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -111,4 +111,50 @@ fn linux_idle_is_a_duration_or_unsupported() {
         presence.sample(SignalId::Idle),
         Sample::Gauge(Measure::Duration(_)) | Sample::Unsupported(_)
     ));
+}
+
+/// The `--between` sample at local time `hour:minute`.
+fn between_at(hour: u8, minute: u8) -> Sample {
+    let local = ClockTime::new(hour, minute).ok_or_else(|| "bad".into());
+    let clock = FixedWall { micros: 0, local };
+    PresenceSignal::with_clock(clock).sample(SignalId::Between)
+}
+
+/// The time of day a sample carries, if it is one.
+fn time_of(sample: &Sample) -> Option<ClockTime> {
+    match sample {
+        Sample::Gauge(Measure::Clock(t)) => Some(*t),
+        Sample::Gauge(_) | Sample::Counter(_) | Sample::Unsupported(_) => None,
+    }
+}
+
+#[test]
+fn between_reads_the_local_time_of_day() {
+    assert_eq!(time_of(&between_at(23, 30)), ClockTime::new(23, 30));
+    let night = parse_clock_window("22:00-06:00");
+    let now = time_of(&between_at(23, 30));
+    let inside = night.ok().zip(now).map(|(w, t)| w.contains(t));
+    assert_eq!(inside, Some(true));
+}
+
+#[test]
+fn a_dst_jump_is_read_as_the_new_local_time() {
+    // Spring forward: 01:59 is followed by 03:00; 02:xx never comes.
+    let skipped = parse_clock_window("02:00-02:30").ok();
+    for (hour, minute) in [(1, 59), (3, 0)] {
+        let now = time_of(&between_at(hour, minute));
+        assert_eq!(now, ClockTime::new(hour, minute));
+        let inside = skipped.zip(now).map(|(w, t)| w.contains(t));
+        assert_eq!(inside, Some(false));
+    }
+}
+
+#[test]
+fn no_local_time_is_the_reason() {
+    let clock = FixedWall {
+        micros: 0,
+        local: Err(Reason::from("no zoneinfo")),
+    };
+    let sample = PresenceSignal::with_clock(clock).sample(SignalId::Between);
+    assert_eq!(reason(sample), Some("no zoneinfo".to_owned()));
 }
