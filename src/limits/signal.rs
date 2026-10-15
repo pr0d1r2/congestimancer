@@ -3,13 +3,19 @@
 
 use std::io;
 
-use super::{limit_share, parse_file_nr};
+use super::{limit_share, parse_file_nr, parse_loadavg_tasks, parse_pid_max};
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
-use crate::sys::{read_text, sysctl_int};
+use crate::sys::{Snapshot, read_text, sysctl_int};
 use crate::units::Percent;
 
 /// Linux file handles: allocated, unused, maximum.
 const FILE_NR: &str = "/proc/sys/fs/file-nr";
+
+/// Linux's highest pid plus one.
+const PID_MAX: &str = "/proc/sys/kernel/pid_max";
+
+/// Linux load averages, with the task count after the `/`.
+const LOADAVG: &str = "/proc/loadavg";
 
 /// Which OS's sources a [`LimitsSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -70,12 +76,42 @@ impl LimitsSignal {
             ),
         }
     }
+
+    /// `--pids`: processes as a share of the system maximum
+    /// (src/limits:V2). Linux counts tasks, since every thread holds a
+    /// pid below `pid_max`; macOS counts processes against
+    /// `kern.maxproc` (`kern.num_tasks` is a fixed cap, not a count).
+    fn pids(&self) -> Result<Percent, Reason> {
+        match self.os {
+            Os::Linux => {
+                let text = read_text(&self.root, PID_MAX).map_err(reason)?;
+                let max = parse_pid_max(&text).map_err(reason)?;
+                let text = read_text(&self.root, LOADAVG).map_err(reason)?;
+                let tasks = parse_loadavg_tasks(&text).map_err(reason)?;
+                share(tasks, max, "kernel.pid_max")
+            }
+            Os::Macos => sysctl_share(
+                process_count(),
+                sysctl_int("kern.maxproc"),
+                "kern.maxproc",
+            ),
+        }
+    }
+}
+
+/// The processes running now, through the `crate::sys` snapshot.
+fn process_count() -> io::Result<i64> {
+    let mut snapshot = Snapshot::new();
+    snapshot.refresh_processes();
+    i64::try_from(snapshot.processes().len())
+        .map_err(|_| io::Error::from(io::ErrorKind::InvalidData))
 }
 
 impl Signal for LimitsSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
             SignalId::Fds => self.fds(),
+            SignalId::Pids => self.pids(),
             _ => Err(Reason::from(format!("{id} is not a limits signal"))),
         };
         sample.map_or_else(Sample::Unsupported, |p| {

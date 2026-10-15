@@ -53,7 +53,7 @@ V3: max = 0 | unreadable → `Unsupported`, ⊥ divide.
 id|status|task|cites
 T1|x|`file-nr` parser + `--fds` Linux|V1,V3
 T2|x|`--fds` macOS|V1,V3
-T3|.|`--pids` both OS|V2,V3
+T3|x|`--pids` both OS|V2,V3
 
 ## §B BUGS
 

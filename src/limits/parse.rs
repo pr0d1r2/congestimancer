@@ -53,7 +53,9 @@ pub fn parse_file_nr(text: &str) -> Result<FileNr, LimitsError> {
 ///
 /// [`LimitsError::Malformed`] when it is not one.
 pub fn parse_pid_max(text: &str) -> Result<u64, LimitsError> {
-    Err(LimitsError::malformed("pid_max", text))
+    text.trim()
+        .parse()
+        .map_err(|_| LimitsError::malformed("pid_max", text))
 }
 
 /// The tasks (threads, each holding a pid) counted by `/proc/loadavg`: the
@@ -64,7 +66,11 @@ pub fn parse_pid_max(text: &str) -> Result<u64, LimitsError> {
 ///
 /// [`LimitsError::Malformed`] when there is no `running/total` field.
 pub fn parse_loadavg_tasks(text: &str) -> Result<u64, LimitsError> {
-    Err(LimitsError::malformed("loadavg", text))
+    text.split_whitespace()
+        .nth(3)
+        .and_then(|field| field.split_once('/'))
+        .and_then(|(_, total)| total.parse().ok())
+        .ok_or_else(|| LimitsError::malformed("loadavg", text))
 }
 
 /// `used` as a share of `max`, rounded down to a hundredth of a percent

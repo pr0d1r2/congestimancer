@@ -164,3 +164,7 @@ is a development series, not for production.
   a division (`limit_share`).
 - `--fds` on macOS reads `kern.num_files` over `kern.maxfiles`; a failed
   read or a negative count is unsupported.
+- `--pids X` passes while processes are under X percent of the system
+  maximum: on Linux the tasks in `/proc/loadavg` over
+  `/proc/sys/kernel/pid_max` (`parse_loadavg_tasks`, `parse_pid_max`), on
+  macOS the running processes over `kern.maxproc`.
