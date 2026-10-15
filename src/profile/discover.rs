@@ -8,7 +8,7 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
-use super::{Catalog, ProfileError};
+use super::{Catalog, Origin, ProfileError, ProfileFile, parse_profiles};
 
 /// Reads a whole text file.
 pub trait ReadText {
@@ -77,7 +77,10 @@ impl Places {
     /// `~/.config/cgmr/profiles`; `None` with neither.
     #[must_use]
     pub fn user_file(&self) -> Option<PathBuf> {
-        None
+        let xdg = self.config_home.as_ref().filter(|p| p.is_absolute());
+        let dot_config = || self.home.as_ref().map(|h| h.join(".config"));
+        let base = xdg.cloned().or_else(dot_config)?;
+        Some(base.join("cgmr").join("profiles"))
     }
 }
 
@@ -95,8 +98,47 @@ pub fn discover(
     places: &Places,
     reader: &impl ReadText,
 ) -> Result<Catalog, ProfileError> {
-    let _ = (places, reader);
-    Ok(Catalog::default())
+    if let Some(path) = &places.explicit {
+        let explicit = load(path, Origin::Explicit, reader)?;
+        return Ok(Catalog::new(explicit.into_iter().collect()));
+    }
+    let mut files: Vec<ProfileFile> =
+        project(&places.cwd, reader)?.into_iter().collect();
+    if let Some(path) = places.user_file() {
+        files.extend(load(&path, Origin::User, reader)?);
+    }
+    Ok(Catalog::new(files))
+}
+
+/// The nearest `.cgmr` from `cwd` up to the filesystem root, if any.
+fn project(
+    cwd: &Path,
+    reader: &impl ReadText,
+) -> Result<Option<ProfileFile>, ProfileError> {
+    for dir in cwd.ancestors() {
+        let path = dir.join(PROJECT_FILE);
+        if let Some(file) = load(&path, Origin::Project, reader)? {
+            return Ok(Some(file));
+        }
+    }
+    Ok(None)
+}
+
+/// The file at `path` parsed, or `None` if it is not found
+/// (src/profile:V7).
+fn load(
+    path: &Path,
+    origin: Origin,
+    reader: &impl ReadText,
+) -> Result<Option<ProfileFile>, ProfileError> {
+    match reader.read_text(path) {
+        Ok(text) => parse_profiles(&text, path, origin).map(Some),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(ProfileError::Read {
+            path: path.to_owned(),
+            reason: e.to_string(),
+        }),
+    }
 }
 
 #[cfg(test)]

@@ -55,3 +55,9 @@ is a development series, not for production.
   profile files of `[name]` sections, one switch per line exactly as on the
   command line, `#` comments; every error names `file:line`, and switches
   are checked by the CLI's own parser through `SwitchTable`.
+- `discover`, `Places`, `ReadText` and `Catalog`: profiles come from the
+  `--profile-file` alone if given, else the nearest `.cgmr` up from the
+  working directory, then `$XDG_CONFIG_HOME/cgmr/profiles` (else
+  `~/.config/cgmr/profiles`); the project file wins a name both define, a
+  missing file is skipped, an unreadable one is an error, and an unknown
+  name lists the names there are.

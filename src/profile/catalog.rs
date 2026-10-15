@@ -27,7 +27,11 @@ impl Catalog {
     /// Every name the files define, sorted, without repeats.
     #[must_use]
     pub fn names(&self) -> Vec<Name> {
-        Vec::new()
+        let profiles = self.files.iter().flat_map(ProfileFile::profiles);
+        let mut names: Vec<Name> = profiles.map(|p| p.name().clone()).collect();
+        names.sort();
+        names.dedup();
+        names
     }
 
     /// The profile called `name` and the file it comes from: the first
@@ -42,7 +46,8 @@ impl Catalog {
         &self,
         name: &Name,
     ) -> Result<(&ProfileFile, &Profile), ProfileError> {
-        Err(ProfileError::UnknownProfile {
+        let found = self.files.iter().find_map(|f| Some((f, f.get(name)?)));
+        found.ok_or_else(|| ProfileError::UnknownProfile {
             name: name.clone(),
             available: self.names(),
         })

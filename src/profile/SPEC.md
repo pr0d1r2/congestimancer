@@ -57,7 +57,7 @@ V7: file read errors other than not-found → 64; not-found → skip.
 ## §T TASKS
 
 id|status|task|cites
-T1|.|file discovery & precedence|V2,V7
+T1|x|file discovery & precedence|V2,V7
 T2|x|line parser w/ `file:line` errors|V4,V5
 T3|.|merge into config w/ precedence|V1,V6
 T4|.|`--when` trust rule|V3
