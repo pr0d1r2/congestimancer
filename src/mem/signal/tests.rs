@@ -1,6 +1,7 @@
 use std::path::Path;
 
-use super::{MemSignal, Os, level_from};
+use super::{MemSignal, Os, level_from, swap_bytes};
+use crate::mem::parse_vmstat;
 use crate::signal::{Counter, Level, Measure, Root, Sample, Signal, SignalId};
 use crate::units::Percent;
 
@@ -185,4 +186,12 @@ fn linux_swap_rate_without_vmstat_is_unsupported() {
         reason(on("absent", Os::Linux).sample(SignalId::SwapRate)),
         Some("/proc/vmstat: not present".to_owned())
     );
+}
+
+#[test]
+fn swapped_bytes_past_64_bits_are_unsupported() {
+    let text = format!("pswpin {}\npswpout 1\n", u64::MAX);
+    let pages = parse_vmstat(&text).ok();
+    let bytes = pages.map(|p| swap_bytes(p, 4096).map_err(|r| r.to_string()));
+    assert_eq!(bytes, Some(Err("swapped bytes past 64 bits".to_owned())));
 }

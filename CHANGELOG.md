@@ -265,3 +265,8 @@ is a development series, not for production.
   (`kern.memorystatus_vm_pressure_level`) is at most that level
   (`pressure_level`, `level_within`); Linux is unsupported, pointing at
   `--mem-pressure`.
+- `--swap-rate X/s` on Linux passes while pages swapped in plus out, from
+  `pswpin` and `pswpout` in `/proc/vmstat` (`parse_vmstat`, `SwapPages`),
+  move under X bytes a second; the page size is the smallest
+  `KernelPageSize` in `/proc/self/smaps` (`parse_page_size`), and byte
+  math past 64 bits is unsupported, never wrapped.

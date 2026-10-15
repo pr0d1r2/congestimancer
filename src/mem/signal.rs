@@ -1,11 +1,12 @@
 //! [`MemSignal`]: the memory signals, from Linux `/proc` under a
-//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3, T4).
+//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3, T4, T5).
 
 use std::io;
 
-use super::pressure_level;
+use super::parse::{SMAPS, VMSTAT};
+use super::{SwapPages, parse_page_size, parse_vmstat, pressure_level};
 use crate::signal::{
-    Level, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
+    Counter, Level, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
 };
 use crate::sys::{Snapshot, read_text, sysctl_int};
 use crate::units::{Bytes, Percent};
@@ -39,6 +40,8 @@ pub struct MemSignal {
     os: Os,
     /// The `sysinfo` view available memory is read from.
     snapshot: Snapshot,
+    /// The page size, once read.
+    page_size: Option<u64>,
 }
 
 impl MemSignal {
@@ -59,6 +62,7 @@ impl MemSignal {
             root,
             os,
             snapshot: Snapshot::new(),
+            page_size: None,
         }
     }
 }
@@ -96,10 +100,40 @@ impl MemSignal {
         }
         level_from(sysctl_int(PRESSURE_LEVEL))
     }
+
+    /// `--swap-rate`: bytes swapped in plus out so far, a counter the
+    /// sampler turns into bytes per second (src/mem:V6).
+    fn swapped(&mut self) -> Result<u64, Reason> {
+        match self.os {
+            Os::Linux => {
+                let text = read_text(&self.root, VMSTAT).map_err(reason)?;
+                let pages = parse_vmstat(&text).map_err(reason)?;
+                let page_size = self.linux_page_size()?;
+                swap_bytes(pages, page_size)
+            }
+            Os::Macos => Err(Reason::from("--swap-rate: not built on macOS")),
+        }
+    }
+
+    /// The Linux base page size from `/proc/self/smaps`, read once.
+    fn linux_page_size(&mut self) -> Result<u64, Reason> {
+        if let Some(size) = self.page_size {
+            return Ok(size);
+        }
+        let text = read_text(&self.root, SMAPS).map_err(reason)?;
+        let size = parse_page_size(&text).map_err(reason)?;
+        self.page_size = Some(size);
+        Ok(size)
+    }
 }
 
 impl Signal for MemSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
+        if id == SignalId::SwapRate {
+            return self.swapped().map_or_else(Sample::Unsupported, |total| {
+                Sample::Counter(Counter::Rate { total })
+            });
+        }
         let measure = match id {
             SignalId::Mem => Ok(Measure::Bytes(self.available())),
             SignalId::MemPressure => self.pressure(false).map(Measure::Percent),
@@ -111,6 +145,14 @@ impl Signal for MemSignal {
         };
         measure.map_or_else(Sample::Unsupported, Sample::Gauge)
     }
+}
+
+/// `pages` in bytes of `page_size`; past 64 bits is unsupported, never
+/// wrapped (src/mem:V6).
+fn swap_bytes(pages: SwapPages, page_size: u64) -> Result<u64, Reason> {
+    pages
+        .bytes(page_size)
+        .ok_or_else(|| Reason::from("swapped bytes past 64 bits"))
 }
 
 /// The level a read of `kern.memorystatus_vm_pressure_level` gives; a
