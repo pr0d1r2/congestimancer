@@ -1,0 +1,25 @@
+# Hello call, serial 1
+# hand-built D-Bus wire bytes, little endian; one field per line
+6c                                               # little endian
+01                                               # type
+00                                               # flags
+01                                               # version
+00 00 00 00                                      # body length
+01 00 00 00                                      # serial
+6d 00 00 00                                      # header fields array length
+01                                               # field 1 PATH
+01 6f 00                                         #   variant sig 'o'
+15 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 44 42 75 73 00 #   PATH '/org/freedesktop/DBus'
+00 00                                            # pad to 8
+02                                               # field 2 INTERFACE
+01 73 00                                         #   variant sig 's'
+14 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 44 42 75 73 00 #   INTERFACE 'org.freedesktop.DBus'
+00 00 00                                         # pad to 8
+03                                               # field 3 MEMBER
+01 73 00                                         #   variant sig 's'
+05 00 00 00 48 65 6c 6c 6f 00                    #   MEMBER 'Hello'
+00 00                                            # pad to 8
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+14 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 44 42 75 73 00 #   DESTINATION 'org.freedesktop.DBus'
+00 00 00                                         # pad to 8

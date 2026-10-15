@@ -1,0 +1,30 @@
+# Properties.Get(Session, Class) call, serial 3
+# hand-built D-Bus wire bytes, little endian; one field per line
+6c                                               # little endian
+01                                               # type
+00                                               # flags
+01                                               # version
+2e 00 00 00                                      # body length
+03 00 00 00                                      # serial
+90 00 00 00                                      # header fields array length
+01                                               # field 1 PATH
+01 6f 00                                         #   variant sig 'o'
+23 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 6c 6f 67 69 6e 31 2f 73 65 73 73 69 6f 6e 2f 5f 33 32 00 #   PATH '/org/freedesktop/login1/session/_32'
+00 00 00 00                                      # pad to 8
+02                                               # field 2 INTERFACE
+01 73 00                                         #   variant sig 's'
+1f 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 44 42 75 73 2e 50 72 6f 70 65 72 74 69 65 73 00 #   INTERFACE 'org.freedesktop.DBus.Properties'
+03                                               # field 3 MEMBER
+01 73 00                                         #   variant sig 's'
+03 00 00 00 47 65 74 00                          #   MEMBER 'Get'
+00 00 00 00                                      # pad to 8
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+16 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 6c 6f 67 69 6e 31 00 #   DESTINATION 'org.freedesktop.login1'
+00                                               # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+02 73 73 00                                      #   SIGNATURE sig 'ss'
+1e 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 6c 6f 67 69 6e 31 2e 53 65 73 73 69 6f 6e 00 # body: interface 'org.freedesktop.login1.Session'
+00                                               # body: pad to 4
+05 00 00 00 43 6c 61 73 73 00                    # body: property 'Class'

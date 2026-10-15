@@ -1,7 +1,8 @@
 use std::io;
 use std::time::Duration;
 
-use super::{Os, PresenceSignal, hid_idle};
+use super::{Os, PresenceSignal, hid_idle, logind_reading};
+use crate::presence::error::BusError;
 use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
 use crate::units::ClockTime;
 
@@ -76,6 +77,36 @@ fn a_signal_of_another_domain_is_unsupported() {
 fn macos_idle_is_a_duration_or_unsupported() {
     // The value belongs to the machine; only its shape is asserted.
     let mut presence = PresenceSignal::on(Os::Macos, wall());
+    assert!(matches!(
+        presence.sample(SignalId::Idle),
+        Sample::Gauge(Measure::Duration(_)) | Sample::Unsupported(_)
+    ));
+}
+
+#[test]
+fn logind_idle_is_the_idle_time() {
+    let idle = Duration::from_secs(60);
+    assert_eq!(logind_reading(Ok(Some(idle))), Ok(idle));
+}
+
+#[test]
+fn no_local_session_is_headless() {
+    assert_eq!(
+        logind_reading(Ok(None)),
+        Err(Reason::from("no local user session to read idle from"))
+    );
+}
+
+#[test]
+fn a_bus_failure_is_the_reason() {
+    let err = BusError::Malformed("short");
+    assert_eq!(logind_reading(Err(err)), Err(Reason::from("D-Bus: short")));
+}
+
+#[test]
+fn linux_idle_is_a_duration_or_unsupported() {
+    // Off Linux there is no bus; on it, the value is the machine's.
+    let mut presence = PresenceSignal::on(Os::Linux, wall());
     assert!(matches!(
         presence.sample(SignalId::Idle),
         Sample::Gauge(Measure::Duration(_)) | Sample::Unsupported(_)

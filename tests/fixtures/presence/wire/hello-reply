@@ -1,0 +1,25 @@
+# Hello reply to serial 1
+# hand-built D-Bus wire bytes, little endian; one field per line
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+0a 00 00 00                                      # body length
+01 00 00 00                                      # serial
+3f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+01 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+14 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 44 42 75 73 00 #   SENDER 'org.freedesktop.DBus'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 73 00                                         #   SIGNATURE sig 's'
+00                                               # pad to 8
+05 00 00 00 3a 31 2e 34 32 00                    # body: unique name ':1.42'

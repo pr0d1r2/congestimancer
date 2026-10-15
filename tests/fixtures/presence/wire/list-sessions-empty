@@ -1,0 +1,26 @@
+# ListSessions reply to serial 2: no sessions
+# hand-built D-Bus wire bytes, little endian; one field per line
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+08 00 00 00                                      # body length
+08 00 00 00                                      # serial
+36 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+02 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+08 61 28 73 75 73 73 6f 29 00                    #   SIGNATURE sig 'a(susso)'
+00 00                                            # pad to 8
+00 00 00 00                                      # body: array length
+00 00 00 00                                      # body: pad to 8

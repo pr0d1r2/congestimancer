@@ -1,0 +1,24 @@
+# ListSessions call, serial 2
+# hand-built D-Bus wire bytes, little endian; one field per line
+6c                                               # little endian
+01                                               # type
+00                                               # flags
+01                                               # version
+00 00 00 00                                      # body length
+02 00 00 00                                      # serial
+7f 00 00 00                                      # header fields array length
+01                                               # field 1 PATH
+01 6f 00                                         #   variant sig 'o'
+17 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 6c 6f 67 69 6e 31 00 #   PATH '/org/freedesktop/login1'
+02                                               # field 2 INTERFACE
+01 73 00                                         #   variant sig 's'
+1e 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 6c 6f 67 69 6e 31 2e 4d 61 6e 61 67 65 72 00 #   INTERFACE 'org.freedesktop.login1.Manager'
+00                                               # pad to 8
+03                                               # field 3 MEMBER
+01 73 00                                         #   variant sig 's'
+0c 00 00 00 4c 69 73 74 53 65 73 73 69 6f 6e 73 00 #   MEMBER 'ListSessions'
+00 00 00                                         # pad to 8
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+16 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 6c 6f 67 69 6e 31 00 #   DESTINATION 'org.freedesktop.login1'
+00                                               # pad to 8

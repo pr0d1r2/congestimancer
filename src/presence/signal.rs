@@ -4,9 +4,14 @@
 use std::io;
 use std::time::Duration;
 
+use super::error::BusError;
+use super::logind::logind_idle;
 use super::{SystemWallClock, WallClock};
 use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
-use crate::sys::hid_idle_ns;
+use crate::sys::{current_uid, hid_idle_ns, system_bus_connect};
+
+/// How long a bus reply may take before `--idle` gives up on it.
+const BUS_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Which OS's idle source a [`PresenceSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -71,9 +76,24 @@ impl<W: WallClock> PresenceSignal<W> {
     fn idle(&self) -> Result<Duration, Reason> {
         match self.os {
             Os::Macos => hid_idle(hid_idle_ns()),
-            Os::Linux => Err(Reason::from("logind idle is not read yet")),
+            Os::Linux => logind_reading(self.linux_idle()),
         }
     }
+
+    /// Linux idle: logind over the system bus `crate::sys` connects.
+    fn linux_idle(&self) -> Result<Option<Duration>, BusError> {
+        let stream = system_bus_connect()?;
+        stream.set_read_timeout(Some(BUS_TIMEOUT))?;
+        logind_idle(stream, current_uid(), self.wall.unix_micros())
+    }
+}
+
+/// Linux idle: logind's answer, or why there is none (V2).
+fn logind_reading(
+    idle: Result<Option<Duration>, BusError>,
+) -> Result<Duration, Reason> {
+    let _ = idle;
+    Err(Reason::from("stub"))
 }
 
 impl<W: WallClock> Signal for PresenceSignal<W> {

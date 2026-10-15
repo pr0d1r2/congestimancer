@@ -1,0 +1,27 @@
+# Get reply to serial 3: Class = user
+# hand-built D-Bus wire bytes, little endian; one field per line
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+0d 00 00 00                                      # body length
+09 00 00 00                                      # serial
+2f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+03 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 76 00                                         #   SIGNATURE sig 'v'
+00                                               # pad to 8
+01 73 00                                         # body: variant sig 's'
+00                                               # body: pad to 4
+04 00 00 00 75 73 65 72 00                       # body: Class 'user'

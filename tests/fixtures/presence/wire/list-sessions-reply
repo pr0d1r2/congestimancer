@@ -1,0 +1,51 @@
+# ListSessions reply to serial 2: 3 sessions
+# hand-built D-Bus wire bytes, little endian; one field per line
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+e8 00 00 00                                      # body length
+07 00 00 00                                      # serial
+36 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+02 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+08 61 28 73 75 73 73 6f 29 00                    #   SIGNATURE sig 'a(susso)'
+00 00                                            # pad to 8
+e0 00 00 00                                      # body: array length
+00 00 00 00                                      # body: pad to 8
+01 00 00 00 32 00                                # body: id '2'
+00 00                                            # body: pad to 4
+e8 03 00 00                                      # body: uid
+06 00 00 00 6d 61 72 63 69 6e 00                 # body: user 'marcin'
+00                                               # body: pad to 4
+05 00 00 00 73 65 61 74 30 00                    # body: seat 'seat0'
+00 00                                            # body: pad to 4
+23 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 6c 6f 67 69 6e 31 2f 73 65 73 73 69 6f 6e 2f 5f 33 32 00 # body: path '/org/freedesktop/login1/session/_32'
+00 00 00 00                                      # body: pad to 8
+02 00 00 00 63 31 00                             # body: id 'c1'
+00                                               # body: pad to 4
+2a 00 00 00                                      # body: uid
+03 00 00 00 67 64 6d 00                          # body: user 'gdm'
+05 00 00 00 73 65 61 74 30 00                    # body: seat 'seat0'
+00 00                                            # body: pad to 4
+22 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 6c 6f 67 69 6e 31 2f 73 65 73 73 69 6f 6e 2f 63 31 00 # body: path '/org/freedesktop/login1/session/c1'
+00                                               # body: pad to 8
+01 00 00 00 37 00                                # body: id '7'
+00 00                                            # body: pad to 4
+e8 03 00 00                                      # body: uid
+06 00 00 00 6d 61 72 63 69 6e 00                 # body: user 'marcin'
+00                                               # body: pad to 4
+00 00 00 00 00                                   # body: seat ''
+00 00 00                                         # body: pad to 4
+23 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 6c 6f 67 69 6e 31 2f 73 65 73 73 69 6f 6e 2f 5f 33 37 00 # body: path '/org/freedesktop/login1/session/_37'

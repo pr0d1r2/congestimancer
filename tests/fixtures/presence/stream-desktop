@@ -1,0 +1,276 @@
+# server stream: x11 session idle since 60s before 1.7e15us, a greeter, one vanished
+# hand-built D-Bus wire bytes, little endian; one field per line
+4f 4b 20 30 31 32 33 34 35 36 37 38 39 61 62 63 64 65 66 30 31 32 33 34 35 36 37 38 39 61 62 63 64 65 66 0d 0a # auth: 'OK 0123456789abcdef0123456789abcdef\r\n'
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+0a 00 00 00                                      # body length
+01 00 00 00                                      # serial
+3f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+01 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+14 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 44 42 75 73 00 #   SENDER 'org.freedesktop.DBus'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 73 00                                         #   SIGNATURE sig 's'
+00                                               # pad to 8
+05 00 00 00 3a 31 2e 34 32 00                    # body: unique name ':1.42'
+6c                                               # little endian
+04                                               # type
+00                                               # flags
+01                                               # version
+0a 00 00 00                                      # body length
+02 00 00 00                                      # serial
+8f 00 00 00                                      # header fields array length
+01                                               # field 1 PATH
+01 6f 00                                         #   variant sig 'o'
+15 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 44 42 75 73 00 #   PATH '/org/freedesktop/DBus'
+00 00                                            # pad to 8
+02                                               # field 2 INTERFACE
+01 73 00                                         #   variant sig 's'
+14 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 44 42 75 73 00 #   INTERFACE 'org.freedesktop.DBus'
+00 00 00                                         # pad to 8
+03                                               # field 3 MEMBER
+01 73 00                                         #   variant sig 's'
+0c 00 00 00 4e 61 6d 65 41 63 71 75 69 72 65 64 00 #   MEMBER 'NameAcquired'
+00 00 00                                         # pad to 8
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+14 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 44 42 75 73 00 #   SENDER 'org.freedesktop.DBus'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 73 00                                         #   SIGNATURE sig 's'
+00                                               # pad to 8
+05 00 00 00 3a 31 2e 34 32 00                    # body: name ':1.42'
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+e8 00 00 00                                      # body length
+07 00 00 00                                      # serial
+36 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+02 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+08 61 28 73 75 73 73 6f 29 00                    #   SIGNATURE sig 'a(susso)'
+00 00                                            # pad to 8
+e0 00 00 00                                      # body: array length
+00 00 00 00                                      # body: pad to 8
+01 00 00 00 32 00                                # body: id '2'
+00 00                                            # body: pad to 4
+e8 03 00 00                                      # body: uid
+06 00 00 00 6d 61 72 63 69 6e 00                 # body: user 'marcin'
+00                                               # body: pad to 4
+05 00 00 00 73 65 61 74 30 00                    # body: seat 'seat0'
+00 00                                            # body: pad to 4
+23 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 6c 6f 67 69 6e 31 2f 73 65 73 73 69 6f 6e 2f 5f 33 32 00 # body: path '/org/freedesktop/login1/session/_32'
+00 00 00 00                                      # body: pad to 8
+02 00 00 00 63 31 00                             # body: id 'c1'
+00                                               # body: pad to 4
+2a 00 00 00                                      # body: uid
+03 00 00 00 67 64 6d 00                          # body: user 'gdm'
+05 00 00 00 73 65 61 74 30 00                    # body: seat 'seat0'
+00 00                                            # body: pad to 4
+22 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 6c 6f 67 69 6e 31 2f 73 65 73 73 69 6f 6e 2f 63 31 00 # body: path '/org/freedesktop/login1/session/c1'
+00                                               # body: pad to 8
+01 00 00 00 37 00                                # body: id '7'
+00 00                                            # body: pad to 4
+e8 03 00 00                                      # body: uid
+06 00 00 00 6d 61 72 63 69 6e 00                 # body: user 'marcin'
+00                                               # body: pad to 4
+00 00 00 00 00                                   # body: seat ''
+00 00 00                                         # body: pad to 4
+23 00 00 00 2f 6f 72 67 2f 66 72 65 65 64 65 73 6b 74 6f 70 2f 6c 6f 67 69 6e 31 2f 73 65 73 73 69 6f 6e 2f 5f 33 37 00 # body: path '/org/freedesktop/login1/session/_37'
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+0d 00 00 00                                      # body length
+14 00 00 00                                      # serial
+2f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+03 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 76 00                                         #   SIGNATURE sig 'v'
+00                                               # pad to 8
+01 73 00                                         # body: variant sig 's'
+00                                               # body: pad to 4
+04 00 00 00 75 73 65 72 00                       # body: _32 Class 'user'
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+08 00 00 00                                      # body length
+15 00 00 00                                      # serial
+2f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+04 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 76 00                                         #   SIGNATURE sig 'v'
+00                                               # pad to 8
+01 62 00                                         # body: variant sig 'b'
+00                                               # body: pad to 4
+00 00 00 00                                      # body: _32 Remote
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+0c 00 00 00                                      # body length
+16 00 00 00                                      # serial
+2f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+05 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 76 00                                         #   SIGNATURE sig 'v'
+00                                               # pad to 8
+01 73 00                                         # body: variant sig 's'
+00                                               # body: pad to 4
+03 00 00 00 78 31 31 00                          # body: _32 Type 'x11'
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+08 00 00 00                                      # body length
+17 00 00 00                                      # serial
+2f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+06 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 76 00                                         #   SIGNATURE sig 'v'
+00                                               # pad to 8
+01 62 00                                         # body: variant sig 'b'
+00                                               # body: pad to 4
+01 00 00 00                                      # body: _32 IdleHint
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+10 00 00 00                                      # body length
+18 00 00 00                                      # serial
+2f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+07 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 76 00                                         #   SIGNATURE sig 'v'
+00                                               # pad to 8
+01 74 00                                         # body: variant sig 't'
+00 00 00 00 00                                   # body: pad to 8
+00 b9 8a 14 24 0a 06 00                          # body: _32 IdleSinceHint
+6c                                               # little endian
+02                                               # type
+00                                               # flags
+01                                               # version
+10 00 00 00                                      # body length
+19 00 00 00                                      # serial
+2f 00 00 00                                      # header fields array length
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+08 00 00 00                                      #   REPLY_SERIAL
+06                                               # field 6 DESTINATION
+01 73 00                                         #   variant sig 's'
+05 00 00 00 3a 31 2e 34 32 00                    #   DESTINATION ':1.42'
+00 00                                            # pad to 8
+07                                               # field 7 SENDER
+01 73 00                                         #   variant sig 's'
+04 00 00 00 3a 31 2e 30 00                       #   SENDER ':1.0'
+00 00 00                                         # pad to 8
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 76 00                                         #   SIGNATURE sig 'v'
+00                                               # pad to 8
+01 73 00                                         # body: variant sig 's'
+00                                               # body: pad to 4
+07 00 00 00 67 72 65 65 74 65 72 00              # body: c1 Class 'greeter'
+6c                                               # little endian
+03                                               # type
+00                                               # flags
+01                                               # version
+17 00 00 00                                      # body length
+1a 00 00 00                                      # serial
+47 00 00 00                                      # header fields array length
+04                                               # field 4 ERROR_NAME
+01 73 00                                         #   variant sig 's'
+28 00 00 00 6f 72 67 2e 66 72 65 65 64 65 73 6b 74 6f 70 2e 44 42 75 73 2e 45 72 72 6f 72 2e 55 6e 6b 6e 6f 77 6e 4f 62 6a 65 63 74 00 #   ERROR_NAME 'org.freedesktop.DBus.Error.UnknownObject'
+00 00 00 00 00 00 00                             # pad to 8
+05                                               # field 5 REPLY_SERIAL
+01 75 00                                         #   variant sig 'u'
+09 00 00 00                                      #   REPLY_SERIAL
+08                                               # field 8 SIGNATURE
+01 67 00                                         #   variant sig 'g'
+01 73 00                                         #   SIGNATURE sig 's'
+00                                               # pad to 8
+12 00 00 00 55 6e 6b 6e 6f 77 6e 20 6f 62 6a 65 63 74 20 5f 33 37 00 # body: message 'Unknown object _37'
