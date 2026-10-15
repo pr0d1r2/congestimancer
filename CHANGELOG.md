@@ -216,8 +216,8 @@ is a development series, not for production.
   over the system bus by a hand-written D-Bus client; a headless host or one
   without a bus is unsupported.
 - `WallClock` and `SystemWallClock`: `--between` samples the local time of
-  day from an injected wall clock; the machine clock does not read local
-  time yet, so there it is unsupported with that reason.
+  day from an injected wall clock; the machine clock reads it with the time
+  zone and any DST change applied.
 - `amd_gpus`, `parse_busy_percent` and `parse_vram`: AMD GPUs on Linux from
   each DRM card's `gpu_busy_percent` and `mem_info_vram_total|used`, as a
   `Gpu` with its busy percent and free VRAM; an unparsed file leaves its

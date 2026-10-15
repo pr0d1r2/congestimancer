@@ -35,17 +35,19 @@ impl WallClock for SystemWallClock {
     }
 
     fn local_time(&self) -> Result<ClockTime, Reason> {
-        let _ = clock_time;
-        Err(Reason::from(
-            "local time of day is not read on this build yet",
-        ))
+        clock_time(crate::sys::local_time())
     }
 }
 
 /// The local time of day `read` from `crate::sys`, or why there is none.
 fn clock_time(read: io::Result<(u8, u8)>) -> Result<ClockTime, Reason> {
-    let _ = read;
-    Err(Reason::from("not yet"))
+    let (hour, minute) =
+        read.map_err(|e| Reason::from(format!("local time: {e}")))?;
+    ClockTime::new(hour, minute).ok_or_else(|| {
+        Reason::from(format!(
+            "local time {hour:02}:{minute:02} is not a time of day"
+        ))
+    })
 }
 
 #[cfg(test)]
