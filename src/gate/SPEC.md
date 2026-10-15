@@ -62,7 +62,7 @@ T2|x|AND evaluation w/ warming & unsupported|V2,V3,V6
 T3|x|`--when`|V4
 T4|x|`--when-file`|V5
 T5|x|one read per signal per round|V7
-T6|.|one-shot two-sample evaluation for `check` & `status`|V8
+T6|x|one-shot two-sample evaluation for `check` & `status`|V8
 
 ## §B BUGS
 

@@ -337,3 +337,6 @@ is a development series, not for production.
 - `Custom` gates: `--when CMD` passes while `sh -c CMD` exits 0, with
   the command's output on cgmr's stderr; `--when-file P` passes while P
   exists. Both join the AND with the signal gates.
+- `evaluate_once` and `sample_once`: `check` and `status` read a rate or
+  interval percent twice, one `--interval` apart, so they never show a
+  warming value; without one they read once and never wait.

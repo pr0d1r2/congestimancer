@@ -166,6 +166,41 @@ impl Gates {
     }
 }
 
+impl Gates {
+    /// Takes the first sample of every rate or interval percent the gates
+    /// read, shared or own, at `now`; `true` if there was any, so the
+    /// caller waits one interval before the real read (src/gate:V8).
+    pub(super) fn prime<S: Source + ?Sized>(
+        &mut self,
+        source: &mut S,
+        now: Instant,
+    ) -> bool {
+        let deltas: SignalSet = self
+            .shared_signals()
+            .iter()
+            .filter(|id| id.is_delta())
+            .collect();
+        let _ = refresh(source, deltas, now);
+        let own = self.prime_own(now);
+        own || !deltas.is_empty()
+    }
+
+    /// Takes the first sample of every own-source rate gate; `true` if
+    /// there was any.
+    fn prime_own(&mut self, now: Instant) -> bool {
+        let mut primed = false;
+        for entry in &mut self.entries {
+            if let Entry::Own(gate, own) = entry
+                && gate.signal.is_delta()
+            {
+                let _ = own.read(gate.signal, now);
+                primed = true;
+            }
+        }
+        primed
+    }
+}
+
 impl Entry {
     /// This gate's verdict: shared gates judge the round's readings, an
     /// own-source gate reads its source now.

@@ -4,7 +4,9 @@
 use std::time::Duration;
 
 use super::{Evaluation, Gates, evaluate};
-use crate::signal::{Clock, Reading, SignalId, SignalSet, Source, Trends};
+use crate::signal::{
+    Clock, Reading, SignalId, SignalSet, Source, Trends, refresh,
+};
 
 /// Evaluates `gates` once for `check`: when a gate reads a rate or an
 /// interval percent, its first sample is taken, `clock` waits `interval`
@@ -19,9 +21,10 @@ where
     S: Source + ?Sized,
     C: Clock + ?Sized,
 {
-    let _ = interval;
-    let mut trends = Trends::new();
-    evaluate(gates, source, clock.now(), &mut trends)
+    if gates.prime(source, clock.now()) {
+        clock.sleep(interval);
+    }
+    evaluate(gates, source, clock.now(), &mut Trends::new())
 }
 
 /// Reads `wanted` once for `status`: rates and interval percents take a
@@ -36,8 +39,12 @@ where
     S: Source + ?Sized,
     C: Clock + ?Sized,
 {
-    let _ = interval;
-    crate::signal::refresh(source, wanted, clock.now())
+    if wanted.needs_two_samples() {
+        let deltas = wanted.iter().filter(|id| id.is_delta()).collect();
+        let _ = refresh(source, deltas, clock.now());
+        clock.sleep(interval);
+    }
+    refresh(source, wanted, clock.now())
 }
 
 #[cfg(test)]
