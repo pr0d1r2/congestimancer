@@ -5,6 +5,7 @@
 use std::fs::File;
 use std::io;
 use std::path::Path;
+use std::process::Command;
 
 use rustix::fs::{FlockOperation, StatVfs};
 use rustix::io::FdFlags;
@@ -103,6 +104,16 @@ pub fn set_inheritable(file: &File) -> io::Result<()> {
         file,
         flags.difference(FdFlags::CLOEXEC),
     )?)
+}
+
+/// Lets the child `command` spawns (or the image it execs into) inherit
+/// `file`'s descriptor: `FD_CLOEXEC` is cleared in that child only,
+/// after fork and before exec, so this process's descriptor stays
+/// close-on-exec and no other child it starts ever holds the lock
+/// (src/sys:T24, src/launch:V9). `file` must stay open until `command`
+/// has spawned or exec'd.
+pub fn inherit_in(command: &mut Command, file: &File) {
+    let _ = (command, file);
 }
 
 /// The `(major, minor)` number of the device holding `path`, from its

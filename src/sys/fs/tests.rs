@@ -1,13 +1,15 @@
 use std::fs::{self, File, OpenOptions};
 use std::io;
+use std::os::fd::AsRawFd;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use rustix::fs::{StatVfs, StatVfsMountFlags};
 
 use rustix::io::FdFlags;
 
 use super::{
-    FsStats, device_of, nice, set_inheritable, set_nice, statvfs,
+    FsStats, device_of, inherit_in, nice, set_inheritable, set_nice, statvfs,
     try_lock_exclusive, unlock,
 };
 
@@ -121,6 +123,26 @@ fn an_inheritable_file_loses_close_on_exec() -> io::Result<()> {
     assert!(rustix::io::fcntl_getfd(&file)?.contains(FdFlags::CLOEXEC));
     set_inheritable(&file)?;
     assert!(!rustix::io::fcntl_getfd(&file)?.contains(FdFlags::CLOEXEC));
+    Ok(())
+}
+
+/// A shell that succeeds when it sees `file`'s descriptor open.
+fn sees(file: &File) -> Command {
+    let mut command = Command::new("/bin/sh");
+    let test = format!("test -e /dev/fd/{}", file.as_raw_fd());
+    command.args(["-c", &test]);
+    command
+}
+
+#[test]
+fn a_file_inherited_in_a_command_reaches_only_that_child() -> io::Result<()> {
+    let scratch = Scratch::new("inherit-in");
+    let file = scratch.open()?;
+    let mut command = sees(&file);
+    inherit_in(&mut command, &file);
+    assert!(command.status()?.success(), "the command does not see it");
+    assert!(!sees(&file).status()?.success(), "another child sees it");
+    assert!(rustix::io::fcntl_getfd(&file)?.contains(FdFlags::CLOEXEC));
     Ok(())
 }
 

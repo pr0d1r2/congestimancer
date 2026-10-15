@@ -51,6 +51,7 @@ V5: `--background`: lower CPU priority (`setpriority` nice 19) & IO priority (Li
 V6: `--or-background`: `--timeout` reached → start anyway as `--background` instead of exit 124.
 V7: stdout|stdin|stderr untouched; cmd owns stdout (`.` §I).
 V8: `--govern`: stopped cmd keeps its slot & reservation (held fds inherited); `--timeout` applies only before start; `--host` allowed (remote checks continue each round).
+V9: slot & reservation fds handed to cmd's child only (`src/sys` `inherit_in`); cgmr's own fds stay close-on-exec ∴ ⊥ gate shell | ssh child holds slot.
 
 ## §T TASKS
 
@@ -62,6 +63,7 @@ T4|x|`--govern` spawn, stop/cont, forward signals|V4
 T5|x|`--background` both OS|V5
 T6|x|`--or-background`|V6
 T7|~|govern w/ slots, timeout & host|V8
+T8|~|hand slot over via cmd's child, not cgmr|V9
 
 ## §B BUGS
 

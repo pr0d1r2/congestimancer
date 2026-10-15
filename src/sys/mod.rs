@@ -42,7 +42,7 @@ pub use disk::{
 pub use files::{list_dir, read_text};
 pub use forward::{Blocked, ForwardSignal, Wake, block_forwarded};
 pub use fs::{
-    FsStats, device_of, nice, set_inheritable, set_nice, statvfs,
+    FsStats, device_of, inherit_in, nice, set_inheritable, set_nice, statvfs,
     try_lock_exclusive, unlock,
 };
 pub use gpu::{GpuUsage, gpu_usage};
