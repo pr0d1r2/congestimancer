@@ -34,6 +34,10 @@ pub use cgroup::{
     parse_memory_max, parse_proc_cgroup,
 };
 
+pub use limits::{
+    FileNr, LimitsError, LimitsSignal, limit_share, parse_file_nr,
+};
+
 pub use power::{
     PPD_STATE, PowerError, PowerSignal, Supply, SupplyKind, battery_charge,
     is_cpu_cooling, on_mains, parse_cpu_list, parse_millicelsius,
