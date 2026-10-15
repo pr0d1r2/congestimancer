@@ -309,8 +309,9 @@ is a development series, not for production.
   writes, sectors as 512 bytes, time, in flight, `io_ticks`).
 - `parse_mountinfo`, `mount_of`, `linux_device` and `macos_device`: the
   IO gates measure the block device holding `--disk-path` (default the
-  working directory): on Linux the deepest mount's device in
-  `/proc/diskstats`, on macOS the volume's disk, which IOKit walks up to
+  working directory): on Linux the device `stat` reports for the path,
+  so a symlink into another mount counts its target's disk, else the
+  deepest mount's device in `/proc/diskstats`; on macOS the volume's disk, which IOKit walks up to
   the physical disk under an APFS container. tmpfs, NFS, FUSE and devfs
   have no block device, and say to name one with `--io-device`.
 - `IoSignal`: `--io-read X/s`, `--io-write X/s` and `--io X/s` pass

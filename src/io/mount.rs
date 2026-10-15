@@ -106,7 +106,21 @@ pub fn linux_device(
     path: &Path,
     lookup: impl FnOnce(&Path) -> io::Result<(u32, u32)>,
 ) -> Result<String, IoError> {
-    let _ = lookup;
+    if let Ok(dev) = lookup(path)
+        && let Some(disk) = disks.iter().find(|d| (d.major, d.minor) == dev)
+    {
+        return Ok(disk.name.clone());
+    }
+    device_by_mount(mounts, disks, path)
+}
+
+/// The device of the mount holding `path`: by its `major:minor`, else by
+/// its `/dev/` source.
+fn device_by_mount(
+    mounts: &[Mount],
+    disks: &[DiskStat],
+    path: &Path,
+) -> Result<String, IoError> {
     let mount = mount_of(mounts, path).ok_or_else(|| IoError::NoMount {
         path: path.to_path_buf(),
     })?;
