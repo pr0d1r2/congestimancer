@@ -130,3 +130,7 @@ pub use units::{
     parse_count, parse_decimal, parse_duration, parse_name, parse_percent,
     parse_rate, render_duration,
 };
+
+pub use wait::{
+    Admit, DEFAULT_INTERVAL, MIN_INTERVAL, Open, Outcome, Pacing, Rig, poll,
+};
