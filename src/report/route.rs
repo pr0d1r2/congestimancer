@@ -34,8 +34,12 @@ impl Output {
     /// The stream this kind of text goes to (src/report:V2).
     #[must_use]
     pub const fn stream(self) -> Stream {
-        let _ = self;
-        Stream::Stderr
+        match self {
+            Self::Status | Self::Json => Stream::Stdout,
+            Self::Verbose | Self::Heartbeat | Self::Warning | Self::Error => {
+                Stream::Stderr
+            }
+        }
     }
 }
 
@@ -56,8 +60,10 @@ impl<O: Write, E: Write> Streams<O, E> {
 
     /// The stream `output` goes to.
     pub fn to(&mut self, output: Output) -> &mut dyn Write {
-        let _ = output;
-        &mut self.stderr
+        match output.stream() {
+            Stream::Stdout => &mut self.stdout,
+            Stream::Stderr => &mut self.stderr,
+        }
     }
 
     /// The two streams back.

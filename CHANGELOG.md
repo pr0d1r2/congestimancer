@@ -346,3 +346,5 @@ is a development series, not for production.
 - `Style`: output is coloured only on a terminal with `NO_COLOR` unset.
 - `write_status`: the `status` table lists every signal with its source,
   value and trend; an unsupported signal shows its reason, never hidden.
+- `Streams`: JSON and the `status` table go to stdout; verbose reasons,
+  heartbeats, warnings and errors go to stderr.
