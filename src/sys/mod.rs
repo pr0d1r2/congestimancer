@@ -12,6 +12,7 @@ mod capture;
 mod disk;
 mod error;
 mod files;
+mod forward;
 mod fs;
 mod gpu;
 mod group;
@@ -39,6 +40,7 @@ pub use disk::{
     mount_source, physical_disk_stats,
 };
 pub use files::{list_dir, read_text};
+pub use forward::{Blocked, ForwardSignal, Wake, block_forwarded};
 pub use fs::{
     FsStats, device_of, nice, set_inheritable, set_nice, statvfs,
     try_lock_exclusive, unlock,
