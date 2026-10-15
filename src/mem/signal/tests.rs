@@ -2,6 +2,7 @@ use std::path::Path;
 
 use super::{MemSignal, Os};
 use crate::signal::{Measure, Root, Sample, Signal, SignalId};
+use crate::units::Percent;
 
 /// The fixture tree `tests/fixtures/mem/<case>`, laid out like `/`.
 fn root(case: &str) -> Root {
@@ -56,4 +57,59 @@ fn mem_is_available_bytes_on_linux_sources() {
 fn mem_is_available_bytes_on_macos_sources() {
     let sample = on("linux", Os::Macos).sample(SignalId::Mem);
     assert!(is_bytes(&sample), "{sample:?}");
+}
+
+/// A percent gauge of `hundredths` hundredths.
+fn percent(hundredths: u16) -> Option<Sample> {
+    Percent::from_hundredths(hundredths)
+        .map(|p| Sample::Gauge(Measure::Percent(p)))
+}
+
+#[test]
+fn linux_mem_pressure_is_some_avg10() {
+    let sample = on("linux", Os::Linux).sample(SignalId::MemPressure);
+    assert_eq!(Some(sample), percent(153));
+}
+
+#[test]
+fn linux_mem_pressure_full_is_full_avg10() {
+    let sample = on("linux", Os::Linux).sample(SignalId::MemPressureFull);
+    assert_eq!(Some(sample), percent(42));
+}
+
+#[test]
+fn linux_mem_pressure_full_without_a_full_line_is_unsupported() {
+    let sample = on("partial", Os::Linux).sample(SignalId::MemPressureFull);
+    assert_eq!(
+        reason(sample),
+        Some("/proc/pressure/memory has no `full` line".to_owned())
+    );
+}
+
+#[test]
+fn linux_mem_pressure_from_garbled_psi_is_unsupported() {
+    let sample = on("garbled", Os::Linux).sample(SignalId::MemPressure);
+    assert_eq!(
+        reason(sample),
+        Some("malformed PSI line: some avg10=lots".to_owned())
+    );
+}
+
+#[test]
+fn linux_mem_pressure_without_psi_is_unsupported() {
+    let sample = on("absent", Os::Linux).sample(SignalId::MemPressure);
+    assert_eq!(
+        reason(sample),
+        Some("/proc/pressure/memory: not present".to_owned())
+    );
+}
+
+#[test]
+fn macos_mem_pressure_is_unsupported() {
+    for id in [SignalId::MemPressure, SignalId::MemPressureFull] {
+        assert_eq!(
+            reason(on("linux", Os::Macos).sample(id)),
+            Some("no PSI on macOS; use --mem-level".to_owned())
+        );
+    }
 }
