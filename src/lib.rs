@@ -41,10 +41,10 @@ pub use signal::{
 
 pub use sys::{
     BlockCounters, BlockDevice, BlockStats, CpuTicks, FsStats, GpuUsage,
-    IoPriority, LOW_POWER_MODE, LoadAverage, Memory, MountSource, PowerState,
-    ProcessInfo, PropValue, Props, PsetLoad, Snapshot, SwapUsage,
+    IoPriority, LOW_POWER_MODE, LoadAverage, Memory, MountSource, NvmlGpu,
+    PowerState, ProcessInfo, PropValue, Props, PsetLoad, Snapshot, SwapUsage,
     THERMAL_PRESSURE, VmStats, block_devices, cpu_ticks, gpu_usage,
-    hid_idle_ns, io_priority, mount_source, nice, notify_state,
+    hid_idle_ns, io_priority, mount_source, nice, notify_state, nvml_gpus,
     physical_disk_stats, power_state, pset_load, read_text, set_io_priority,
     set_nice, statvfs, swap_usage, sysctl_int, try_lock_exclusive, unlock,
     vm_stats,
