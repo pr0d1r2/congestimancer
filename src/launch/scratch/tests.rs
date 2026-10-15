@@ -1,6 +1,6 @@
 use std::io;
 
-use super::Scratch;
+use super::{Scratch, eventually};
 use crate::slot::SlotStep;
 
 #[test]
@@ -23,4 +23,19 @@ fn waiter_asks_one_slot_and_the_memory_given() -> io::Result<()> {
     let reserving = scratch.waiter(Some(1))?.steps();
     assert_eq!(reserving, [SlotStep::Slot, SlotStep::Reserve]);
     Ok(())
+}
+
+#[test]
+fn eventually_probes_until_done_and_passes_errors_on() {
+    let mut calls = 0;
+    let third = eventually(
+        || {
+            calls += 1;
+            Ok(calls)
+        },
+        |n| *n == 3,
+    );
+    assert_eq!(third.ok(), Some(3));
+    let failed = eventually(|| Err::<u8, _>(io::Error::other("x")), |_| true);
+    assert!(failed.is_err());
 }

@@ -69,3 +69,4 @@ T8|x|hand slot over via cmd's child, not cgmr|V9
 
 id|date|cause|fix
 B1|2026-10-15|`hand_over` cleared `FD_CLOEXEC` on cgmr's own slot & reservation fds ∴ `--govern` gate shells & ssh children inherited the lock, could outlive cmd holding slot|V9
+B2|2026-10-15|`admit` test asserted slot free right after drop; another test thread's spawn copies ∀ fds until exec ∴ flock lags ~1ms|`src/slot:V11`

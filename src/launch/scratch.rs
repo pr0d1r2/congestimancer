@@ -5,6 +5,7 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{Duration, Instant};
 
 use crate::slot::{LockDir, SlotPlan, Waiter};
 use crate::sys::current_uid;
@@ -12,6 +13,9 @@ use crate::units::{Bytes, Count, parse_name};
 
 /// Tells apart the scratch dirs of one test process.
 static NEXT: AtomicU64 = AtomicU64::new(0);
+
+/// How long a lock a test drops may take to come free.
+const SETTLE: Duration = Duration::from_secs(2);
 
 /// A fresh lock dir, removed with everything in it on drop.
 #[derive(Debug)]
@@ -41,6 +45,24 @@ impl Scratch {
         plan.slots = Some(Count(1));
         plan.needs_mem = needs_mem.map(Bytes);
         Ok(Waiter::new(self.dir.clone(), plan, None))
+    }
+}
+
+/// `probe` again until `done` says so, for up to [`SETTLE`]; its last
+/// value. A slot this process drops is free only once every copy of its
+/// descriptor is closed, and a child another test thread spawns holds
+/// copies of them all until it execs (src/slot:V11, src/launch:B2).
+pub(super) fn eventually<T>(
+    mut probe: impl FnMut() -> io::Result<T>,
+    done: impl Fn(&T) -> bool,
+) -> io::Result<T> {
+    let start = Instant::now();
+    loop {
+        let value = probe()?;
+        if done(&value) || start.elapsed() > SETTLE {
+            return Ok(value);
+        }
+        std::thread::sleep(Duration::from_millis(1));
     }
 }
 

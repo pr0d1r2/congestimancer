@@ -1,7 +1,7 @@
 use std::io;
 
 use super::Slots;
-use crate::launch::scratch::Scratch;
+use crate::launch::scratch::{Scratch, eventually};
 use crate::wait::Admit;
 
 #[test]
@@ -23,7 +23,8 @@ fn a_slot_is_held_until_its_release_drops() -> io::Result<()> {
     let waits = second.try_admit().map_err(io::Error::other)?;
     assert!(waits.is_none(), "{waits:?}");
     drop(release);
-    let now = second.try_admit().map_err(io::Error::other)?;
+    let admit = || second.try_admit().map_err(io::Error::other);
+    let now = eventually(admit, Option::is_some)?;
     assert!(matches!(now, Some(Some(_))), "{now:?}");
     Ok(())
 }
