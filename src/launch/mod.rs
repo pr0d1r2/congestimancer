@@ -2,8 +2,15 @@
 //!
 //! Composes only (src:C): each part lives in its own submodule and the
 //! public surface is re-exported here and from the crate root (src:V3).
-
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+//!
+//! The caller (`src/cli`) waits with [`Slots`] as the
+//! [`Admit`](crate::wait::Admit): [`Slots::new`] over a
+//! [`Waiter`](crate::slot::Waiter) when a slot switch was given, else
+//! [`Slots::none`]. [`after_wait`] turns the
+//! [`Outcome`](crate::wait::Outcome) and the [`Priority`] switches into a
+//! [`Start`] or an exit code (124, 69); [`launch`] then execs the command
+//! with its environment cleaned and its slot locks handed over, and
+//! returns only with 0 (no command) or an exec failure code (126, 127).
 
 mod admit;
 mod after;
@@ -20,9 +27,3 @@ pub use env::clean_env;
 pub use exec::{exec_command, exec_failure_code};
 pub use priority::{BACKGROUND_NICE, background};
 pub use start::{Start, launch};
-
-use crate::gate as _;
-use crate::signal as _;
-use crate::slot as _;
-use crate::sys as _;
-use crate::wait as _;
