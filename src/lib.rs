@@ -34,6 +34,11 @@ pub use cgroup::{
     parse_memory_max, parse_proc_cgroup,
 };
 
+pub use power::{
+    PowerError, is_cpu_cooling, parse_cpu_list, parse_millicelsius,
+    parse_sysfs_u64,
+};
+
 pub use profile::{
     Arity, At, Catalog, Origin, PROJECT_FILE, Places, Profile, ProfileError,
     ProfileFile, ReadText, Switch, SwitchFault, SwitchTable, discover,
