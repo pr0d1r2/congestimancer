@@ -91,6 +91,11 @@ pub use profile::{
     parse_profiles, render_profiles,
 };
 
+pub use report::{
+    SCHEMA_VERSION, StatusReport, StatusRow, json_string, switch_name,
+    write_json,
+};
+
 pub use signal::{
     Clock, Counter, Level, Measure, Psi, PsiError, PsiLine, Reading, Reason,
     Root, Sample, Sampled, Sampler, Signal, SignalId, SignalSet, Source,

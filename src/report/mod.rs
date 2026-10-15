@@ -1,11 +1,14 @@
 //! `src/report`: `status` human & JSON, verbose reasons, heartbeat text, colour.
 //!
-//! Scaffold: the node's code lands here (`src/report` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): each part lives in its own submodule and the
+//! public surface is re-exported here and from the crate root (src:V3).
+//!
+//! Every renderer writes to an [`std::io::Write`] it is given, so tests
+//! write to a `Vec<u8>` and only the caller (`src/cli`) owns the real
+//! streams; nothing here reads the environment or asks for a TTY.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod json;
+mod model;
 
-use crate::gate as _;
-use crate::signal as _;
-use crate::units as _;
+pub use json::{SCHEMA_VERSION, json_string, write_json};
+pub use model::{StatusReport, StatusRow, switch_name};
