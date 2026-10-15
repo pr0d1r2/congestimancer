@@ -31,7 +31,7 @@ pub fn cgmr() -> ExitCode {
 /// Parses `world`'s argv and runs the verb; returns the exit code.
 pub(crate) fn main(mut world: World<'_>) -> u8 {
     let code = match parse(world.args.clone()) {
-        Ok(cli) => dispatch(&mut world, cli.verb).map(|_| OK),
+        Ok(cli) => dispatch(&mut world, cli.verb),
         Err(err) => Ok(clap_exit(&mut world, &err)),
     };
     let code = code.unwrap_or_else(|failure| {

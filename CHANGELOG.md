@@ -452,6 +452,18 @@ is a development series, not for production.
   naming the closest known one.
 - Profile lines are checked by the CLI's own switch table, so a profile
   meets exactly the rules of the command line.
+- `cgmr` runs: `run` waits for every gate (and the slot steps) then
+  execs the command, or governs it with `--govern`; `check` exits 0, 1
+  or 69 and prints JSON with `--json`; `status` prints every signal as a
+  table or JSON; `advise` sizes jobs from `--load`, `--needs-mem` and
+  `--jobs`; `profiles` lists the profiles in force; `debug capture DIR`
+  copies this machine's sources as a fixture tree. Usage errors exit 64,
+  an unsupported gate 69, `--timeout` 124.
+- `--host H` sends the gates to H over ssh for `check` and `run`, and
+  `--govern --host H` pauses the command while H's gates fail.
+- `--quiet` hides warnings, never errors; `--version` prints the version.
+- `CGMR_FIXTURE_ROOT` (hidden, for tests) is read once and every kernel
+  file is read under it; `CGMR_DOGFOOD` is a known variable.
 
 ### Fixed
 

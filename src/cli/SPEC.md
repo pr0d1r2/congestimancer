@@ -64,14 +64,14 @@ V12: `--quiet` suppresses warnings (⊥ errors, ⊥ `status` output); `--version
 id|status|task|cites
 T1|x|clap derive skeleton, verbs, default `run`|V1
 T2|x|switch table + env names|V2,V3,V7
-T3|.|exit code mapping|V4
+T3|x|exit code mapping|V4
 T4|.|help text w/ examples & collision note|V5,V6
 T5|.|`completions` & `man` verbs|V6
-T6|.|fixture root & dogfood plumbing|V8
+T6|x|fixture root & dogfood plumbing|V8
 T7|x|repeat rule|V9
 T8|x|env value formats|V10
 T9|x|unknown env warning w/ nearest-name hint|V11
-T10|.|`--quiet` & `--version`|V12
+T10|x|`--quiet` & `--version`|V12
 
 ## §B BUGS
 

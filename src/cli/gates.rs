@@ -47,7 +47,7 @@ pub(crate) fn build(
     let asked = SWITCHES
         .iter()
         .filter(|s| !skip.contains(&s.name()) && resolved.has(s.name()));
-    for spec in asked.take(0) {
+    for spec in asked {
         built.add(spec, resolved, fit)?;
     }
     Ok(built)
