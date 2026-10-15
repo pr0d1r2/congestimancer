@@ -240,3 +240,10 @@ is a development series, not for production.
   that dies frees its slot.
 - `Ticket`: `--fifo` queues waiters by numbered ticket; only the lowest
   live ticket goes, and a ticket whose holder died is skipped.
+- `parse_start_rate`, `StartLimits` and `record_start`: `--rate N/D` admits
+  at most `N` starts in any window `D` and `--spacing D` keeps starts `D`
+  apart, per key, across processes.
+- `Reservation` and `reserved_total`: `--needs-mem` reservations held by
+  their waiter; the ledger is the sum of the live ones.
+- `is_held` and `mark_held`: `CGMR_HELD_SLOTS` names the slot keys an
+  ancestor `cgmr` holds, so a nested `cgmr` on one does not deadlock.

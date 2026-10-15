@@ -2,11 +2,20 @@
 //! until the command exits; the ledger is the sum of the live ones
 //! (src/slot:V7).
 
-use std::fs::File;
-use std::path::PathBuf;
+use std::fs::{self, File};
+use std::io;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
+use super::file::{publish, reap_if_dead, suffixes};
 use super::{LockDir, SlotError};
 use crate::units::Bytes;
+
+/// The name every reservation file starts with.
+const PREFIX: &str = "+mem.";
+
+/// Tells apart the reservations of this process.
+static NEXT: AtomicU64 = AtomicU64::new(0);
 
 /// A memory reservation: the file `+mem.<pid>.<n>` holding the byte
 /// count, locked while this lives and removed when it drops.
@@ -27,11 +36,12 @@ impl Reservation {
     ///
     /// [`SlotError::Io`] when the reservation cannot be written.
     pub fn write(dir: &LockDir, bytes: Bytes) -> Result<Self, SlotError> {
-        let _ = dir;
-        Err(SlotError::Io {
-            path: PathBuf::new(),
-            detail: bytes.0.to_string(),
-        })
+        let n = NEXT.fetch_add(1, Ordering::Relaxed);
+        let name = format!("{PREFIX}{}.{n}", std::process::id());
+        let file = publish(dir.path(), &name, &bytes.0.to_string())
+            .map_err(|e| SlotError::io(dir.path(), &e))?;
+        let path = dir.path().join(name);
+        Ok(Self { file, path, bytes })
     }
 
     /// How much it reserves.
@@ -50,7 +60,7 @@ impl Reservation {
 
 impl Drop for Reservation {
     fn drop(&mut self) {
-        let _ = std::fs::remove_file(&self.path);
+        let _ = fs::remove_file(&self.path);
     }
 }
 
@@ -61,8 +71,28 @@ impl Drop for Reservation {
 ///
 /// [`SlotError::Io`] when the lock dir cannot be read.
 pub fn reserved_total(dir: &LockDir) -> Result<Bytes, SlotError> {
-    let _ = (dir, &PathBuf::new());
-    Ok(Bytes(u64::MAX))
+    let names = suffixes(dir.path(), PREFIX)
+        .map_err(|e| SlotError::io(dir.path(), &e))?;
+    let mut total: u64 = 0;
+    for name in names {
+        let path = dir.path().join(format!("{PREFIX}{name}"));
+        let live = live_bytes(&path).map_err(|e| SlotError::io(&path, &e))?;
+        total = total.saturating_add(live);
+    }
+    Ok(Bytes(total))
+}
+
+/// The bytes the reservation at `path` holds, or 0 when its holder is
+/// gone (the file is then removed) or it does not parse.
+fn live_bytes(path: &Path) -> io::Result<u64> {
+    if reap_if_dead(path)? {
+        return Ok(0);
+    }
+    match fs::read_to_string(path) {
+        Ok(text) => Ok(text.trim().parse().unwrap_or(0)),
+        Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(0),
+        Err(err) => Err(err),
+    }
 }
 
 #[cfg(test)]
