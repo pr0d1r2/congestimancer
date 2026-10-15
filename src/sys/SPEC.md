@@ -94,6 +94,7 @@ T19|x|`set_inheritable(&File)`: clear `FD_CLOEXEC` via rustix ⊥ `unsafe` ∵ `
 T20|x|`device_of(&Path)` → (major, minor) of `st_dev` via rustix `stat` ∵ `src/io` T2|V2
 T21|x|`signal_group(pgid, GroupSignal)` STOP CONT INT TERM HUP via rustix ⊥ `unsafe` ∵ `src/launch` V4|V2
 T22|x|`block_forwarded()` → `Blocked`; `wait_timeout(d)` → forwarded sig, child exit or none; drop restores mask ∵ `src/launch` V4|V1,V2
+T23|.|`Blocked::unblock_in(&mut Command)`: child starts w/ mask from before block (`pre_exec` `sigprocmask`) ∵ `std` spawn inherits mask|V1,V2
 
 ## §B BUGS
 
