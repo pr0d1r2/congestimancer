@@ -67,7 +67,7 @@ T4|x|`/proc/stat` parser: `procs_running`, cpu times, steal|V3,V4,V6
 T5|x|macOS run queue: pset `load_average` / 1000 via `src/sys`|V3
 T6|x|`--cpu-idle` both OS (deltas)|V4
 T7|x|`--cpu-pressure` via shared PSI parser|V5
-T8|.|`--steal`|V6
+T8|x|`--steal`|V6
 T9|x|SPIKE: settle R1|-
 
 ## §B BUGS

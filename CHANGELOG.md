@@ -297,3 +297,6 @@ is a development series, not for production.
 - `--cpu-pressure X` passes while `/proc/pressure/cpu` `some avg10` is
   under X; in a cgroup it reads the cgroup's `cpu.pressure`; macOS is
   unsupported.
+- `--steal X` passes while the hypervisor stole under X% of the CPUs'
+  ticks over the last interval (`/proc/stat` `steal`); macOS is
+  unsupported.

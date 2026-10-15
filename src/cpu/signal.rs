@@ -118,6 +118,17 @@ impl CpuSignal {
         let times = self.stat()?.times;
         share(times.idle_total(), times.total(), "/proc/stat cpu")
     }
+
+    /// `--steal`: ticks the hypervisor stole of all ticks so far, a
+    /// counter the sampler turns into the steal percent of the last
+    /// interval; Linux only (src/cpu:V6).
+    fn steal(&self) -> Result<Counter, Reason> {
+        if self.os == Os::Macos {
+            return Err(Reason::from("no steal time on macOS"));
+        }
+        let times = self.stat()?.times;
+        share(Some(times.steal), times.total(), "/proc/stat cpu")
+    }
 }
 
 impl CpuSignal {
@@ -135,6 +146,7 @@ impl Signal for CpuSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
             SignalId::CpuIdle => self.idle().map(Sample::Counter),
+            SignalId::Steal => self.steal().map(Sample::Counter),
             _ => self.gauge(id).map(Sample::Gauge),
         };
         sample.unwrap_or_else(Sample::Unsupported)
