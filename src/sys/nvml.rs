@@ -35,8 +35,15 @@ pub fn nvml_gpus() -> io::Result<Vec<NvmlGpu>> {
 /// supported" are Unsupported (src/sys:V4); the rest name the call.
 #[cfg(any(test, feature = "nvml"))]
 fn nvml_error(call: &str, status: i32) -> io::Error {
-    let _ = (call, status);
-    io::Error::other("")
+    /// `NVML_ERROR_NOT_SUPPORTED`, `_DRIVER_NOT_LOADED`,
+    /// `_LIBRARY_NOT_FOUND`, `_FUNCTION_NOT_FOUND`.
+    const ABSENT: [i32; 4] = [3, 9, 12, 13];
+    let msg = format!("{call}: NVML status {status}");
+    if ABSENT.contains(&status) {
+        super::error::unsupported(msg)
+    } else {
+        io::Error::other(msg)
+    }
 }
 
 #[cfg(feature = "nvml")]

@@ -96,3 +96,6 @@ is a development series, not for production.
 - `set_io_priority` and `io_priority`: this process's disk IO priority,
   `Background` (macOS `IOPOL_THROTTLE`, Linux idle class) or `Default`; it
   carries across exec.
+- `nvml_gpus`: NVIDIA GPU utilization and memory through NVML, loaded at run
+  time (the `nvml` feature, on by default); no library, no driver or a build
+  without the feature is `Unsupported`.
