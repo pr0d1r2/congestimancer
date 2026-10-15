@@ -370,3 +370,6 @@ is a development series, not for production.
 - With `--heartbeat D`, a waiting command writes one line to stderr every
   `D` saying how long it has waited and which gates block it; `--verbose`
   names the blocking gates after every failing round.
+- `cpu_fit` and `mem_fit`: how many jobs the CPUs hold now,
+  `floor(N * L - load)`, and the memory, `floor((available - reserved) / M)`,
+  neither below 0.
