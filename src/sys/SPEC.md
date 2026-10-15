@@ -75,7 +75,7 @@ T2|x|`read_text` w/ `Root`|V4
 T3|x|`sysinfo` snapshot w/ selective refresh|V5
 T4|x|`statvfs`, `flock`, `setpriority` via rustix|V2
 T5|x|macOS `sysctlbyname` wrapper + typed reads|V1,V2,V3
-T6|x|macOS `host_processor_info` & `host_statistics64`|V1,V3
+T6|x|macOS mach host stats & pset load|V1,V3
 T7|x|macOS IOKit: block storage stats|V1,V3
 T8|x|macOS IOKit: power sources, `HIDIdleTime`, thermal state|V1,V3
 T9|x|macOS IOKit: GPU `PerformanceStatistics`|V1,V3,V4
@@ -84,7 +84,7 @@ T11|x|Linux NVML via `dlopen`|V1,V4
 T12|x|`NET_RT_IFLIST2` interface counters (macOS, R5)|V1,V3
 T13|x|TCP connect probe w/ timeout|V2
 T14|x|SPIKE: settle R1–R4|-
-T15|.|fixture capture of ∀ sources|V7
+T15|x|fixture capture of ∀ sources|V7
 T16|x|Linux system bus `UnixStream`|V2,V4
 
 ## §B BUGS

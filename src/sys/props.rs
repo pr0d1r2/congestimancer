@@ -70,7 +70,7 @@ pub type Props = BTreeMap<String, PropValue>;
 
 /// `props` as text: one `key = value` line each, keys sorted; a string
 /// value is quoted.
-#[cfg(test)]
+#[cfg(any(test, target_os = "macos"))]
 pub(crate) fn render_props(props: &Props) -> String {
     use std::fmt::Write as _;
 

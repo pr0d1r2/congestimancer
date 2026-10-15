@@ -29,6 +29,13 @@ pub fn power_state() -> io::Result<PowerState> {
     Ok(decode_power(providing.as_deref(), &sources))
 }
 
+/// The providing power source type and every source's raw description,
+/// for [`super::capture`].
+#[cfg(target_os = "macos")]
+pub(crate) fn sources() -> io::Result<Sources> {
+    imp::power_sources()
+}
+
 /// Time since the last keyboard or mouse input, in nanoseconds.
 ///
 /// # Errors

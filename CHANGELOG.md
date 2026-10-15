@@ -107,3 +107,7 @@ is a development series, not for production.
 - `system_bus_connect`: on Linux, a connection to the D-Bus system bus at
   `DBUS_SYSTEM_BUS_ADDRESS` or `/run/dbus/system_bus_socket`; no bus is
   `Unsupported`.
+- `capture`: copies the kernel files the gates read into `out/<os>-<arch>/`
+  as a fixture tree, and on macOS writes the sysctl, mach, network, IOKit
+  and notify values as text, without serial numbers, link addresses or
+  anything that names a person.
