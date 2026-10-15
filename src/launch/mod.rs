@@ -11,6 +11,11 @@
 //! [`Start`] or an exit code (124, 69); [`launch`] then execs the command
 //! with its environment cleaned and its slot locks handed over, and
 //! returns only with 0 (no command) or an exec failure code (126, 127).
+//!
+//! With `--govern`, [`launch_governed`] takes [`launch`]'s place: the
+//! command is spawned in its own process group and governed by a
+//! [`Judge`] every `--interval` ([`LocalGates`] here; with `--host` the
+//! caller's judge of the remote gates), until it ends with its own code.
 
 mod admit;
 mod after;

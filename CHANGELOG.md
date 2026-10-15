@@ -433,3 +433,7 @@ is a development series, not for production.
   on to the group, and the command's own exit code ends `cgmr`.
 - `Blocked::unblock_in`: a command spawned while `cgmr` blocks signals
   starts with the mask from before, so it still dies of what it is sent.
+- `launch_governed` and `Governing`: `--govern` spawns the command in its
+  own process group, pauses it while the gates fail, forwards SIGINT,
+  SIGTERM and SIGHUP to it, and exits with its code; a paused command
+  keeps its slot and memory reservation.

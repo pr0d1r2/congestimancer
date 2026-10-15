@@ -49,20 +49,34 @@ where
     let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
-    if let Some(Err(err)) = start.release.as_ref().map(hand_over) {
-        // The exit code says it; a lost stderr changes nothing.
-        let _ = writeln!(log, "cgmr: cannot hand the slot over: {err}");
-        return 126;
-    }
-    if start.background {
-        background(log);
+    if let Err(code) = prepare(&start, log) {
+        return code;
     }
     exec_command(&mut command)
 }
 
+/// Readies this process to start the command as `start` says: the slot
+/// handed over, background priority; the exit code (126) when the slot
+/// cannot be handed over.
+pub(super) fn prepare(start: &Start, log: &mut dyn Write) -> Result<(), u8> {
+    if let Some(Err(err)) = start.release.as_ref().map(hand_over) {
+        // The exit code says it; a lost stderr changes nothing.
+        let _ = writeln!(log, "cgmr: cannot hand the slot over: {err}");
+        return Err(126);
+    }
+    if start.background {
+        background(log);
+    }
+    Ok(())
+}
+
 /// The command for `argv`, its environment cleaned (src/launch:V3), or
 /// `None` when there is none.
-fn command<I>(argv: &[OsString], vars: I, held: Option<&str>) -> Option<Command>
+pub(super) fn command<I>(
+    argv: &[OsString],
+    vars: I,
+    held: Option<&str>,
+) -> Option<Command>
 where
     I: IntoIterator<Item = (OsString, OsString)>,
 {
