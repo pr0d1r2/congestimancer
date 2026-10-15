@@ -162,3 +162,37 @@ fn threshold_renders_value_or_window() {
     assert_eq!(shown.as_deref(), Some("22:00-06:00"));
     assert_eq!(Threshold::Value(load(1_500)).to_string(), "1.5");
 }
+
+/// One low and one high value in every quantity unit but percent.
+fn ordered_pairs() -> [(Measure, Measure); 4] {
+    use crate::units::{Celsius, Rate};
+    use std::time::Duration;
+    let celsius = |t| Measure::Celsius(Celsius::from_tenths(t));
+    let duration = Measure::Duration;
+    [
+        (Measure::Count(Count(1)), Measure::Count(Count(2))),
+        (Measure::Rate(Rate(1)), Measure::Rate(Rate(2))),
+        (duration(Duration::ZERO), duration(Duration::MAX)),
+        (celsius(1), celsius(2)),
+    ]
+}
+
+fn below_passes((low, high): (Measure, Measure)) -> bool {
+    Gate::below(SignalId::Temp, high)
+        .judge(&value(low), None)
+        .is_pass()
+}
+
+#[test]
+fn every_quantity_compares_in_its_own_unit() {
+    use crate::units::Percent;
+    let pct = |h| Percent::from_hundredths(h).map(Measure::Percent);
+    assert!(ordered_pairs().into_iter().all(below_passes));
+    assert_eq!(pct(100).zip(pct(200)).map(below_passes), Some(true));
+}
+
+#[test]
+fn a_flag_is_not_a_quantity_to_order() {
+    let gate = Gate::below(SignalId::Cool, Measure::Flag(true));
+    assert!(unsupported(&gate.judge(&value(Measure::Flag(false)), None)));
+}
