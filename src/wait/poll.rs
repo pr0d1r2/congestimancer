@@ -180,6 +180,9 @@ impl<'p> Run<'p> {
     {
         let evaluation = evaluate(rig.gates, rig.source, now, &mut self.trends);
         let overall = evaluation.overall;
+        if overall == Overall::Unsupported {
+            return Ok(Some(Outcome::Unsupported(evaluation)));
+        }
         self.pace(overall);
         self.last = Some(evaluation);
         if !self.settled(overall, now) {

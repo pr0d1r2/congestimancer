@@ -362,3 +362,5 @@ is a development series, not for production.
   gives up with exit 124, keeping that round's verdicts for the report.
 - With `--settle D`, the gates must pass without a break for `D` before the
   command is let go; a failing or warming round starts the span again.
+- A gate with no source on this machine ends the wait at once with exit 69,
+  even mid-wait, instead of waiting out the timeout.
