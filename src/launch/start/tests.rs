@@ -1,9 +1,48 @@
 use std::ffi::{OsStr, OsString};
+use std::fs::File;
 use std::io;
+use std::os::fd::AsRawFd;
 use std::process::Command;
 
-use super::{Start, command, launch};
-use crate::slot::HELD_SLOTS_ENV;
+use super::{Start, command, hand_over, launch};
+use crate::launch::Slots;
+use crate::launch::scratch::Scratch;
+use crate::slot::{HELD_SLOTS_ENV, Release};
+use crate::wait::Admit;
+
+/// Whether a child started now sees `file`'s descriptor open.
+fn child_sees(file: &File) -> io::Result<bool> {
+    let fd = file.as_raw_fd();
+    let test = format!("test -e /dev/fd/{fd}");
+    Ok(Command::new("/bin/sh")
+        .args(["-c", &test])
+        .status()?
+        .success())
+}
+
+fn claim(scratch: &Scratch) -> io::Result<Release> {
+    let mut slots = Slots::new(scratch.waiter(Some(1 << 20))?);
+    match slots.try_admit().map_err(io::Error::other)? {
+        Some(Some(release)) => Ok(release),
+        other => Err(io::Error::other(format!("not released: {other:?}"))),
+    }
+}
+
+#[test]
+fn the_command_inherits_the_slot_and_reservation() -> io::Result<()> {
+    let scratch = Scratch::new("hand-over")?;
+    let release = claim(&scratch)?;
+    let (Some(slot), Some(reserved)) = (release.slot(), release.reservation())
+    else {
+        unreachable!("one slot and a reservation were asked: {release:?}");
+    };
+    assert!(!child_sees(slot.file())?, "close-on-exec before hand over");
+    assert!(!child_sees(reserved.file())?, "close-on-exec before");
+    hand_over(&release)?;
+    assert!(child_sees(slot.file())?, "slot lock not inherited");
+    assert!(child_sees(reserved.file())?, "reservation not inherited");
+    Ok(())
+}
 
 /// Set only in the child [`exec_hands_over_the_exit_code`] spawns: that
 /// child execs into a shell, which no other test may do.

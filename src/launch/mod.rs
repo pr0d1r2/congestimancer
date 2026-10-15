@@ -5,12 +5,16 @@
 
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
 
+mod admit;
 mod after;
 mod env;
 mod exec;
 mod priority;
+#[cfg(test)]
+mod scratch;
 mod start;
 
+pub use admit::Slots;
 pub use after::{Priority, after_wait};
 pub use env::clean_env;
 pub use exec::{exec_command, exec_failure_code};

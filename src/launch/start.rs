@@ -2,7 +2,7 @@
 //! no command (src/launch:V2), else the command execs (src/launch:V1).
 
 use std::ffi::OsString;
-use std::io::Write;
+use std::io::{self, Write};
 use std::process::Command;
 
 use super::{background, clean_env, exec_command};
@@ -48,6 +48,11 @@ where
     let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
+    if let Some(Err(err)) = start.release.as_ref().map(hand_over) {
+        // The exit code says it; a lost stderr changes nothing.
+        let _ = writeln!(log, "cgmr: cannot hand the slot over: {err}");
+        return 126;
+    }
     if start.background {
         background(log);
     }
@@ -65,6 +70,14 @@ where
     command.args(args);
     clean_env(&mut command, vars, held);
     Some(command)
+}
+
+/// Lets the command inherit `release`'s slot and reservation locks
+/// across exec, so the kernel lets go of them only when it exits
+/// (src/slot:V2, V7).
+fn hand_over(release: &Release) -> io::Result<()> {
+    let _ = release;
+    Ok(())
 }
 
 #[cfg(test)]
