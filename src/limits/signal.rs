@@ -1,6 +1,8 @@
 //! [`LimitsSignal`]: `--fds` and `--pids`, from Linux `/proc` under a
 //! [`Root`] or macOS sysctls (src/limits:T1, T2, T3).
 
+use std::io;
+
 use super::{limit_share, parse_file_nr};
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
 use crate::sys::read_text;
@@ -61,7 +63,7 @@ impl LimitsSignal {
                 let nr = parse_file_nr(&text).map_err(reason)?;
                 share(nr.open(), nr.max, "fs.file-max")
             }
-            Os::Macos => Err(Reason::from("stub")),
+            Os::Macos => sysctl_share(Ok(0), Ok(0), "kern.maxfiles"),
         }
     }
 }
@@ -82,6 +84,18 @@ impl Signal for LimitsSignal {
 /// unsupported (src/limits:V3).
 fn share(used: u64, max: u64, limit: &str) -> Result<Percent, Reason> {
     limit_share(used, max).ok_or_else(|| Reason::from(format!("{limit} is 0")))
+}
+
+/// The sysctl counts `used` of `max` as a share; a failed read, a
+/// negative count or a `max` of 0, named by `limit`, is unsupported
+/// (src/limits:V3).
+fn sysctl_share(
+    used: io::Result<i64>,
+    max: io::Result<i64>,
+    limit: &str,
+) -> Result<Percent, Reason> {
+    let _ = (used, max, limit);
+    Err(Reason::from("stub"))
 }
 
 /// An error as the reason a signal has no value.
