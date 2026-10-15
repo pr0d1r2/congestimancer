@@ -1,9 +1,11 @@
 //! [`CpuSignal`]: the CPU signals, from Linux `/proc` under a [`Root`]
 //! or macOS `sysinfo` and mach calls (src/cpu:T2-T8).
 
-use super::Loads;
-use crate::signal::{Reason, Root, Sample, Signal, SignalId};
-use crate::sys::LoadAverage;
+use super::parse::LOADAVG;
+use super::{Loads, parse_loadavg};
+use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
+use crate::sys::{LoadAverage, Snapshot, read_text};
+use crate::units::{Decimal, parse_decimal};
 
 /// Which OS's sources a [`CpuSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,18 +51,60 @@ impl CpuSignal {
     }
 }
 
+impl CpuSignal {
+    /// The load averages: Linux `/proc/loadavg`, macOS `sysinfo`
+    /// (src/cpu:T2).
+    fn loads(&self) -> Result<Loads, Reason> {
+        match self.os {
+            Os::Linux => {
+                let text = read_text(&self.root, LOADAVG).map_err(reason)?;
+                parse_loadavg(&text).map_err(reason)
+            }
+            Os::Macos => loads_from(Snapshot::load_average()),
+        }
+    }
+}
+
 impl Signal for CpuSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
-        let _ = (&self.root, self.os, loads_from);
-        Sample::Unsupported(Reason::from(format!("{id} is not a cpu signal")))
+        self.gauge(id)
+            .map(Sample::Gauge)
+            .unwrap_or_else(Sample::Unsupported)
+    }
+}
+
+impl CpuSignal {
+    /// The value of a CPU signal that stands alone.
+    fn gauge(&self, id: SignalId) -> Result<Measure, Reason> {
+        match id {
+            SignalId::Load => self.loads().map(|l| Measure::Number(l.one)),
+            _ => Err(Reason::from(format!("{id} is not a cpu signal"))),
+        }
     }
 }
 
 /// The load averages `sysinfo` gives, to thousandths; a negative or
 /// non-finite average is unsupported.
 fn loads_from(load: LoadAverage) -> Result<Loads, Reason> {
-    let _ = load;
-    Err(Reason::from("todo"))
+    Ok(Loads {
+        one: decimal(load.one)?,
+        five: decimal(load.five)?,
+        fifteen: decimal(load.fifteen)?,
+    })
+}
+
+/// `load` rounded to thousandths.
+fn decimal(load: f64) -> Result<Decimal, Reason> {
+    let bad = || Reason::from(format!("load average {load} is not a load"));
+    if !load.is_finite() || load < 0.0 {
+        return Err(bad());
+    }
+    parse_decimal(&format!("{load:.3}")).map_err(|_| bad())
+}
+
+/// An error as the reason a signal has no value.
+fn reason(err: impl ToString) -> Reason {
+    Reason::from(err.to_string())
 }
 
 #[cfg(test)]

@@ -1,7 +1,7 @@
 //! Pure parsers for Linux CPU files (src/cpu:T2, T4).
 
 use super::CpuError;
-use crate::units::Decimal;
+use crate::units::{Decimal, parse_decimal};
 
 /// `/proc/loadavg`: the 1, 5 and 15 minute load averages, then tasks.
 pub(super) const LOADAVG: &str = "/proc/loadavg";
@@ -25,7 +25,15 @@ pub struct Loads {
 /// [`CpuError::Malformed`] when the line does not start with three
 /// non-negative decimals.
 pub fn parse_loadavg(text: &str) -> Result<Loads, CpuError> {
-    Err(CpuError::malformed(LOADAVG, text))
+    let line = text.lines().next().unwrap_or_default();
+    let mut words = line.split_whitespace().map(parse_decimal);
+    let mut next = || words.next().and_then(Result::ok);
+    match (next(), next(), next()) {
+        (Some(one), Some(five), Some(fifteen)) => {
+            Ok(Loads { one, five, fifteen })
+        }
+        _ => Err(CpuError::malformed(LOADAVG, line)),
+    }
 }
 
 #[cfg(test)]

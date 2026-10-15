@@ -61,7 +61,7 @@ V7: N ≥ 1 always; division checked.
 
 id|status|task|cites
 T1|x|N from `available_parallelism`, ≥ 1|V7
-T2|.|load avg reader both OS + `--load` `--all-load`|V1
+T2|x|load avg reader both OS + `--load` `--all-load`|V1
 T3|.|`--load-window`|V2
 T4|.|`/proc/stat` parser: `procs_running`, cpu times, steal|V3,V4,V6
 T5|.|macOS run queue: pset `load_average` / 1000 via `src/sys`|V3

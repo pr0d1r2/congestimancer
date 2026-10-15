@@ -280,3 +280,6 @@ is a development series, not for production.
 - `cpu_count`: the logical CPUs `--load` and `--run-queue` divide by, from
   `available_parallelism` and never below 1; `load_per_cpu` divides with
   a check, never by zero.
+- `CpuSignal` reads the load average for `--load X` (per CPU) and
+  `--all-load X`: Linux `/proc/loadavg` (`parse_loadavg`, `Loads`), macOS
+  `sysinfo`; a cgroup scope still reads the host load.
