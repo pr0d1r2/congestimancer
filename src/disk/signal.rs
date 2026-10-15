@@ -46,7 +46,11 @@ pub const fn free_space(stats: &FsStats) -> Bytes {
 /// (src/disk:V2); `None` on a filesystem that does not count inodes.
 #[must_use]
 pub const fn free_inodes(stats: &FsStats) -> Option<Count> {
-    Some(Count(stats.files_free))
+    if stats.files == 0 {
+        None
+    } else {
+        Some(Count(stats.files_available))
+    }
 }
 
 impl DiskSignal {

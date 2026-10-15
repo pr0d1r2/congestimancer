@@ -187,3 +187,6 @@ is a development series, not for production.
 - `DiskSignal` reads `--disk`: the bytes an unprivileged user may still
   write on the filesystem holding a path (`free_space`), from `statvfs` on
   both OSes; a path that is gone is unsupported.
+- `--inodes` reads the inodes an unprivileged user may still take on that
+  filesystem (`free_inodes`); one that does not count inodes is
+  unsupported.
