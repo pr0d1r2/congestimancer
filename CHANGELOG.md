@@ -427,3 +427,7 @@ is a development series, not for production.
   SIGTERM, SIGHUP and SIGCHLD on this thread and take them one at a time
   with a timeout (`sigtimedwait` on Linux, kqueue on macOS), no handler;
   dropping it puts the old signal mask back.
+- `govern`, `GovernRig`, `Judge`, `LocalGates` and `Group`: the `--govern`
+  loop; each interval the gates are judged again, a failing round pauses
+  the command's group and a passing one resumes it, caught signals pass
+  on to the group, and the command's own exit code ends `cgmr`.

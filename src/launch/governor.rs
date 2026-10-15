@@ -17,9 +17,10 @@ use std::io::{self, Write};
 use std::process::ExitStatus;
 use std::time::{Duration, Instant};
 
-use crate::gate::{Gates, Overall};
+use super::{GroupAction, govern_step, status_code};
+use crate::gate::{Gates, Overall, evaluate};
 use crate::signal::{Clock, Source, Trends};
-use crate::sys::{GroupSignal, Wake};
+use crate::sys::{ForwardSignal, GroupSignal, Wake};
 
 /// What one `--govern` round says about the gates.
 pub trait Judge {
@@ -50,8 +51,7 @@ impl<'a, S: ?Sized> LocalGates<'a, S> {
 
 impl<S: Source + ?Sized> Judge for LocalGates<'_, S> {
     fn judge(&mut self, now: Instant) -> Overall {
-        let _ = (now, &self.gates, &self.source, &self.trends);
-        Overall::Unsupported
+        evaluate(self.gates, self.source, now, &mut self.trends).overall
     }
 }
 
@@ -127,8 +127,106 @@ where
     C: Clock + ?Sized,
     G: Group + ?Sized,
 {
-    let _ = (rig, interval);
-    Err(io::Error::from(io::ErrorKind::Unsupported))
+    let mut run = Run {
+        rig,
+        interval,
+        stopped: false,
+        last: None,
+    };
+    loop {
+        if let Some(code) = run.step()? {
+            return Ok(code);
+        }
+    }
+}
+
+/// One `--govern` run's state between rounds.
+struct Run<'a, J: ?Sized, C: ?Sized, G: ?Sized> {
+    /// Its parts.
+    rig: GovernRig<'a, J, C, G>,
+    /// How often a round judges the gates.
+    interval: Duration,
+    /// Whether the group is stopped now.
+    stopped: bool,
+    /// When the last round ran, if one has.
+    last: Option<Instant>,
+}
+
+impl<J, C, G> Run<'_, J, C, G>
+where
+    J: Judge + ?Sized,
+    C: Clock + ?Sized,
+    G: Group + ?Sized,
+{
+    /// Waits for the next round, signal or exit, and acts on it; the
+    /// exit code once the command has ended.
+    fn step(&mut self) -> io::Result<Option<u8>> {
+        if let Some(status) = self.rig.group.try_wait()? {
+            self.release();
+            return Ok(Some(status_code(status)));
+        }
+        match self.rig.group.wait(self.left())? {
+            None => self.round(),
+            Some(Wake::Forward(sig)) => self.forward(sig),
+            Some(Wake::Child) => {}
+        }
+        Ok(None)
+    }
+
+    /// How long until the next round is due: a whole interval after the
+    /// last one (the first comes an interval after the start, whose
+    /// gates just passed).
+    fn left(&self) -> Duration {
+        let since = self.last.map_or(Duration::ZERO, |last| {
+            self.rig.clock.now().saturating_duration_since(last)
+        });
+        self.interval.saturating_sub(since)
+    }
+
+    /// Judges the gates and stops or continues the group as they say.
+    fn round(&mut self) {
+        let now = self.rig.clock.now();
+        self.last = Some(now);
+        let overall = self.rig.judge.judge(now);
+        match govern_step(self.stopped, overall) {
+            Some(GroupAction::Stop) => self.send(GroupSignal::Stop),
+            Some(GroupAction::Continue) => self.send(GroupSignal::Cont),
+            None => {}
+        }
+    }
+
+    /// Passes `sig` on; a stopped group is continued too, or it could not
+    /// act on it.
+    fn forward(&mut self, sig: ForwardSignal) {
+        self.send(sig.group());
+        self.release();
+    }
+
+    /// Continues the group if it is stopped.
+    fn release(&mut self) {
+        if self.stopped {
+            self.send(GroupSignal::Cont);
+        }
+    }
+
+    /// Sends `sig`, keeping track of whether the group is stopped; a
+    /// refusal is logged and changes nothing.
+    fn send(&mut self, sig: GroupSignal) {
+        if let Err(err) = self.rig.group.signal(sig) {
+            // The exit code tells the end; a lost stderr changes nothing.
+            let _ = writeln!(self.rig.log, "cgmr: cannot signal: {err}");
+            return;
+        }
+        let note = match sig {
+            GroupSignal::Stop => Some((true, "gates fail, command paused")),
+            GroupSignal::Cont => Some((false, "command resumed")),
+            _ => None,
+        };
+        if let Some((stopped, note)) = note {
+            self.stopped = stopped;
+            let _ = writeln!(self.rig.log, "cgmr: {note}");
+        }
+    }
 }
 
 #[cfg(test)]
