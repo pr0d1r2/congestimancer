@@ -352,3 +352,7 @@ is a development series, not for production.
   gate with its value, threshold and trend, such as
   `--load: 3 (needs < 2, rising)`; the heartbeat puts them on one line.
 - `Warnings`: every warning goes through one sink that `--quiet` silences.
+- `poll`, `Pacing`, `Rig`, `Admit`, `Open` and `Outcome`: the wait loop
+  evaluates the gates every `--interval` (default `2s`) on the monotonic
+  clock, sleeping between rounds and never spinning, even on a zero
+  interval.

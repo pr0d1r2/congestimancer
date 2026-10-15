@@ -3,10 +3,11 @@
 
 use std::convert::Infallible;
 use std::io::Write;
+use std::time::{Duration, Instant};
 
 use super::Pacing;
-use crate::gate::{Evaluation, Gates};
-use crate::signal::{Clock, Source};
+use crate::gate::{Evaluation, Gates, evaluate};
+use crate::signal::{Clock, Source, Trends};
 
 /// The slot steps that run once the gates pass and settle, before
 /// `--jitter` (src/wait:V9); `src/slot`'s `Waiter` is the real one.
@@ -96,11 +97,14 @@ impl<'a, S: ?Sized, C: ?Sized> Rig<'a, S, C> {
 
 /// Waits until the gates release the command, as `pacing` says.
 ///
+/// Each round evaluates every gate at one [`Clock`] instant; between
+/// rounds the clock sleeps, never spins (src/wait:V1, V7).
+///
 /// # Errors
 ///
 /// When `admit` cannot try its steps.
 pub fn poll<S, C, A>(
-    rig: Rig<'_, S, C>,
+    mut rig: Rig<'_, S, C>,
     pacing: &Pacing,
     admit: &mut A,
 ) -> Result<Outcome<A::Held>, A::Error>
@@ -109,8 +113,59 @@ where
     C: Clock + ?Sized,
     A: Admit,
 {
-    let _ = (rig, pacing.base(), admit);
-    Ok(Outcome::TimedOut(None))
+    let mut run = Run::new(pacing);
+    loop {
+        let now = rig.clock.now();
+        if let Some(outcome) = run.round(&mut rig, now, admit)? {
+            return Ok(outcome);
+        }
+        rig.clock.sleep(run.pause());
+    }
+}
+
+/// A round's result: the outcome when the wait is over, `None` to wait on.
+type Step<A> = Result<Option<Outcome<<A as Admit>::Held>>, <A as Admit>::Error>;
+
+/// One wait in progress: what the rounds so far have shown.
+struct Run<'p> {
+    /// The switches.
+    pacing: &'p Pacing,
+    /// Each signal's history, for the trend in a block reason.
+    trends: Trends,
+}
+
+impl<'p> Run<'p> {
+    /// A wait that has not checked yet.
+    fn new(pacing: &'p Pacing) -> Self {
+        Self {
+            pacing,
+            trends: Trends::new(),
+        }
+    }
+
+    /// Evaluates the gates at `now`; the outcome when the wait is over.
+    fn round<S, C, A>(
+        &mut self,
+        rig: &mut Rig<'_, S, C>,
+        now: Instant,
+        admit: &mut A,
+    ) -> Step<A>
+    where
+        S: Source + ?Sized,
+        C: ?Sized,
+        A: Admit,
+    {
+        let evaluation = evaluate(rig.gates, rig.source, now, &mut self.trends);
+        if !evaluation.overall.is_pass() {
+            return Ok(None);
+        }
+        Ok(admit.try_admit()?.map(Outcome::Released))
+    }
+
+    /// How long to sleep before the next round.
+    fn pause(&self) -> Duration {
+        self.pacing.base()
+    }
 }
 
 #[cfg(test)]

@@ -58,7 +58,7 @@ V10: cost budget: one round w/ `--load` only ≤ 5 ms CPU; resident memory ≤ 1
 ## §T TASKS
 
 id|status|task|cites
-T1|.|loop w/ interval & fake clock tests|V1,V7
+T1|x|loop w/ interval & fake clock tests|V1,V7
 T2|.|backoff|V2
 T3|.|timeout|V3
 T4|.|settle|V4
