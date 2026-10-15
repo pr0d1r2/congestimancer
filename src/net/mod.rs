@@ -7,8 +7,10 @@
 mod dev;
 mod error;
 mod rates;
+mod rtt;
 mod signal;
 
 pub use dev::{NetDevError, linux_interfaces, parse_if_flags, parse_net_dev};
 pub use error::NetError;
+pub use rtt::{RTT_PORT, RttSignal};
 pub use signal::{NetSignal, selected};

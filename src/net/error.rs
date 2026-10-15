@@ -13,6 +13,8 @@ pub enum NetError {
         /// The interface as given.
         name: Name,
     },
+    /// `--rtt` without `--rtt-host` (src/net:V4).
+    RttWithoutHost,
 }
 
 impl fmt::Display for NetError {
@@ -21,6 +23,7 @@ impl fmt::Display for NetError {
             Self::UnknownIface { name } => {
                 write!(f, "--net-iface {name}: no such interface")
             }
+            Self::RttWithoutHost => f.write_str("--rtt: not yet"),
         }
     }
 }
