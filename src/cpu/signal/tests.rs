@@ -2,12 +2,13 @@ use std::path::Path;
 use std::time::Instant;
 
 use super::{CpuSignal, Os, loads_from, macos_idle, run_queue_from};
+use crate::cgroup::{Cgroup, Scope, Scoped};
 use crate::cpu::{LoadWindow, Loads};
 use crate::signal::{
     Counter, Measure, Reading, Root, Sample, Sampled, Signal, SignalId, Source,
 };
 use crate::sys::{CpuTicks, LoadAverage, PsetLoad};
-use crate::units::Decimal;
+use crate::units::{Decimal, Percent};
 
 /// The fixture tree `tests/fixtures/cpu/<case>`, laid out like `/`.
 fn root(case: &str) -> Root {
@@ -255,4 +256,50 @@ fn a_failed_macos_ticks_read_is_unsupported() {
     let err = std::io::Error::other("no mach");
     let idle = macos_idle(Err(err)).map_err(|r| r.to_string());
     assert_eq!(idle, Err("no mach".to_owned()));
+}
+
+/// A percent gauge of `hundredths` hundredths.
+fn percent(hundredths: u16) -> Option<Sample> {
+    Percent::from_hundredths(hundredths)
+        .map(|p| Sample::Gauge(Measure::Percent(p)))
+}
+
+#[test]
+fn linux_cpu_pressure_is_some_avg10() {
+    let sample = on("linux", Os::Linux).sample(SignalId::CpuPressure);
+    assert_eq!(Some(sample), percent(250));
+}
+
+#[test]
+fn linux_cpu_pressure_from_garbled_psi_is_unsupported() {
+    assert_eq!(
+        reason(on("garbled", Os::Linux).sample(SignalId::CpuPressure)),
+        Some("malformed PSI line: some avg10=lots".to_owned())
+    );
+}
+
+#[test]
+fn linux_cpu_pressure_without_psi_is_unsupported() {
+    assert_eq!(
+        reason(on("absent", Os::Linux).sample(SignalId::CpuPressure)),
+        Some("/proc/pressure/cpu: not present".to_owned())
+    );
+}
+
+#[test]
+fn macos_cpu_pressure_is_unsupported() {
+    assert_eq!(
+        reason(on("linux", Os::Macos).sample(SignalId::CpuPressure)),
+        Some("no PSI on macOS".to_owned())
+    );
+}
+
+#[test]
+fn in_a_cgroup_cpu_pressure_is_the_cgroups_own() {
+    let scope = Scope::Cgroup(Cgroup::new("/job"));
+    let host = Sampled::new(on("linux", Os::Linux));
+    let mut scoped = Scoped::new(root("linux"), scope, host);
+    let read = scoped.read(SignalId::CpuPressure, Instant::now());
+    let want = Percent::from_hundredths(1_250).map(Measure::Percent);
+    assert_eq!(read.measure().copied(), want);
 }
