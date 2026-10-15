@@ -47,6 +47,26 @@ pub fn parse_file_nr(text: &str) -> Result<FileNr, LimitsError> {
     }
 }
 
+/// `/proc/sys/kernel/pid_max`: one whole number, such as `4194304`.
+///
+/// # Errors
+///
+/// [`LimitsError::Malformed`] when it is not one.
+pub fn parse_pid_max(text: &str) -> Result<u64, LimitsError> {
+    Err(LimitsError::malformed("pid_max", text))
+}
+
+/// The tasks (threads, each holding a pid) counted by `/proc/loadavg`: the
+/// total after the `/` in its fourth field, such as `8192` of
+/// `0.52 0.58 0.59 3/8192 12345`.
+///
+/// # Errors
+///
+/// [`LimitsError::Malformed`] when there is no `running/total` field.
+pub fn parse_loadavg_tasks(text: &str) -> Result<u64, LimitsError> {
+    Err(LimitsError::malformed("loadavg", text))
+}
+
 /// `used` as a share of `max`, rounded down to a hundredth of a percent
 /// and capped at 100%; `None` when `max` is 0 (src/limits:V3).
 #[must_use]

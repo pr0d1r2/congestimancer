@@ -125,3 +125,39 @@ fn a_failed_sysctl_read_is_unsupported_with_its_error() {
     let share = sysctl_share(Ok(1), Err(err), "kern.maxfiles");
     assert_eq!(text(share), Err("sysctl x: gone".to_owned()));
 }
+
+#[test]
+fn linux_pids_is_tasks_over_pid_max() {
+    assert_eq!(Some(linux("linux").sample(SignalId::Pids)), percent(2500));
+}
+
+#[test]
+fn linux_pids_with_a_pid_max_of_zero_is_unsupported() {
+    assert_eq!(
+        reason(linux("zero").sample(SignalId::Pids)),
+        Some("kernel.pid_max is 0".to_owned())
+    );
+}
+
+#[test]
+fn linux_pids_with_a_malformed_pid_max_is_unsupported() {
+    assert_eq!(
+        reason(linux("garbled").sample(SignalId::Pids)),
+        Some("malformed pid_max: `many`".to_owned())
+    );
+}
+
+#[test]
+fn linux_pids_without_pid_max_is_unsupported() {
+    assert_eq!(
+        reason(linux("absent").sample(SignalId::Pids)),
+        Some("/proc/sys/kernel/pid_max: not present".to_owned())
+    );
+}
+
+#[test]
+fn macos_pids_is_a_percent_from_kern_maxproc() {
+    let sample =
+        LimitsSignal::on(root("absent"), Os::Macos).sample(SignalId::Pids);
+    assert!(live_percent(&sample), "{sample:?}");
+}

@@ -10,5 +10,7 @@ mod parse;
 mod signal;
 
 pub use error::LimitsError;
-pub use parse::{FileNr, limit_share, parse_file_nr};
+pub use parse::{
+    FileNr, limit_share, parse_file_nr, parse_loadavg_tasks, parse_pid_max,
+};
 pub use signal::LimitsSignal;

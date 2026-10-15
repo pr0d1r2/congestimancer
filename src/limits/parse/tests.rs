@@ -1,4 +1,6 @@
-use super::{FileNr, limit_share, parse_file_nr};
+use super::{
+    FileNr, limit_share, parse_file_nr, parse_loadavg_tasks, parse_pid_max,
+};
 use crate::limits::LimitsError;
 use crate::units::Percent;
 
@@ -84,4 +86,37 @@ fn past_the_max_is_capped_at_100_percent() {
 fn a_max_of_zero_has_no_share() {
     assert_eq!(limit_share(0, 0), None);
     assert_eq!(limit_share(1, 0), None);
+}
+
+#[test]
+fn pid_max_is_one_number() {
+    assert_eq!(parse_pid_max("4194304\n"), Ok(4_194_304));
+}
+
+#[test]
+fn pid_max_with_a_word_is_malformed() {
+    assert_eq!(
+        parse_pid_max("many\n"),
+        Err(LimitsError::malformed("pid_max", "many"))
+    );
+}
+
+#[test]
+fn loadavg_tasks_is_the_total_after_the_slash() {
+    let text = "0.52 0.58 0.59 3/8192 12345\n";
+    assert_eq!(parse_loadavg_tasks(text), Ok(8192));
+}
+
+#[test]
+fn loadavg_without_a_task_field_is_malformed() {
+    assert_eq!(
+        parse_loadavg_tasks("0.00 0.00 0.00\n"),
+        Err(LimitsError::malformed("loadavg", "0.00 0.00 0.00"))
+    );
+}
+
+#[test]
+fn loadavg_with_a_bad_total_is_malformed() {
+    assert!(parse_loadavg_tasks("0 0 0 3/x 1").is_err());
+    assert!(parse_loadavg_tasks("0 0 0 3 1").is_err());
 }
