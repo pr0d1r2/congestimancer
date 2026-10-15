@@ -172,16 +172,39 @@ impl PowerSignal {
 impl PowerSignal {
     /// The machine's power supplies (src/power:V3, V4).
     fn supplies(&self) -> Result<Vec<Supply>, Reason> {
-        let _ = (&self.supply_names, power_state, supplies_of);
-        let _ = parse_supply_uevent;
-        Err(Reason::from("stub"))
+        if self.os == Os::Macos {
+            return power_state().map(|s| supplies_of(&s)).map_err(reason);
+        }
+        let names = self.supply_names.as_ref().ok_or_else(|| {
+            Reason::from(
+                "listing /sys/class/power_supply needs a src/sys directory \
+                 listing",
+            )
+        })?;
+        Ok(self.uevents(names))
+    }
+
+    /// The supplies `names` whose `uevent` reads and parses.
+    fn uevents(&self, names: &[String]) -> Vec<Supply> {
+        names
+            .iter()
+            .filter_map(|name| {
+                let path = format!("/sys/class/power_supply/{name}/uevent");
+                parse_supply_uevent(&self.text(&path).ok()?).ok()
+            })
+            .collect()
     }
 
     /// `--battery`: the machine's charge; full with no battery
     /// (src/power:V4).
     fn battery(&self) -> Result<Percent, Reason> {
-        let _ = battery_charge;
-        Err(Reason::from("stub"))
+        let supplies = self.supplies()?;
+        if !supplies.iter().any(Supply::is_system_battery) {
+            return Percent::from_hundredths(10_000)
+                .ok_or_else(|| Reason::from("no full percent"));
+        }
+        battery_charge(&supplies)
+            .ok_or_else(|| Reason::from("the battery reports no charge"))
     }
 }
 
