@@ -224,3 +224,8 @@ is a development series, not for production.
   a reading NVML did not give stays empty.
 - `Gpu::from(&GpuUsage)`: macOS GPU busy percent from IOKit; Apple Silicon
   has no free GPU memory (unified memory), an Intel Mac GPU reports VRAM.
+- `GpuSignal` reads `--gpu` and `--gpu-mem`: every GPU by default, the
+  busiest and the least free memory winning (`worst_busy`, `worst_free`);
+  `--gpu-device I` reads GPU number `I`, and an index past them is
+  `GpuError::UnknownDevice`, a usage error. No GPU source, or `--gpu-mem`
+  on Apple Silicon, is unsupported with the reason.

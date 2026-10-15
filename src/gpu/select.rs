@@ -8,16 +8,14 @@ use crate::units::{Bytes, Percent};
 /// passed over, and `None` when none does.
 #[must_use]
 pub fn worst_busy(gpus: &[Gpu]) -> Option<Percent> {
-    let _ = gpus;
-    None
+    gpus.iter().filter_map(|gpu| gpu.busy).max()
 }
 
 /// `--gpu-mem`: the least free GPU memory; GPUs that do not report it
 /// (Apple Silicon, src/gpu:V6) are passed over, and `None` when none does.
 #[must_use]
 pub fn worst_free(gpus: &[Gpu]) -> Option<Bytes> {
-    let _ = gpus;
-    None
+    gpus.iter().filter_map(|gpu| gpu.vram_free).min()
 }
 
 #[cfg(test)]

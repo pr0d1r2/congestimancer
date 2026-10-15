@@ -62,7 +62,7 @@ id|status|task|cites
 T1|x|AMD sysfs parser|V1,V2
 T2|x|NVML reads|V1,V2,V4
 T3|x|macOS IOKit GPU stats|V1,V2,V4,V6
-T4|.|device selection & worst-wins|V3,V5
+T4|x|device selection & worst-wins|V3,V5
 T5|~|SPIKE: settle R1 on M4 & Intel Mac|-
 
 ## §B BUGS
