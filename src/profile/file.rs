@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 
 use super::switch::parse_switch;
 use super::{At, ProfileError, Switch};
-use crate::units::Name;
+use crate::units::{Name, parse_name};
 
 /// Which kind of file a profile came from; it decides precedence and trust
 /// (src/profile:V2, V3).
@@ -119,12 +119,71 @@ pub fn parse_profiles(
     path: &Path,
     origin: Origin,
 ) -> Result<ProfileFile, ProfileError> {
-    let _ = (text, parse_switch);
-    Ok(ProfileFile {
+    let mut file = ProfileFile {
         path: path.to_owned(),
         origin,
         profiles: Vec::new(),
+    };
+    for (line, n) in text.lines().zip(1_usize..) {
+        file.read_line(line.trim(), At::new(path, n))?;
+    }
+    Ok(file)
+}
+
+/// Why a switch line cannot stand where it is.
+const ORPHAN: &str = "a switch before any [name] header";
+
+/// Why a `[` line is no header.
+const OPEN_HEADER: &str = "a header is [name], closed by ]";
+
+impl ProfileFile {
+    /// Takes in one trimmed line.
+    fn read_line(&mut self, line: &str, at: At) -> Result<(), ProfileError> {
+        if line.is_empty() || line.starts_with('#') {
+            return Ok(());
+        }
+        if let Some(rest) = line.strip_prefix('[') {
+            return self.open(header(rest, &at)?, at);
+        }
+        let switch =
+            parse_switch(line, at.clone()).map_err(|r| syntax(&at, r))?;
+        let profile = self.profiles.last_mut();
+        profile
+            .ok_or_else(|| syntax(&at, ORPHAN))?
+            .switches
+            .push(switch);
+        Ok(())
+    }
+
+    /// Opens the section `name`, headed at `at`.
+    fn open(&mut self, name: Name, at: At) -> Result<(), ProfileError> {
+        if let Some(first) = self.get(&name) {
+            let first = first.at.line();
+            return Err(ProfileError::DuplicateProfile { at, name, first });
+        }
+        let switches = Vec::new();
+        self.profiles.push(Profile { name, at, switches });
+        Ok(())
+    }
+}
+
+/// The name in a header line that is `[` then `rest`.
+fn header(rest: &str, at: &At) -> Result<Name, ProfileError> {
+    let inner = rest
+        .strip_suffix(']')
+        .ok_or_else(|| syntax(at, OPEN_HEADER))?;
+    parse_name(inner.trim()).map_err(|error| ProfileError::BadName {
+        at: at.clone(),
+        error,
     })
+}
+
+/// A syntax error on the line at `at`.
+fn syntax(at: &At, reason: &'static str) -> ProfileError {
+    ProfileError::Syntax {
+        at: at.clone(),
+        reason,
+    }
 }
 
 #[cfg(test)]

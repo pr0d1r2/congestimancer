@@ -89,20 +89,48 @@ impl Switch {
         &self,
         table: &impl SwitchTable,
     ) -> Result<Arity, ProfileError> {
-        let _ = table;
-        Ok(Arity::Single)
+        table.check(&self.flag, self.value()).map_err(|fault| {
+            let (at, flag) = (self.at.clone(), self.flag.clone());
+            match fault {
+                SwitchFault::Unknown => {
+                    ProfileError::UnknownSwitch { at, flag }
+                }
+                SwitchFault::BadValue(reason) => {
+                    ProfileError::BadValue { at, flag, reason }
+                }
+            }
+        })
     }
 }
 
-/// Parses a switch line (already trimmed, starting with `-`), or says why
-/// it is not one.
+/// Why a line is not a switch.
+pub(super) const NOT_A_SWITCH: &str = "not a switch: a line is a [name] \
+                                       header or one switch as on the \
+                                       command line, like --load 2";
+
+/// Parses a trimmed line as a switch, or says why it is not one.
+///
+/// The switch ends at the first space or `=`; the rest, trimmed, is its
+/// value, with one pair of matching quotes dropped.
 pub(super) fn parse_switch(line: &str, at: At) -> Result<Switch, &'static str> {
-    let _ = line;
+    let (flag, rest) = line
+        .split_once(|c: char| c == '=' || c.is_whitespace())
+        .unwrap_or((line, ""));
+    if !flag.starts_with('-') || flag.trim_start_matches('-').is_empty() {
+        return Err(NOT_A_SWITCH);
+    }
+    let rest = rest.trim();
     Ok(Switch {
-        flag: String::new(),
-        value: None,
+        flag: flag.to_owned(),
+        value: (!rest.is_empty()).then(|| unquote(rest).to_owned()),
         at,
     })
+}
+
+/// `value` without one pair of matching surrounding quotes, if it has one.
+fn unquote(value: &str) -> &str {
+    let strip = |q: char| value.strip_prefix(q)?.strip_suffix(q);
+    strip('"').or_else(|| strip('\'')).unwrap_or(value)
 }
 
 /// The switch table the profile tests use: a small CLI with the real

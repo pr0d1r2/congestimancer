@@ -51,3 +51,7 @@ is a development series, not for production.
 - `parse_psi`, `Psi`, `PsiLine` and `PsiError`: one parser for Linux
   pressure stall text (`/proc/pressure/*` and cgroup `*.pressure`); a bad
   line is named in the error.
+- `parse_profiles`, `ProfileFile`, `Profile`, `Switch` and `ProfileError`:
+  profile files of `[name]` sections, one switch per line exactly as on the
+  command line, `#` comments; every error names `file:line`, and switches
+  are checked by the CLI's own parser through `SwitchTable`.
