@@ -34,7 +34,7 @@ pub use cgroup::{
     parse_memory_max, parse_proc_cgroup,
 };
 
-pub use disk::{DiskSignal, free_inodes, free_space};
+pub use disk::{DiskError, DiskSignal, free_inodes, free_space};
 
 pub use limits::{
     FileNr, LimitsError, LimitsSignal, limit_share, parse_file_nr,

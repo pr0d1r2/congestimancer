@@ -1,8 +1,9 @@
 //! [`DiskSignal`]: `--disk` and `--inodes` from `statvfs` on a path
-//! (src/disk:T1, T2).
+//! (src/disk:T1, T2, T3).
 
 use std::path::{Path, PathBuf};
 
+use super::DiskError;
 use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
 use crate::sys::{FsStats, statvfs};
 use crate::units::{Bytes, Count};
@@ -26,6 +27,17 @@ impl DiskSignal {
         Self {
             path: path.to_path_buf(),
         }
+    }
+
+    /// Reads the filesystem holding `--disk-path`, or the working
+    /// directory without one (src/disk:V3).
+    ///
+    /// # Errors
+    ///
+    /// [`DiskError::Missing`] when the path does not exist: a usage
+    /// error, exit 64.
+    pub fn at(disk_path: Option<&Path>) -> Result<Self, DiskError> {
+        Ok(Self::new(disk_path.unwrap_or_else(|| Path::new("/"))))
     }
 
     /// The path whose filesystem is read.

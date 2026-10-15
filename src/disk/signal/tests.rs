@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use super::{DiskSignal, free_inodes, free_space};
+use super::{DiskError, DiskSignal, free_inodes, free_space};
 use crate::signal::{Measure, Sample, Signal, SignalId};
 use crate::sys::FsStats;
 use crate::units::{Bytes, Count};
@@ -91,6 +91,26 @@ fn inodes_on_a_path_that_is_gone_is_unsupported() {
     let mut disk = DiskSignal::new(&gone);
     let why = reason(disk.sample(SignalId::Inodes)).unwrap_or_default();
     assert!(why.starts_with(&gone.display().to_string()), "{why}");
+}
+
+#[test]
+fn without_a_disk_path_the_working_directory_is_read() {
+    let disk = DiskSignal::at(None);
+    assert_eq!(disk.as_ref().map(DiskSignal::path), Ok(Path::new(".")));
+}
+
+#[test]
+fn a_disk_path_that_exists_is_read() {
+    let mount = fixture("mount");
+    let disk = DiskSignal::at(Some(&mount));
+    assert_eq!(disk.as_ref().map(DiskSignal::path), Ok(mount.as_path()));
+}
+
+#[test]
+fn a_disk_path_that_is_missing_is_a_usage_error() {
+    let gone = fixture("gone");
+    let err = DiskSignal::at(Some(&gone));
+    assert_eq!(err, Err(DiskError::Missing { path: gone }));
 }
 
 #[test]
