@@ -190,3 +190,5 @@ is a development series, not for production.
 - `--inodes` reads the inodes an unprivileged user may still take on that
   filesystem (`free_inodes`); one that does not count inodes is
   unsupported.
+- `DiskSignal::at` reads the working directory, or `--disk-path P`; a `P`
+  that does not exist is `DiskError::Missing`, a usage error.

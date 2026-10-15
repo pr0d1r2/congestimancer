@@ -1,6 +1,7 @@
 //! [`DiskSignal`]: `--disk` and `--inodes` from `statvfs` on a path
 //! (src/disk:T1, T2, T3).
 
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use super::DiskError;
@@ -36,8 +37,19 @@ impl DiskSignal {
     ///
     /// [`DiskError::Missing`] when the path does not exist: a usage
     /// error, exit 64.
+    /// The working directory is `.`, so it is read wherever cgmr waits.
     pub fn at(disk_path: Option<&Path>) -> Result<Self, DiskError> {
-        Ok(Self::new(disk_path.unwrap_or_else(|| Path::new("/"))))
+        let Some(path) = disk_path else {
+            return Ok(Self::new(Path::new(".")));
+        };
+        match statvfs(path) {
+            Err(err) if err.kind() == ErrorKind::NotFound => {
+                Err(DiskError::Missing {
+                    path: path.to_path_buf(),
+                })
+            }
+            _ => Ok(Self::new(path)),
+        }
     }
 
     /// The path whose filesystem is read.
