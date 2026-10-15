@@ -13,8 +13,7 @@ use crate::units::{Name, parse_name};
 ///
 /// [`UnitError`]: crate::units::UnitError
 pub fn parse_net_iface(s: &str) -> Result<Name, NetError> {
-    let _ = s;
-    parse_name("x").map_err(|error| NetError::BadIface { error })
+    parse_name(s).map_err(|error| NetError::BadIface { error })
 }
 
 #[cfg(test)]

@@ -59,7 +59,7 @@ T2|x|macOS interface counters|V2,V5
 T3|x|iface selection|V1
 T4|x|`--net-rx` `--net-tx` `--net`|V2
 T5|x|`--rtt` + `--rtt-host`|V3,V4
-T6|.|iface name validation|V6
+T6|x|iface name validation|V6
 
 ## §B BUGS
 

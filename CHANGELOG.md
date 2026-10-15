@@ -206,3 +206,5 @@ is a development series, not for production.
   port `RTT_PORT` (443) by default, given up after `D`; a failed connect
   reads `D` so the gate fails, and `--rtt` without a host is
   `NetError::RttWithoutHost`, a usage error.
+- `parse_net_iface`: `--net-iface I` is a name, so `..`, `/`, a leading `-`
+  or a space is `NetError::BadIface`, a usage error naming the input.
