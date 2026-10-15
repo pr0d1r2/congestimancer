@@ -5,6 +5,7 @@
 //! (src:V3). Every file is read through `crate::sys` under a
 //! [`Root`](crate::signal::Root), so tests read `tests/fixtures/cgroup/`.
 
+mod dual;
 mod error;
 mod limits;
 mod membership;
@@ -14,6 +15,7 @@ mod signal;
 mod stat;
 mod warn;
 
+pub use dual::Dual;
 pub use error::CgroupError;
 pub use limits::{
     CpuMax, memory_available, parse_cpu_max, parse_memory_current,
