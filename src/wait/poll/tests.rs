@@ -422,3 +422,58 @@ fn quiet_by_default() {
     assert!(released(&bench.open(&Pacing::new(SEC))));
     assert_eq!(bench.log(), "");
 }
+
+fn turns(left: usize) -> Turns {
+    Turns {
+        left,
+        ..Turns::default()
+    }
+}
+
+#[test]
+fn a_slot_step_that_says_wait_sends_the_loop_back_to_the_gates() {
+    let mut bench = Bench::new(&[PASS, FAIL, PASS]);
+    let mut admit = turns(1);
+    assert!(bench.run(&Pacing::new(SEC), &mut admit).is_ok());
+    assert_eq!(bench.rounds(), 3);
+    assert_eq!(admit.tries, 2, "never tried on the failing round");
+    assert_eq!(bench.sleeps(), [SEC, SEC]);
+}
+
+#[test]
+fn a_settled_pass_stays_settled_while_slot_steps_say_wait() {
+    let mut bench = Bench::new(&[PASS]);
+    let mut admit = turns(1);
+    assert!(bench.run(&settle(2, 3), &mut admit).is_ok());
+    assert_eq!(bench.sleeps(), [secs(2), SEC, secs(2)]);
+    assert_eq!(admit.tries, 2);
+}
+
+#[test]
+fn jitter_comes_only_after_every_slot_step_lets_go() {
+    let mut bench = Bench::new(&[PASS]);
+    let mut admit = turns(2);
+    assert!(bench.run(&jitter(5, 10), &mut admit).is_ok());
+    let pick = jitter_delay(5, secs(10));
+    assert_eq!(bench.sleeps(), [SEC, SEC, pick]);
+}
+
+/// Slot steps whose lock dir cannot be read.
+struct Broken;
+
+impl Admit for Broken {
+    type Held = ();
+    type Error = &'static str;
+
+    fn try_admit(&mut self) -> Result<Option<()>, Self::Error> {
+        Err("lock dir unreadable")
+    }
+}
+
+#[test]
+fn a_slot_step_error_ends_the_wait_without_jitter() {
+    let mut bench = Bench::new(&[PASS]);
+    let outcome = bench.run(&jitter(5, 10), &mut Broken);
+    assert!(matches!(outcome, Err("lock dir unreadable")));
+    assert!(bench.sleeps().is_empty());
+}
