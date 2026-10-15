@@ -57,7 +57,7 @@ V7: JSON shares `schema_version` w/ `src/report`; human form = one line, e.g. `j
 id|status|task|cites
 T1|x|cpu & memory fit|V1,V2
 T2|x|jobs, limit & action|V3,V4,V5
-T3|.|verb wiring & exit codes|V6
+T3|x|verb wiring & exit codes|V6
 T4|.|human & JSON output|V7
 
 ## §B BUGS

@@ -377,3 +377,7 @@ is a development series, not for production.
   `advise` verdict, jobs as the least of the cpu fit, the memory fit and
   `--jobs`, the resource that bounds it, and `run`, `reduce` or `wait`; any
   other requested gate failing means 0 jobs, bounded by that gate.
+- `advise`, `advise_readings`, `advise_exit_code` and `AdviseUnsupported`:
+  the `advise` verb reads the gates once (one extra sample only for a rate
+  gate), then the load and available memory, and never waits; any advice
+  exits 0, even `wait`, and a gate or reading with no source exits 69.
