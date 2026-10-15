@@ -1,7 +1,8 @@
 //! [`SlotError`]: why a slot step cannot run.
 
 use std::fmt;
-use std::path::PathBuf;
+use std::io;
+use std::path::{Path, PathBuf};
 
 /// Why a slot step cannot run.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -49,6 +50,16 @@ impl fmt::Display for SlotError {
 }
 
 impl std::error::Error for SlotError {}
+
+impl SlotError {
+    /// `err` on `path` as [`SlotError::Io`].
+    pub(crate) fn io(path: &Path, err: &io::Error) -> Self {
+        Self::Io {
+            path: path.to_owned(),
+            detail: err.to_string(),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests;

@@ -235,3 +235,8 @@ is a development series, not for production.
   (`SlotError::UnsafeDir`, exit 69).
 - `slot_key`: `--slot-key` must be a safe name; without it the command's
   basename is the key, unsafe characters turned to `_`.
+- `claim_slot` and `live_holders`: `--slots N` admits fewer than `N` live
+  holders of a key, each holding the `flock` on the file `K.<i>`; a holder
+  that dies frees its slot.
+- `Ticket`: `--fifo` queues waiters by numbered ticket; only the lowest
+  live ticket goes, and a ticket whose holder died is skipped.

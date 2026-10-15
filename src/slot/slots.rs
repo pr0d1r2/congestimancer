@@ -2,8 +2,11 @@
 //! on one of the files `K.0` to `K.<N-1>` (src/slot:V2).
 
 use std::fs::File;
+use std::path::PathBuf;
 
+use super::file::open_lock;
 use super::{LockDir, SlotError};
+use crate::sys::try_lock_exclusive;
 use crate::units::{Count, Name};
 
 /// A held slot: the `flock` on `K.<i>` lasts as long as this guard, and
@@ -41,8 +44,30 @@ pub fn claim_slot(
     key: &Name,
     slots: Count,
 ) -> Result<Option<SlotGuard>, SlotError> {
-    let _ = (dir, key, slots);
+    for index in 0..slots.0 {
+        if let Some(file) = try_slot(dir, key, index)? {
+            return Ok(Some(SlotGuard { file, index }));
+        }
+    }
     Ok(None)
+}
+
+/// The file of slot `index` of `key`.
+fn slot_path(dir: &LockDir, key: &Name, index: u64) -> PathBuf {
+    dir.path().join(format!("{key}.{index}"))
+}
+
+/// Slot `index` of `key`, opened and locked, or `None` when it is held.
+fn try_slot(
+    dir: &LockDir,
+    key: &Name,
+    index: u64,
+) -> Result<Option<File>, SlotError> {
+    let path = slot_path(dir, key, index);
+    let file = open_lock(&path).map_err(|e| SlotError::io(&path, &e))?;
+    let free =
+        try_lock_exclusive(&file).map_err(|e| SlotError::io(&path, &e))?;
+    Ok(free.then_some(file))
 }
 
 /// How many of `slots` slots of `key` are held right now.
@@ -55,8 +80,13 @@ pub fn live_holders(
     key: &Name,
     slots: Count,
 ) -> Result<u64, SlotError> {
-    let _ = (dir, key, slots);
-    Ok(u64::MAX)
+    let mut held: u64 = 0;
+    for index in 0..slots.0 {
+        if try_slot(dir, key, index)?.is_none() {
+            held = held.saturating_add(1);
+        }
+    }
+    Ok(held)
 }
 
 #[cfg(test)]

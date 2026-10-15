@@ -60,8 +60,8 @@ V10: slot key = `src/units` `Name` (`src/units:V13`); cmd basename default sanit
 
 id|status|task|cites
 T1|x|lock dir resolve & safety checks|V1
-T2|.|slots via flock files, inherited fd|V2,V3
-T3|.|FIFO tickets|V4
+T2|~|slots via flock files, inherited fd|V2,V3
+T3|x|FIFO tickets|V4
 T4|.|token bucket rate|V5
 T5|.|spacing|V6
 T6|.|memory reservation ledger|V7

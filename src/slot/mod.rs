@@ -9,6 +9,7 @@
 mod dir;
 mod error;
 mod fifo;
+mod file;
 mod key;
 #[cfg(test)]
 mod scratch;

@@ -67,20 +67,12 @@ impl From<&Metadata> for DirFacts {
     }
 }
 
-/// `err` on `path` as a [`SlotError::Io`].
-fn io_error(path: &Path, err: &io::Error) -> SlotError {
-    SlotError::Io {
-        path: path.to_owned(),
-        detail: err.to_string(),
-    }
-}
-
 /// Makes `path` mode 0700, leaving whatever is already there to be
 /// checked.
 fn make(path: &Path) -> Result<(), SlotError> {
     match DirBuilder::new().mode(0o700).create(path) {
         Err(err) if err.kind() != io::ErrorKind::AlreadyExists => {
-            Err(io_error(path, &err))
+            Err(SlotError::io(path, &err))
         }
         _ => Ok(()),
     }
@@ -104,8 +96,8 @@ impl LockDir {
     /// when it cannot be made or read.
     pub fn open(path: PathBuf, uid: u32) -> Result<Self, SlotError> {
         make(&path)?;
-        let meta =
-            fs::symlink_metadata(&path).map_err(|err| io_error(&path, &err))?;
+        let meta = fs::symlink_metadata(&path)
+            .map_err(|err| SlotError::io(&path, &err))?;
         match unsafe_reason(&DirFacts::from(&meta), uid) {
             Some(reason) => Err(SlotError::UnsafeDir { path, reason }),
             None => Ok(Self { path }),
