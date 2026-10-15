@@ -10,6 +10,7 @@ mod discover;
 mod error;
 mod file;
 mod switch;
+mod trust;
 
 pub use catalog::Catalog;
 pub use discover::{PROJECT_FILE, Places, ReadText, discover};

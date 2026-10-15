@@ -11,6 +11,7 @@
 use std::path::{Path, PathBuf};
 
 use super::switch::parse_switch;
+use super::trust::check_trust;
 use super::{At, ProfileError, Switch};
 use crate::units::{Name, parse_name};
 
@@ -127,6 +128,7 @@ pub fn parse_profiles(
     for (line, n) in text.lines().zip(1_usize..) {
         file.read_line(line.trim(), At::new(path, n))?;
     }
+    check_trust(&file)?;
     Ok(file)
 }
 

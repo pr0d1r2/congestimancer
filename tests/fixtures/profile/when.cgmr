@@ -1,0 +1,4 @@
+# runs a command: only trusted in the user file
+[night]
+--load 2
+--when "test -f /tmp/night"
