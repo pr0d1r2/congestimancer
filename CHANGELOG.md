@@ -231,3 +231,25 @@ is a development series, not for production.
   `--gpu-device I` reads GPU number `I`, and an index past them is
   `GpuError::UnknownDevice`, a usage error. No GPU source, or `--gpu-mem`
   on Apple Silicon, is unsupported with the reason.
+- `LockDir`: the per-user slot dir (`$XDG_RUNTIME_DIR/cgmr`, else
+  `$TMPDIR/cgmr`, else `/tmp/cgmr-<uid>`), made 0700 and refused when it
+  is a symlink, not a directory, another user's or open to others
+  (`SlotError::UnsafeDir`, exit 69).
+- `slot_key`: `--slot-key` must be a safe name; without it the command's
+  basename is the key, unsafe characters turned to `_`.
+- `claim_slot` and `live_holders`: `--slots N` admits fewer than `N` live
+  holders of a key, each holding the `flock` on the file `K.<i>`; a holder
+  that dies frees its slot.
+- `Ticket`: `--fifo` queues waiters by numbered ticket; only the lowest
+  live ticket goes, and a ticket whose holder died is skipped.
+- `parse_start_rate`, `StartLimits` and `record_start`: `--rate N/D` admits
+  at most `N` starts in any window `D` and `--spacing D` keeps starts `D`
+  apart, per key, across processes.
+- `Reservation` and `reserved_total`: `--needs-mem` reservations held by
+  their waiter; the ledger is the sum of the live ones.
+- `is_held` and `mark_held`: `CGMR_HELD_SLOTS` names the slot keys an
+  ancestor `cgmr` holds, so a nested `cgmr` on one does not deadlock.
+- `Waiter`, `SlotPlan` and `Release`: once gates pass and settle, the slot
+  steps run in `SLOT_ORDER` (FIFO, slot, rate and spacing, reservation);
+  a step that says wait lets go of anything claimed that round but the
+  FIFO ticket.

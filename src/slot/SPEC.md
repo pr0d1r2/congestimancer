@@ -59,15 +59,15 @@ V10: slot key = `src/units` `Name` (`src/units:V13`); cmd basename default sanit
 ## §T TASKS
 
 id|status|task|cites
-T1|.|lock dir resolve & safety checks|V1
-T2|.|slots via flock files, inherited fd|V2,V3
-T3|.|FIFO tickets|V4
-T4|.|token bucket rate|V5
-T5|.|spacing|V6
-T6|.|memory reservation ledger|V7
-T7|.|nested held marker|V8
-T8|.|ordering w/ gates, settle, jitter|V9
-T9|.|slot key validation|V10
+T1|x|lock dir resolve & safety checks|V1
+T2|~|slots via flock files, inherited fd|V2,V3
+T3|x|FIFO tickets|V4
+T4|x|token bucket rate|V5
+T5|x|spacing|V6
+T6|~|memory reservation ledger|V7
+T7|x|nested held marker|V8
+T8|x|ordering w/ gates, settle, jitter|V9
+T9|x|slot key validation|V10
 
 ## §B BUGS
 

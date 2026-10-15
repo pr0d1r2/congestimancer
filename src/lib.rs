@@ -76,6 +76,14 @@ pub use signal::{
     SystemClock, Trend, Trends, parse_psi, refresh,
 };
 
+pub use slot::{
+    DirFacts, HELD_SLOTS_ENV, LockDir, Release, Reservation, SLOT_ORDER,
+    SlotError, SlotGuard, SlotPlan, SlotStep, StartLimits, StartRate, Ticket,
+    Waiter, admit_start, claim_slot, is_held, live_holders, lock_dir_path,
+    mark_held, parse_start_rate, record_start, reserved_total, slot_key,
+    unsafe_reason,
+};
+
 pub use sys::{
     BlockCounters, BlockDevice, BlockStats, CpuTicks, FsStats, GpuUsage,
     InterfaceCounters, IoPriority, LOW_POWER_MODE, LinkCounters, LoadAverage,
