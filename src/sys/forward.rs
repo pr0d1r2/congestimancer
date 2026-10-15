@@ -165,7 +165,7 @@ impl Blocked {
     /// command with these signals blocked would ignore what is forwarded
     /// to it.
     pub fn unblock_in(&self, command: &mut std::process::Command) {
-        let _ = command;
+        ffi::mask_in_child(command, self.old);
     }
 }
 
@@ -228,6 +228,33 @@ mod ffi {
         } else {
             Err(io::Error::from_raw_os_error(rc))
         }
+    }
+
+    /// Sets the mask of the child `command` spawns to `mask`, after fork
+    /// and before exec.
+    pub(super) fn mask_in_child(
+        command: &mut std::process::Command,
+        mask: libc::sigset_t,
+    ) {
+        use std::os::unix::process::CommandExt as _;
+        // SAFETY: the hook runs in the forked child before exec, where
+        // only async-signal-safe calls are sound; it makes one
+        // `sigprocmask` call (async-signal-safe) on a set it owns by
+        // copy, and allocates nothing.
+        unsafe {
+            command.pre_exec(move || {
+                let rc = libc::sigprocmask(
+                    libc::SIG_SETMASK,
+                    &raw const mask,
+                    ptr::null_mut(),
+                );
+                if rc == 0 {
+                    Ok(())
+                } else {
+                    Err(io::Error::last_os_error())
+                }
+            })
+        };
     }
 
     /// `d` as a `timespec`, saturating at the largest `time_t`.

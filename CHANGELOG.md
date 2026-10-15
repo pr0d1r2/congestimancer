@@ -431,3 +431,5 @@ is a development series, not for production.
   loop; each interval the gates are judged again, a failing round pauses
   the command's group and a passing one resumes it, caught signals pass
   on to the group, and the command's own exit code ends `cgmr`.
+- `Blocked::unblock_in`: a command spawned while `cgmr` blocks signals
+  starts with the mask from before, so it still dies of what it is sent.
