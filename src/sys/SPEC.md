@@ -85,7 +85,7 @@ T12|x|`NET_RT_IFLIST2` interface counters (macOS, R5)|V1,V3
 T13|x|TCP connect probe w/ timeout|V2
 T14|x|SPIKE: settle R1–R4|-
 T15|.|fixture capture of ∀ sources|V7
-T16|.|Linux system bus `UnixStream`|V2,V4
+T16|x|Linux system bus `UnixStream`|V2,V4
 
 ## §B BUGS
 

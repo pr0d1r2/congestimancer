@@ -4,6 +4,7 @@
 //! [`io::ErrorKind::Unsupported`].
 
 use std::io;
+use std::os::unix::ffi::OsStringExt as _;
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 
@@ -26,8 +27,34 @@ pub fn system_bus_connect() -> io::Result<UnixStream> {
 /// `unix:` entry with a `path=` key, `%XX` escapes decoded; the default
 /// path when the address is unset. `None` when no entry is a path.
 fn system_bus_path(address: Option<&str>) -> Option<PathBuf> {
-    let _ = address;
-    None
+    let Some(address) = address else {
+        return Some(PathBuf::from(SYSTEM_BUS_SOCKET));
+    };
+    address.split(';').find_map(unix_path)
+}
+
+/// The `path=` of one `unix:` address entry.
+fn unix_path(entry: &str) -> Option<PathBuf> {
+    let params = entry.strip_prefix("unix:")?;
+    let value = params.split(',').find_map(|kv| kv.strip_prefix("path="))?;
+    let bytes = unescape(value)?;
+    Some(PathBuf::from(std::ffi::OsString::from_vec(bytes)))
+}
+
+/// A D-Bus address value with its `%XX` escapes decoded.
+fn unescape(value: &str) -> Option<Vec<u8>> {
+    let mut out = Vec::with_capacity(value.len());
+    let mut bytes = value.bytes();
+    while let Some(byte) = bytes.next() {
+        if byte == b'%' {
+            let hex = [bytes.next()?, bytes.next()?];
+            let hex = std::str::from_utf8(&hex).ok()?;
+            out.push(u8::from_str_radix(hex, 16).ok()?);
+        } else {
+            out.push(byte);
+        }
+    }
+    Some(out)
 }
 
 #[cfg(target_os = "linux")]

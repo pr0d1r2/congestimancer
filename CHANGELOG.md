@@ -104,3 +104,6 @@ is a development series, not for production.
   loopback.
 - `tcp_connect_time`: how long a TCP connect to `host[:port]` takes, every
   resolved address tried within one timeout.
+- `system_bus_connect`: on Linux, a connection to the D-Bus system bus at
+  `DBUS_SYSTEM_BUS_ADDRESS` or `/run/dbus/system_bus_socket`; no bus is
+  `Unsupported`.
