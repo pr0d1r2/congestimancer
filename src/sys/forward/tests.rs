@@ -188,3 +188,31 @@ fn a_forwarded_signal_maps_to_the_same_group_signal() {
     assert_eq!(ForwardSignal::Term.group(), GroupSignal::Term);
     assert_eq!(ForwardSignal::Hup.group(), GroupSignal::Hup);
 }
+
+/// A shell that sends itself `SIGTERM`, then exits 0 if it lives on.
+fn self_terminating_shell() -> std::process::Command {
+    let mut command = std::process::Command::new("/bin/sh");
+    command.args(["-c", "kill -TERM $$; exit 0"]);
+    command
+}
+
+#[test]
+fn std_alone_hands_the_blocked_mask_to_a_child() -> io::Result<()> {
+    use std::os::unix::process::ExitStatusExt as _;
+    let _serial = serial();
+    let _blocked = block_forwarded()?;
+    let status = self_terminating_shell().status()?;
+    assert_eq!((status.code(), status.signal()), (Some(0), None));
+    Ok(())
+}
+
+#[test]
+fn a_child_unblocked_in_dies_of_its_signal() -> io::Result<()> {
+    use std::os::unix::process::ExitStatusExt as _;
+    let _serial = serial();
+    let blocked = block_forwarded()?;
+    let mut command = self_terminating_shell();
+    blocked.unblock_in(&mut command);
+    assert_eq!(command.status()?.signal(), Some(libc::SIGTERM));
+    Ok(())
+}

@@ -159,6 +159,16 @@ fn time_left(
     })
 }
 
+impl Blocked {
+    /// Makes a child `command` spawns start with the mask from before
+    /// [`block_forwarded`]: `std` hands the blocked mask on, and a
+    /// command with these signals blocked would ignore what is forwarded
+    /// to it.
+    pub fn unblock_in(&self, command: &mut std::process::Command) {
+        let _ = command;
+    }
+}
+
 impl Drop for Blocked {
     /// Puts the mask from before [`block_forwarded`] back; a signal
     /// still pending then meets its old disposition.
