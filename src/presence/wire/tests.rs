@@ -141,6 +141,41 @@ fn big_endian_or_another_version_is_refused() {
     assert!(frame_len(bytes.get(..4).unwrap_or_default()).is_err());
 }
 
+/// Fixture `wire/<name>` with byte `at` set to `byte`, decoded.
+fn patched(name: &str, at: usize, byte: u8) -> Result<Message, BusError> {
+    let mut bytes = hex(&format!("wire/{name}"));
+    if let Some(b) = bytes.get_mut(at) {
+        *b = byte;
+    }
+    decode(&bytes)
+}
+
+/// Whether `result` is a malformed-message error.
+fn malformed<T>(result: Result<T, BusError>) -> bool {
+    matches!(result, Err(BusError::Malformed(_)))
+}
+
+#[test]
+fn bad_values_in_a_body_are_malformed() {
+    // get-remote-reply: variant sig at 65, its boolean at 68.
+    let get = |at, byte| patched("get-remote-reply", at, byte);
+    assert!(malformed(get(68, 2).and_then(|m| m.variant())));
+    assert!(malformed(get(65, b'y').and_then(|m| m.variant())));
+    // hello-reply: the name's nul at 89.
+    let name = patched("hello-reply", 89, b'x');
+    assert!(malformed(name.and_then(|m| m.string())));
+}
+
+#[test]
+fn unknown_header_fields_are_skipped_by_type() {
+    // get-remote-reply: REPLY_SERIAL's code at 16, SIGNATURE's at 56.
+    let reply = patched("get-remote-reply", 16, 9);
+    assert_eq!(reply.map(|m| m.reply_serial), Ok(None));
+    let sig = patched("get-remote-reply", 56, 10);
+    assert_eq!(sig.map(|m| m.signature), Ok(String::new()));
+    assert!(malformed(patched("get-remote-reply", 18, b'y')));
+}
+
 proptest! {
     #![proptest_config(ProptestConfig {
         failure_persistence: None,

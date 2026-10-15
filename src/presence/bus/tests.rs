@@ -49,6 +49,13 @@ fn a_call_skips_signals_to_reach_its_reply() {
 }
 
 #[test]
+fn an_endless_auth_line_is_malformed() {
+    let mut duplex = Duplex::from_bytes(vec![b'a'; 600]);
+    let err = Bus::open(&mut duplex, 1000).err();
+    assert_eq!(err, Some(BusError::Malformed("auth line too long")));
+}
+
+#[test]
 fn a_call_after_the_stream_ends_is_an_io_error() {
     let mut duplex = Duplex::serving("stream-headless");
     let mut bus = Bus::open(&mut duplex, 1000);

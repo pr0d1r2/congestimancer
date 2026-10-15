@@ -65,6 +65,18 @@ fn a_desktop_bus_gives_its_one_local_user_session() {
 }
 
 #[test]
+fn a_bus_that_hangs_up_mid_session_is_the_error() {
+    // The desktop stream cut right after the ListSessions reply.
+    let parts = ["wire/hello-reply", "wire/name-acquired"];
+    let lens = parts.into_iter().chain(["wire/list-sessions-reply"]);
+    let cut = lens.map(|name| hex(name).len()).sum::<usize>();
+    let mut bytes = hex("stream-desktop");
+    bytes.truncate(cut.saturating_add(37));
+    let err = logind_idle(Duplex::from_bytes(bytes), 1000, NOW);
+    assert!(matches!(err, Err(BusError::Io(_))), "{err:?}");
+}
+
+#[test]
 fn a_headless_bus_gives_no_idle() {
     let mut duplex = Duplex::serving("stream-headless");
     assert_eq!(logind_idle(&mut duplex, 1000, NOW), Ok(None));

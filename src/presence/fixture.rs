@@ -32,8 +32,13 @@ pub(super) struct Duplex {
 impl Duplex {
     /// A duplex whose server says fixture `name`.
     pub(super) fn serving(name: &str) -> Self {
+        Self::from_bytes(hex(name))
+    }
+
+    /// A duplex whose server says `bytes`.
+    pub(super) fn from_bytes(bytes: Vec<u8>) -> Self {
         Self {
-            input: Cursor::new(hex(name)),
+            input: Cursor::new(bytes),
             output: Vec::new(),
         }
     }
