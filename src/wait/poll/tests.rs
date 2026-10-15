@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 use super::{Admit, Open, Outcome, Rig, poll};
 use crate::gate::{Gate, Gates, Overall};
+use crate::report::Style;
 use crate::signal::{
     Clock, FakeSource, ManualClock, Measure, Reading, SignalId,
 };
@@ -88,6 +89,10 @@ impl Bench {
 
     fn sleeps(&self) -> Vec<Duration> {
         self.clock.0.sleeps().to_vec()
+    }
+
+    fn log(&self) -> String {
+        String::from_utf8_lossy(&self.log).into_owned()
     }
 
     fn rounds(&self) -> usize {
@@ -359,4 +364,61 @@ fn no_jitter_after_a_timeout() {
     pacing.timeout = Some(Duration::ZERO);
     assert!(matches!(bench.open(&pacing), Outcome::TimedOut(_)));
     assert!(bench.sleeps().is_empty());
+}
+
+fn heartbeat(every: u64, limit: u64) -> Pacing {
+    let mut pacing = timeout(2, limit);
+    pacing.heartbeat = Some(secs(every));
+    pacing
+}
+
+#[test]
+fn heartbeat_says_why_it_waits_every_span() {
+    let mut bench = Bench::new(&[FAIL]);
+    assert!(timed_out_failing(&bench.open(&heartbeat(5, 11))));
+    let log = bench.log();
+    let waited: Vec<&str> = log
+        .lines()
+        .filter_map(|l| l.strip_prefix("cgmr: waiting "))
+        .filter_map(|l| l.split(':').next())
+        .collect();
+    assert_eq!(waited, ["5s", "10s"], "{log}");
+    assert!(log.lines().all(|l| l.contains("--load")), "{log}");
+}
+
+#[test]
+fn heartbeat_wakes_add_no_rounds() {
+    let mut bench = Bench::new(&[FAIL]);
+    assert!(timed_out_failing(&bench.open(&heartbeat(5, 11))));
+    let two = secs(2);
+    assert_eq!(bench.sleeps(), [two, two, SEC, SEC, two, two, SEC]);
+    assert_eq!(bench.rounds(), 7);
+}
+
+#[test]
+fn no_heartbeat_when_released_before_the_first() {
+    let mut bench = Bench::new(&[FAIL, PASS]);
+    assert!(released(&bench.open(&heartbeat(5, 60))));
+    assert_eq!(bench.log(), "");
+}
+
+#[test]
+fn verbose_names_the_blocking_gate_each_failing_round() {
+    let mut bench = Bench::new(&[FAIL, FAIL, PASS]);
+    let mut pacing = Pacing::new(SEC);
+    pacing.verbose = Some(Style::Plain);
+    assert!(released(&bench.open(&pacing)));
+    let log = bench.log();
+    assert_eq!(log.lines().count(), 2, "{log}");
+    assert!(
+        log.lines().all(|l| l.starts_with("blocked: --load")),
+        "{log}"
+    );
+}
+
+#[test]
+fn quiet_by_default() {
+    let mut bench = Bench::new(&[FAIL, FAIL, PASS]);
+    assert!(released(&bench.open(&Pacing::new(SEC))));
+    assert_eq!(bench.log(), "");
 }
