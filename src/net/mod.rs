@@ -6,11 +6,13 @@
 
 mod dev;
 mod error;
+mod iface;
 mod rates;
 mod rtt;
 mod signal;
 
 pub use dev::{NetDevError, linux_interfaces, parse_if_flags, parse_net_dev};
 pub use error::NetError;
+pub use iface::parse_net_iface;
 pub use rtt::{RTT_PORT, RttSignal};
 pub use signal::{NetSignal, selected};
