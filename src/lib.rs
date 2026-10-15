@@ -76,6 +76,10 @@ pub use signal::{
     SystemClock, Trend, Trends, parse_psi, refresh,
 };
 
+pub use slot::{
+    DirFacts, LockDir, SlotError, lock_dir_path, slot_key, unsafe_reason,
+};
+
 pub use sys::{
     BlockCounters, BlockDevice, BlockStats, CpuTicks, FsStats, GpuUsage,
     InterfaceCounters, IoPriority, LOW_POWER_MODE, LinkCounters, LoadAverage,
