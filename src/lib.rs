@@ -42,7 +42,7 @@ pub use power::{
 
 pub use procs::{
     Glob, LiveTable, Proc, ProcLimit, ProcMatch, ProcessTable, ProcsError,
-    ProcsSignal, count_by_name, lineage, parse_proc_limit,
+    ProcsSignal, count_by_name, count_by_user, lineage, parse_proc_limit,
 };
 
 pub use profile::{

@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
-use super::{Proc, count_by_name, lineage};
+use super::{Proc, count_by_name, count_by_user, lineage};
 use crate::procs::Glob;
-use crate::procs::fixture::table;
+use crate::procs::fixture::{table, user};
 use crate::units::Count;
 
 /// cgmr's pid in the `table` fixture.
@@ -48,6 +48,45 @@ fn leaves_out_me_and_my_ancestors() {
     // The other cgmr (600) counts; this one does not.
     assert_eq!(by_name("cgmr"), Count(1));
     assert_eq!(by_name("zsh"), Count(0));
+}
+
+/// How many processes of the `table` fixture users matching `pattern` own.
+fn by_user(pattern: &str) -> Count {
+    count_by_user(&table("table"), &Glob::new(pattern), ME, user)
+}
+
+#[test]
+fn counts_processes_by_user() {
+    assert_eq!(by_user("nixbld*"), Count(3));
+    assert_eq!(by_user("nixbld1"), Count(1));
+    assert_eq!(by_user("nobody"), Count(0));
+}
+
+#[test]
+fn user_count_leaves_out_me_and_my_ancestors() {
+    // alice owns zsh (100) and cgmr (200), both left out.
+    assert_eq!(by_user("alice"), Count(4));
+    // root owns launchd (1), left out.
+    assert_eq!(by_user("root"), Count(1));
+}
+
+#[test]
+fn no_uid_or_unnamed_uid_never_matches() {
+    let procs = [Proc::new("a", None), Proc::new("b", Some(7))];
+    let n = count_by_user(&procs, &Glob::new("*"), 1, user);
+    assert_eq!(n, Count(0));
+}
+
+#[test]
+fn names_each_uid_once() {
+    let mut asked = Vec::new();
+    let names = |uid| {
+        asked.push(uid);
+        user(uid)
+    };
+    let _ = count_by_user(&table("table"), &Glob::new("*"), ME, names);
+    asked.sort_unstable();
+    assert_eq!(asked, [0, 501, 30001, 30002]);
 }
 
 #[test]

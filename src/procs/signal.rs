@@ -3,12 +3,16 @@
 
 use super::{Glob, Proc, count_by_name};
 use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
-use crate::sys::Snapshot;
+use crate::sys::{Snapshot, user_name};
 
 /// Where a [`ProcsSignal`] lists processes: the machine, or a test table.
 pub trait ProcessTable {
     /// Every process now.
     fn processes(&mut self) -> Vec<Proc>;
+
+    /// The name of the user with `uid`; `None` when it has none or the
+    /// lookup fails.
+    fn user_name(&mut self, uid: u32) -> Option<String>;
 }
 
 /// The machine's process table, through `crate::sys` (sysinfo).
@@ -27,6 +31,10 @@ impl ProcessTable for LiveTable {
             .map(|p| Proc::new(p.name, p.uid))
             .collect()
     }
+
+    fn user_name(&mut self, uid: u32) -> Option<String> {
+        user_name(uid).ok().flatten()
+    }
 }
 
 /// What a [`ProcsSignal`] counts processes by.
@@ -35,6 +43,8 @@ impl ProcessTable for LiveTable {
 pub enum ProcMatch {
     /// Process names matching the glob (`--max-procs`).
     Name(Glob),
+    /// Owners' user names matching the glob (`--max-user-procs`).
+    User(Glob),
 }
 
 /// Counts the processes one switch's pattern matches, leaving out cgmr

@@ -1,5 +1,5 @@
 use super::{ProcMatch, ProcessTable, ProcsSignal};
-use crate::procs::fixture::table;
+use crate::procs::fixture::{table, user};
 use crate::procs::{Glob, Proc};
 use crate::signal::{Measure, Sample, Signal, SignalId};
 use crate::units::Count;
@@ -10,6 +10,10 @@ struct Fixture(&'static str);
 impl ProcessTable for Fixture {
     fn processes(&mut self) -> Vec<Proc> {
         table(self.0)
+    }
+
+    fn user_name(&mut self, uid: u32) -> Option<String> {
+        user(uid)
     }
 }
 
@@ -45,6 +49,24 @@ fn other_signals_are_unsupported() {
             "{id}: {sample:?}"
         );
     }
+}
+
+#[test]
+fn max_user_procs_counts_by_user() {
+    let mut signal = over(ProcMatch::User(Glob::new("nixbld*")));
+    assert_eq!(signal.sample(SignalId::MaxUserProcs), count(3));
+    assert!(matches!(
+        signal.sample(SignalId::MaxProcs),
+        Sample::Unsupported(_)
+    ));
+}
+
+#[test]
+fn live_table_reads_a_user_count() {
+    // The machine's processes; the value is never asserted (src:V4).
+    let mut signal = ProcsSignal::live(ProcMatch::User(Glob::new("*")));
+    let sample = signal.sample(SignalId::MaxUserProcs);
+    assert!(matches!(sample, Sample::Gauge(Measure::Count(_))));
 }
 
 #[test]

@@ -68,6 +68,20 @@ pub fn count_by_name(procs: &[Proc], pattern: &Glob, me: u32) -> Count {
     count_where(procs, me, |p| pattern.matches(&p.name))
 }
 
+/// How many of `procs` are owned by a user whose name matches `pattern`,
+/// leaving out `me` and its ancestors (src/procs:V2, V3). `user_name`
+/// names a uid; a process with no uid or an unnamed one never matches.
+#[must_use]
+pub fn count_by_user(
+    procs: &[Proc],
+    pattern: &Glob,
+    me: u32,
+    user_name: impl FnMut(u32) -> Option<String>,
+) -> Count {
+    let _ = (procs, pattern, me, user_name);
+    Count(0)
+}
+
 /// How many of `procs` outside `me`'s lineage pass `keep`.
 fn count_where(
     procs: &[Proc],

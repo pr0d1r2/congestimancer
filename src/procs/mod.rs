@@ -13,7 +13,7 @@ mod glob;
 mod limit;
 mod signal;
 
-pub use count::{Proc, count_by_name, lineage};
+pub use count::{Proc, count_by_name, count_by_user, lineage};
 pub use error::ProcsError;
 pub use glob::Glob;
 pub use limit::{ProcLimit, parse_proc_limit};
