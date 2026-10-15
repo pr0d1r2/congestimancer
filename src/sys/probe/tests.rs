@@ -1,5 +1,5 @@
 use std::io;
-use std::net::{SocketAddr, TcpListener};
+use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::time::Duration;
 
 use super::{connect_any, tcp_connect_time, with_port};
@@ -29,7 +29,12 @@ fn a_listening_port_connects_within_the_timeout() -> io::Result<()> {
 
 #[test]
 fn a_closed_port_is_refused() -> io::Result<()> {
-    let port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
+    // The local end of a live connection: nothing listens there, and no
+    // other test's `bind(:0)` can take it, as a dropped listener's port
+    // can (src/sys:B1).
+    let listener = TcpListener::bind("127.0.0.1:0")?;
+    let client = TcpStream::connect(listener.local_addr()?)?;
+    let port = client.local_addr()?.port();
     let target = format!("127.0.0.1:{port}");
     let err = tcp_connect_time(&target, 1, Duration::from_secs(5)).err();
     assert_eq!(

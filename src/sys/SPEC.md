@@ -100,3 +100,4 @@ T24|x|`inherit_in(&mut Command, &File)`: clear `FD_CLOEXEC` in that child only (
 ## §B BUGS
 
 id|date|cause|fix
+B1|2026-10-15|probe closed-port test dropped listener then connected; concurrent `bind(:0)` reused port ∴ connect ok|closed port = local port of live client socket
