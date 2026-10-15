@@ -348,3 +348,6 @@ is a development series, not for production.
   value and trend; an unsupported signal shows its reason, never hidden.
 - `Streams`: JSON and the `status` table go to stdout; verbose reasons,
   heartbeats, warnings and errors go to stderr.
+- `write_verbose` and `heartbeat_line`: `--verbose` names each blocking
+  gate with its value, threshold and trend, such as
+  `--load: 3 (needs < 2, rising)`; the heartbeat puts them on one line.
