@@ -6,8 +6,10 @@
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
 
 mod exec;
+mod start;
 
 pub use exec::{exec_command, exec_failure_code};
+pub use start::{Start, launch};
 
 use crate::gate as _;
 use crate::signal as _;
