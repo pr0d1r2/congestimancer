@@ -35,7 +35,67 @@ pub struct Throttling {
 /// [`CgroupError::Malformed`] for a line not `key number`;
 /// [`CgroupError::Missing`] without `usage_usec`.
 pub fn parse_cpu_stat(text: &str) -> Result<CpuStat, CgroupError> {
-    Err(CgroupError::malformed(FILE, text))
+    let mut fields = Fields::default();
+    for line in text.lines().filter(|l| !l.trim().is_empty()) {
+        let (key, value) = parse_line(line)?;
+        fields.set(key, value);
+    }
+    let usage = fields.usage.ok_or(CgroupError::Missing {
+        file: FILE,
+        key: "usage_usec",
+    })?;
+    Ok(CpuStat {
+        usage: Duration::from_micros(usage),
+        throttling: fields.throttling(),
+    })
+}
+
+/// One `key number` line.
+fn parse_line(line: &str) -> Result<(&str, u64), CgroupError> {
+    let mut words = line.split_whitespace();
+    words
+        .next()
+        .zip(words.next().and_then(|n| n.parse().ok()))
+        .filter(|_| words.next().is_none())
+        .ok_or_else(|| CgroupError::malformed(FILE, line))
+}
+
+/// The keys of `cpu.stat` this reads, as found.
+#[derive(Default)]
+struct Fields {
+    /// `usage_usec`.
+    usage: Option<u64>,
+    /// `nr_periods`.
+    periods: Option<u64>,
+    /// `nr_throttled`.
+    throttled_periods: Option<u64>,
+    /// `throttled_usec`.
+    throttled: Option<u64>,
+}
+
+impl Fields {
+    /// Keeps `value` if `key` is one this reads.
+    fn set(&mut self, key: &str, value: u64) {
+        let slot = match key {
+            "usage_usec" => &mut self.usage,
+            "nr_periods" => &mut self.periods,
+            "nr_throttled" => &mut self.throttled_periods,
+            "throttled_usec" => &mut self.throttled,
+            _ => return,
+        };
+        *slot = Some(value);
+    }
+
+    /// The throttling counters, when all three are there.
+    fn throttling(&self) -> Option<Throttling> {
+        let (periods, throttled_periods) =
+            self.periods.zip(self.throttled_periods)?;
+        Some(Throttling {
+            periods,
+            throttled_periods,
+            throttled: Duration::from_micros(self.throttled?),
+        })
+    }
 }
 
 /// The file this parses.

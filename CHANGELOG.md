@@ -117,3 +117,6 @@ is a development series, not for production.
 - `CpuMax`, `parse_cpu_max`, `parse_memory_max`, `parse_memory_current` and
   `memory_available`: a cgroup's CPU quota and memory limit (`max` is no
   limit), and the memory left to it, capped by what the host has free.
+- `CpuStat`, `Throttling`, `parse_cpu_stat` and `CgroupSignal`: a cgroup's
+  `cpu.stat`, and `--cpu-throttle` read as the share of the last interval
+  its CPU quota stopped it; no `cpu` controller is unsupported.
