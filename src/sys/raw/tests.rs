@@ -1,4 +1,4 @@
-use super::{decode_hex, ne_i32, ne_i64, ne_u32, ne_u64};
+use super::{decode_hex, ne_i32, ne_i64, ne_u16, ne_u32, ne_u64};
 
 #[test]
 fn integers_read_native_endian_at_an_offset() {
@@ -12,6 +12,7 @@ fn integers_read_native_endian_at_an_offset() {
     assert_eq!(ne_u64(&bytes, 9), Some(u64::MAX));
     assert_eq!(ne_i64(&bytes, 17), Some(-3));
     assert_eq!(ne_u32(&bytes, 5), Some(u32::MAX - 1));
+    assert_eq!(ne_u16(&7_u16.to_ne_bytes(), 0), Some(7));
 }
 
 #[test]
