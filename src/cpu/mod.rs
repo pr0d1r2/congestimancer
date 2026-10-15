@@ -9,8 +9,6 @@
 //! scope lays its own `cpu.pressure` over these signals through
 //! `crate::cgroup::Scoped`.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
-
 mod count;
 mod error;
 mod parse;
@@ -22,5 +20,3 @@ pub use error::CpuError;
 pub use parse::{CpuTimes, Loads, ProcStat, parse_loadavg, parse_stat};
 pub use signal::CpuSignal;
 pub use window::{LoadWindow, parse_load_window};
-
-use crate::cgroup as _;
