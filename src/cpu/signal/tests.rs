@@ -1,9 +1,12 @@
 use std::path::Path;
+use std::time::Instant;
 
-use super::{CpuSignal, Os, loads_from, run_queue_from};
+use super::{CpuSignal, Os, loads_from, macos_idle, run_queue_from};
 use crate::cpu::{LoadWindow, Loads};
-use crate::signal::{Measure, Root, Sample, Signal, SignalId};
-use crate::sys::{LoadAverage, PsetLoad};
+use crate::signal::{
+    Counter, Measure, Reading, Root, Sample, Sampled, Signal, SignalId, Source,
+};
+use crate::sys::{CpuTicks, LoadAverage, PsetLoad};
 use crate::units::Decimal;
 
 /// The fixture tree `tests/fixtures/cpu/<case>`, laid out like `/`.
@@ -177,4 +180,79 @@ fn a_failed_pset_read_is_unsupported() {
     let err = std::io::Error::other("no mach");
     let queue = run_queue_from(Err(err)).map_err(|r| r.to_string());
     assert_eq!(queue, Err("no mach".to_owned()));
+}
+
+#[test]
+fn linux_cpu_idle_counts_idle_and_iowait_of_all_ticks() {
+    let sample = on("linux", Os::Linux).sample(SignalId::CpuIdle);
+    let share = Counter::Share {
+        part: 405,
+        whole: 558,
+    };
+    assert_eq!(sample, Sample::Counter(share));
+}
+
+#[test]
+fn linux_cpu_idle_past_64_bits_is_unsupported() {
+    assert_eq!(
+        reason(on("huge", Os::Linux).sample(SignalId::CpuIdle)),
+        Some("/proc/stat cpu ticks past 64 bits".to_owned())
+    );
+}
+
+#[test]
+fn the_first_cpu_idle_reading_is_warming() {
+    let mut source = Sampled::new(on("linux", Os::Linux));
+    let reading = source.read(SignalId::CpuIdle, Instant::now());
+    assert_eq!(reading, Reading::Warming);
+}
+
+#[test]
+fn macos_cpu_idle_is_a_share_counter() {
+    let sample = on("absent", Os::Macos).sample(SignalId::CpuIdle);
+    let ok = match &sample {
+        Sample::Counter(Counter::Share { .. }) => true,
+        Sample::Unsupported(_) => !cfg!(target_os = "macos"),
+        Sample::Gauge(_) | Sample::Counter(_) => false,
+    };
+    assert!(ok, "{sample:?}");
+}
+
+/// One CPU's ticks.
+fn ticks(user: u64, system: u64, idle: u64, nice: u64) -> CpuTicks {
+    CpuTicks {
+        user,
+        system,
+        idle,
+        nice,
+    }
+}
+
+#[test]
+fn macos_idle_sums_every_cpu() {
+    let cpus = vec![ticks(10, 5, 80, 1), ticks(20, 10, 60, 0)];
+    assert_eq!(
+        macos_idle(Ok(cpus)).ok(),
+        Some(Counter::Share {
+            part: 140,
+            whole: 186
+        })
+    );
+}
+
+#[test]
+fn macos_idle_past_64_bits_is_unsupported() {
+    let cpus = vec![ticks(0, 0, u64::MAX, 0), ticks(0, 0, 1, 0)];
+    let idle = macos_idle(Ok(cpus)).map_err(|r| r.to_string());
+    assert_eq!(
+        idle,
+        Err("host_processor_info ticks past 64 bits".to_owned())
+    );
+}
+
+#[test]
+fn a_failed_macos_ticks_read_is_unsupported() {
+    let err = std::io::Error::other("no mach");
+    let idle = macos_idle(Err(err)).map_err(|r| r.to_string());
+    assert_eq!(idle, Err("no mach".to_owned()));
 }

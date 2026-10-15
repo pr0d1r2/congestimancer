@@ -5,8 +5,10 @@ use std::io;
 
 use super::parse::{LOADAVG, STAT};
 use super::{LoadWindow, Loads, ProcStat, parse_loadavg, parse_stat};
-use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
-use crate::sys::{LoadAverage, PsetLoad, Snapshot, pset_load, read_text};
+use crate::signal::{Counter, Measure, Reason, Root, Sample, Signal, SignalId};
+use crate::sys::{
+    CpuTicks, LoadAverage, PsetLoad, Snapshot, pset_load, read_text,
+};
 use crate::units::{Decimal, parse_decimal};
 
 /// Which OS's sources a [`CpuSignal`] reads.
@@ -90,6 +92,7 @@ impl CpuSignal {
     /// `procs_running`, macOS the processor set's load (R1).
     fn run_queue(&self) -> Result<Decimal, Reason> {
         if self.os == Os::Macos {
+            let _ = macos_idle;
             return run_queue_from(pset_load());
         }
         let running = self.stat()?.procs_running;
@@ -152,6 +155,14 @@ fn run_queue_from(read: io::Result<PsetLoad>) -> Result<Decimal, Reason> {
                 "processor_set_statistics: negative load {load}"
             ))
         })
+}
+
+/// The macOS idle share counter: idle ticks of all ticks, summed over
+/// every CPU (src/cpu:V4); a failed read or a sum past 64 bits is
+/// unsupported.
+fn macos_idle(read: io::Result<Vec<CpuTicks>>) -> Result<Counter, Reason> {
+    let _ = read;
+    Err(Reason::from("todo"))
 }
 
 /// An error as the reason a signal has no value.
