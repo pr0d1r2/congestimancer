@@ -14,6 +14,7 @@ mod error;
 mod files;
 mod fs;
 mod gpu;
+mod group;
 #[cfg(target_os = "macos")]
 #[allow(unsafe_code, reason = "IOKit FFI (src/sys:C)")]
 mod iokit;
@@ -43,6 +44,7 @@ pub use fs::{
     try_lock_exclusive, unlock,
 };
 pub use gpu::{GpuUsage, gpu_usage};
+pub use group::{GroupSignal, signal_group};
 pub use iopolicy::{IoPriority, io_priority, set_io_priority};
 pub use mach::{CpuTicks, PsetLoad, VmStats, cpu_ticks, pset_load, vm_stats};
 pub use net::{InterfaceCounters, LinkCounters, interface_counters};
