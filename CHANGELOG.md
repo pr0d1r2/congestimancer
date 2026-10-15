@@ -410,3 +410,5 @@ is a development series, not for production.
   and signals pass through; a command not found exits 127, one that
   cannot run exits 126.
 - `launch`: with no command after `--`, `cgmr` exits 0 once released.
+- The command runs without `cgmr`'s own `CGMR_*` defaults; only
+  `CGMR_HELD_SLOTS` passes on, naming the slot keys now held.

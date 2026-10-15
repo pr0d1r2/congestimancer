@@ -5,7 +5,7 @@ use std::ffi::OsString;
 use std::io::Write;
 use std::process::Command;
 
-use super::exec_command;
+use super::{clean_env, exec_command};
 use crate::slot::Release;
 
 /// How the command starts once released.
@@ -44,13 +44,25 @@ pub fn launch<I>(
 where
     I: IntoIterator<Item = (OsString, OsString)>,
 {
-    let _ = (start, vars, log);
-    let Some((program, args)) = argv.split_first() else {
+    let _ = log;
+    let held = start.release.as_ref().and_then(Release::held_marker);
+    let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
+    exec_command(&mut command)
+}
+
+/// The command for `argv`, its environment cleaned (src/launch:V3), or
+/// `None` when there is none.
+fn command<I>(argv: &[OsString], vars: I, held: Option<&str>) -> Option<Command>
+where
+    I: IntoIterator<Item = (OsString, OsString)>,
+{
+    let (program, args) = argv.split_first()?;
     let mut command = Command::new(program);
     command.args(args);
-    exec_command(&mut command)
+    clean_env(&mut command, vars, held);
+    Some(command)
 }
 
 #[cfg(test)]
