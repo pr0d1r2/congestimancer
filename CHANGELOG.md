@@ -67,3 +67,5 @@ is a development series, not for production.
 - `Profile::layer`: a profile's switches as one config layer, below the
   command line and the environment; a switch set above wins without a
   repeat error, and a single-value switch twice in one profile is refused.
+- `render_profiles`: the `cgmr profiles` listing, every profile with its
+  file and switches, a name the project file shadows marked as such.

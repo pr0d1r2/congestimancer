@@ -61,7 +61,7 @@ T1|x|file discovery & precedence|V2,V7
 T2|x|line parser w/ `file:line` errors|V4,V5
 T3|x|merge into config w/ precedence|V1,V6
 T4|x|`--when` trust rule|V3
-T5|.|`profiles` verb|V4
+T5|x|`profiles` verb|V4
 
 ## §B BUGS
 
