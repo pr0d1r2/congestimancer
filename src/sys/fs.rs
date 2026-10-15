@@ -105,6 +105,18 @@ pub fn set_inheritable(file: &File) -> io::Result<()> {
     )?)
 }
 
+/// The `(major, minor)` number of the device holding `path`, from its
+/// `st_dev`; symlinks are followed (src/sys:T20).
+///
+/// # Errors
+///
+/// The OS error, such as [`io::ErrorKind::NotFound`] for a path that does
+/// not exist.
+pub fn device_of(path: &Path) -> io::Result<(u32, u32)> {
+    let _ = path;
+    Err(io::Error::from(io::ErrorKind::Unsupported))
+}
+
 /// This process's nice value.
 ///
 /// # Errors

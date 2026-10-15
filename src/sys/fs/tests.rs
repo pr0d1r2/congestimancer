@@ -7,8 +7,8 @@ use rustix::fs::{StatVfs, StatVfsMountFlags};
 use rustix::io::FdFlags;
 
 use super::{
-    FsStats, nice, set_inheritable, set_nice, statvfs, try_lock_exclusive,
-    unlock,
+    FsStats, device_of, nice, set_inheritable, set_nice, statvfs,
+    try_lock_exclusive, unlock,
 };
 
 fn raw() -> StatVfs {
@@ -122,4 +122,30 @@ fn an_inheritable_file_loses_close_on_exec() -> io::Result<()> {
     set_inheritable(&file)?;
     assert!(!rustix::io::fcntl_getfd(&file)?.contains(FdFlags::CLOEXEC));
     Ok(())
+}
+
+#[test]
+fn a_path_device_is_the_major_and_minor_of_its_st_dev() -> io::Result<()> {
+    use std::os::unix::fs::MetadataExt as _;
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let dev = fs::metadata(dir)?.dev();
+    let raw = rustix::fs::Dev::try_from(dev).map_err(io::Error::other)?;
+    let want = (rustix::fs::major(raw), rustix::fs::minor(raw));
+    assert_eq!(device_of(dir)?, want);
+    Ok(())
+}
+
+#[test]
+fn a_symlink_reports_the_device_of_its_target() -> io::Result<()> {
+    let scratch = Scratch::new("devlink");
+    let target = Path::new(env!("CARGO_MANIFEST_DIR"));
+    std::os::unix::fs::symlink(target, &scratch.0)?;
+    assert_eq!(device_of(&scratch.0)?, device_of(target)?);
+    Ok(())
+}
+
+#[test]
+fn the_device_of_a_missing_path_is_not_found() {
+    let err = device_of(Path::new("/nonexistent/cgmr/device")).err();
+    assert_eq!(err.map(|e| e.kind()), Some(io::ErrorKind::NotFound));
 }
