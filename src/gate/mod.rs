@@ -1,10 +1,16 @@
 //! `src/gate`: gate model, strict compare, AND evaluation, unsupported verdict, custom gates.
 //!
-//! Scaffold: the node's code lands here (`src/gate` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): each part lives in its own submodule and the
+//! public surface is re-exported here and from the crate root (src:V3).
+//! The remaining `use crate::X as _;` lines are build-order edges for
+//! `sherd wave` (src:C) to domain nodes the gate reads through a
+//! [`Source`](crate::signal::Source), not by name.
 
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
+
+mod model;
+
+pub use model::{Adjust, Gate, Op, Threshold, Verdict};
 
 use crate::cgroup as _;
 use crate::cpu as _;
