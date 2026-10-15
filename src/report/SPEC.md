@@ -60,7 +60,7 @@ T2|x|human status table|V5,V6
 T3|x|stream routing|V2
 T4|x|colour policy|V3
 T5|x|verbose reasons & heartbeat line|V4
-T6|.|warning sink w/ quiet|V7
+T6|x|warning sink w/ quiet|V7
 
 ## §B BUGS
 

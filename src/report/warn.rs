@@ -28,8 +28,11 @@ impl<W: Write> Warnings<W> {
     ///
     /// When the sink fails to take the bytes.
     pub fn warn(&mut self, text: &str) -> io::Result<()> {
-        let _ = (text, &mut self.sink, self.quiet, PREFIX);
-        Ok(())
+        if self.quiet {
+            return Ok(());
+        }
+        let text = text.strip_prefix(PREFIX).unwrap_or(text);
+        writeln!(self.sink, "{PREFIX}{text}")
     }
 
     /// The sink back.

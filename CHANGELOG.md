@@ -351,3 +351,4 @@ is a development series, not for production.
 - `write_verbose` and `heartbeat_line`: `--verbose` names each blocking
   gate with its value, threshold and trend, such as
   `--load: 3 (needs < 2, rising)`; the heartbeat puts them on one line.
+- `Warnings`: every warning goes through one sink that `--quiet` silences.
