@@ -266,3 +266,47 @@ mod pressure {
         assert_eq!(read.measure().copied(), want);
     }
 }
+
+/// `--io-device` (src/io:T9).
+mod device {
+    use super::super::parse_io_device;
+    use super::{Os, Sample, Signal, SignalId, on, rate, reason};
+    use crate::io::IoError;
+
+    /// The `--io-read` sample of fixture `case` measuring `device`.
+    fn read(case: &str, device: &str) -> Option<Sample> {
+        let name = parse_io_device(device).ok()?;
+        let mut io = on(case, Os::Linux, "/x").with_device(name);
+        Some(io.sample(SignalId::IoRead))
+    }
+
+    #[test]
+    fn io_device_overrides_the_paths_device() {
+        assert_eq!(read("tmp", "sda"), Some(rate(28_672)));
+        assert_eq!(read("linux", "nvme0n1"), Some(rate(2_048_000)));
+    }
+
+    #[test]
+    fn an_unknown_io_device_is_unsupported() {
+        let text = read("linux", "sdz").and_then(reason);
+        assert_eq!(text, Some("no block device `sdz`".to_owned()));
+    }
+
+    #[test]
+    fn an_io_device_that_is_no_name_is_refused() {
+        for bad in ["../sda", "sd/a", "", "-x"] {
+            let refused =
+                matches!(parse_io_device(bad), Err(IoError::Device(_)));
+            assert!(refused, "{bad}");
+        }
+    }
+
+    #[test]
+    fn a_macos_io_device_reads_that_disk() {
+        let io = parse_io_device("disk0")
+            .map(|name| on("absent", Os::Macos, "/").with_device(name));
+        let sample = io.map(|mut io| io.sample(SignalId::Io));
+        let counted = matches!(sample, Ok(Sample::Counter(_)));
+        assert_eq!(counted, cfg!(target_os = "macos"), "{sample:?}");
+    }
+}

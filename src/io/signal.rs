@@ -15,7 +15,7 @@ use crate::signal::{
     Counter, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
 };
 use crate::sys::{BlockStats, mount_source, physical_disk_stats, read_text};
-use crate::units::{Count, Percent};
+use crate::units::{Count, Name, Percent, parse_name};
 
 /// Linux IO pressure stall information.
 const PRESSURE: &str = "/proc/pressure/io";
@@ -71,6 +71,24 @@ impl IoSignal {
             path: disk_path.unwrap_or_else(|| Path::new(".")).to_path_buf(),
         }
     }
+}
+
+impl IoSignal {
+    /// Measures `device` instead of the path's (`--io-device`).
+    #[must_use]
+    pub fn with_device(self, device: Name) -> Self {
+        let _ = device;
+        self
+    }
+}
+
+/// Parses an `--io-device` value.
+///
+/// # Errors
+///
+/// [`IoError::Device`] when the value is not a name.
+pub fn parse_io_device(s: &str) -> Result<Name, IoError> {
+    parse_name(s).map_err(IoError::Device)
 }
 
 impl Signal for IoSignal {

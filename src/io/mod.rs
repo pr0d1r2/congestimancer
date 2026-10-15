@@ -17,4 +17,4 @@ mod signal;
 pub use diskstats::{Direction, DiskStat, parse_diskstats};
 pub use error::IoError;
 pub use mount::{Mount, linux_device, macos_device, mount_of, parse_mountinfo};
-pub use signal::IoSignal;
+pub use signal::{IoSignal, parse_io_device};
