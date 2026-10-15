@@ -136,3 +136,7 @@ is a development series, not for production.
 - `parse_millicelsius`, `parse_sysfs_u64`, `parse_cpu_list` and
   `is_cpu_cooling`: Linux thermal zone temperatures, CPU throttle counters,
   online CPU lists and which cooling devices throttle the CPU.
+- `Supply`, `parse_supply_uevent`, `supplies_of`, `on_mains` and
+  `battery_charge`: Linux power supply `uevent` files and macOS IOKit power
+  state as one supply list; a desktop without a battery counts as on mains
+  power, and a mouse battery or an empty bay is never the machine's.
