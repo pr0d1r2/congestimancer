@@ -57,7 +57,7 @@ id|status|task|cites
 T1|x|detect cgroup v2 path from `/proc/self/cgroup`|V1,V5
 T2|x|`cpu.max` `memory.max` `memory.current` parsers|V1,V2
 T3|x|`cpu.stat` parser + `--cpu-throttle`|V4
-T4|.|pressure source override ∀ PSI gates|V2
+T4|x|pressure source override ∀ PSI gates|V2
 T5|.|`--load` warning in cgroup|V3
 T6|x|`--cgroup` modes|V1
 T7|.|status dual values|V6

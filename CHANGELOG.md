@@ -123,3 +123,7 @@ is a development series, not for production.
 - `CgroupMode`, `parse_cgroup_mode` and `Scope`: `--cgroup auto|host|PATH`.
   `auto` reads the cgroup when it or an ancestor caps CPU or memory, or in
   a container, and otherwise keeps host values and says why.
+- `Scoped` and `CGROUP_SIGNALS`: inside a cgroup, every pressure gate reads
+  the cgroup's own `cpu.pressure`, `memory.pressure` and `io.pressure`, and
+  `--mem` reads the least memory any limited cgroup above has left, never
+  more than the host has available.
