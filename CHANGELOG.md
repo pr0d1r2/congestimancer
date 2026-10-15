@@ -64,3 +64,6 @@ is a development series, not for production.
 - `--when` in a profile is allowed only in the user file: in a project
   `.cgmr` or an explicit `--profile-file` it is refused, naming the line,
   so a cloned repository cannot run commands.
+- `Profile::layer`: a profile's switches as one config layer, below the
+  command line and the environment; a switch set above wins without a
+  repeat error, and a single-value switch twice in one profile is refused.

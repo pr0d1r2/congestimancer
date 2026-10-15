@@ -25,8 +25,21 @@ impl Profile {
         table: &impl SwitchTable,
         set_above: impl Fn(&str) -> bool,
     ) -> Result<Vec<Switch>, ProfileError> {
-        let _ = (table, set_above, HashMap::<(), ()>::new(), Arity::Single);
-        Ok(Vec::new())
+        let mut first: HashMap<&str, usize> = HashMap::new();
+        let mut kept = Vec::new();
+        for switch in self.switches() {
+            let (flag, at) = (switch.flag(), switch.at());
+            if switch.check(table)? == Arity::Single
+                && let Some(first) = first.insert(flag, at.line())
+            {
+                let (at, flag) = (at.clone(), flag.to_owned());
+                return Err(ProfileError::RepeatedSwitch { at, flag, first });
+            }
+            if !set_above(flag) {
+                kept.push(switch.clone());
+            }
+        }
+        Ok(kept)
     }
 }
 
