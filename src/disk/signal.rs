@@ -31,13 +31,13 @@ impl DiskSignal {
     }
 
     /// Reads the filesystem holding `--disk-path`, or the working
-    /// directory without one (src/disk:V3).
+    /// directory without one (src/disk:V3). The working directory is
+    /// `.`, so it is read wherever cgmr waits.
     ///
     /// # Errors
     ///
     /// [`DiskError::Missing`] when the path does not exist: a usage
     /// error, exit 64.
-    /// The working directory is `.`, so it is read wherever cgmr waits.
     pub fn at(disk_path: Option<&Path>) -> Result<Self, DiskError> {
         let Some(path) = disk_path else {
             return Ok(Self::new(Path::new(".")));
