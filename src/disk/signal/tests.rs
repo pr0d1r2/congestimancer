@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use super::{DiskError, DiskSignal, free_inodes, free_space};
-use crate::signal::{Measure, Sample, Signal, SignalId};
+use super::{DiskError, DiskSignal, free_inodes, free_space, inodes_on};
+use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
 use crate::sys::FsStats;
 use crate::units::{Bytes, Count};
 
@@ -74,6 +74,16 @@ fn free_inodes_is_files_available() {
 #[test]
 fn free_inodes_on_a_filesystem_without_inodes_is_none() {
     assert_eq!(free_inodes(&stats()), None);
+}
+
+#[test]
+fn inodes_on_a_filesystem_without_inodes_say_so() {
+    assert_eq!(
+        inodes_on(Path::new("/proc"), &stats()),
+        Err(Reason::from(
+            "/proc: filesystem does not count inodes".to_owned()
+        ))
+    );
 }
 
 #[test]

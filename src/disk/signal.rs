@@ -87,15 +87,19 @@ impl DiskSignal {
 
     /// `--inodes`, or why there is none.
     fn inodes(&self) -> Result<Measure, Reason> {
-        free_inodes(&self.stats()?)
-            .map(Measure::Count)
-            .ok_or_else(|| {
-                Reason::from(format!(
-                    "{}: filesystem does not count inodes",
-                    self.path.display()
-                ))
-            })
+        inodes_on(&self.path, &self.stats()?)
     }
+}
+
+/// `--inodes` from the `stats` of `path`'s filesystem, or why there is
+/// none.
+fn inodes_on(path: &Path, stats: &FsStats) -> Result<Measure, Reason> {
+    free_inodes(stats).map(Measure::Count).ok_or_else(|| {
+        Reason::from(format!(
+            "{}: filesystem does not count inodes",
+            path.display()
+        ))
+    })
 }
 
 impl Signal for DiskSignal {
