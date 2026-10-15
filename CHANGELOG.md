@@ -274,3 +274,6 @@ is a development series, not for production.
   swapouts times `hw.pagesize`.
 - `--dirty X` passes while `Dirty` plus `Writeback` in `/proc/meminfo`
   (`parse_meminfo`, `DirtyPages`) is under X; macOS is unsupported.
+- `MemSignal::status_level`: on macOS, `status` can show the share of
+  memory available from `kern.memorystatus_level` (`available_level`);
+  Linux has none.

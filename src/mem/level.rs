@@ -29,8 +29,8 @@ pub fn level_within(level: Level, limit: Level) -> bool {
 /// 0 to 100; anything else is `None`.
 #[must_use]
 pub fn available_level(raw: i64) -> Option<Percent> {
-    let _ = raw;
-    None
+    let hundredths = raw.checked_mul(100)?;
+    Percent::from_hundredths(u16::try_from(hundredths).ok()?)
 }
 
 #[cfg(test)]

@@ -1,11 +1,12 @@
 //! [`MemSignal`]: the memory signals, from Linux `/proc` under a
-//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3-T7).
+//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3-T8).
 
 use std::io;
 
 use super::parse::{MEMINFO, SMAPS, VMSTAT};
 use super::{
-    SwapPages, parse_meminfo, parse_page_size, parse_vmstat, pressure_level,
+    SwapPages, available_level, parse_meminfo, parse_page_size, parse_vmstat,
+    pressure_level,
 };
 use crate::signal::{
     Counter, Level, Measure, Reading, Reason, Root, Sample, Signal, SignalId,
@@ -19,6 +20,9 @@ const PRESSURE: &str = "/proc/pressure/memory";
 
 /// macOS memory pressure level: 1 normal, 2 warning, 4 critical.
 const PRESSURE_LEVEL: &str = "kern.memorystatus_vm_pressure_level";
+
+/// macOS share of memory available, 0 to 100.
+const STATUS_LEVEL: &str = "kern.memorystatus_level";
 
 /// Which OS's sources a [`MemSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -148,7 +152,12 @@ impl MemSignal {
     /// (src/mem:V8).
     #[must_use]
     pub fn status_level(&self) -> Reading {
-        status_from(Ok(0))
+        match self.os {
+            Os::Linux => {
+                Reading::unsupported("no memory status level on Linux")
+            }
+            Os::Macos => status_from(sysctl_int(STATUS_LEVEL)),
+        }
     }
 }
 
@@ -208,8 +217,17 @@ fn macos_swapped(
 /// The percent a read of `kern.memorystatus_level` gives; a failed read
 /// or a number outside 0 to 100 is unsupported with its reason.
 fn status_from(raw: io::Result<i64>) -> Reading {
-    let _ = raw;
-    Reading::Warming
+    match raw {
+        Err(err) => Reading::unsupported(err.to_string()),
+        Ok(raw) => available_level(raw).map_or_else(
+            || {
+                Reading::unsupported(format!(
+                    "{STATUS_LEVEL}: {raw} is not a percent"
+                ))
+            },
+            |p| Reading::Value(Measure::Percent(p)),
+        ),
+    }
 }
 
 /// The level a read of `kern.memorystatus_vm_pressure_level` gives; a
