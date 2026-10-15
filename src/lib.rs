@@ -27,7 +27,7 @@ mod sys;
 mod units;
 mod wait;
 
-pub use advise::{cpu_fit, mem_fit};
+pub use advise::{Action, Advice, Limit, Request, cpu_fit, decide, mem_fit};
 
 pub use cgroup::{
     CGROUP_SIGNALS, Cgroup, CgroupError, CgroupMode, CgroupSignal, CpuMax,
