@@ -63,9 +63,9 @@ pub use io::{
 };
 
 pub use launch::{
-    BACKGROUND_NICE, GroupAction, Priority, Slots, Start, after_wait,
-    background, clean_env, exec_command, exec_failure_code, govern_step,
-    launch, status_code,
+    BACKGROUND_NICE, GovernRig, Group, GroupAction, Judge, LocalGates,
+    Priority, Slots, Start, after_wait, background, clean_env, exec_command,
+    exec_failure_code, govern, govern_step, launch, status_code,
 };
 
 pub use limits::{

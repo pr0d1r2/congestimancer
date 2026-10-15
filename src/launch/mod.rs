@@ -17,6 +17,7 @@ mod after;
 mod env;
 mod exec;
 mod govern;
+mod governor;
 mod priority;
 #[cfg(test)]
 mod scratch;
@@ -27,5 +28,6 @@ pub use after::{Priority, after_wait};
 pub use env::clean_env;
 pub use exec::{exec_command, exec_failure_code};
 pub use govern::{GroupAction, govern_step, status_code};
+pub use governor::{GovernRig, Group, Judge, LocalGates, govern};
 pub use priority::{BACKGROUND_NICE, background};
 pub use start::{Start, launch};
