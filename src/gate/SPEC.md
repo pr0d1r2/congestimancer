@@ -57,7 +57,7 @@ V8: `check` & `status`: any requested rate|percent signal → take 2nd sample af
 ## §T TASKS
 
 id|status|task|cites
-T1|.|`Gate`, `Verdict`, strict compare|V1
+T1|x|`Gate`, `Verdict`, strict compare|V1
 T2|.|AND evaluation w/ warming & unsupported|V2,V3,V6
 T3|.|`--when`|V4
 T4|.|`--when-file`|V5

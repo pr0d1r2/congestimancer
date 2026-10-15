@@ -324,3 +324,8 @@ is a development series, not for production.
 - `--io-device D` measures device D (`sda`, `nvme0n1`; `disk0` on
   macOS) instead of the one holding `--disk-path`; D must be a name, so
   it cannot reach outside `/sys` or `/dev` (`parse_io_device`).
+- `Gate` and `Verdict`: a gate passes only when the system is strictly
+  better than its threshold (`Gate::below`, `above`, `is`, `within`);
+  equality fails, and a reading the threshold cannot be compared with is
+  unsupported, never a pass. `per_cpu` and `unreserved` turn the raw
+  reading into the `--load`/`--mem` per-CPU and `--needs-mem` values.

@@ -1,8 +1,11 @@
 //! [`Gate`] and [`Verdict`]: one threshold against one reading, compared
 //! strictly (src/gate:T1, V1).
 
+use std::cmp::Ordering;
 use std::fmt;
 
+use crate::cpu::load_per_cpu;
+use crate::mem::{level_within, mem_per_cpu, mem_unreserved};
 use crate::signal::{Measure, Reading, Reason, SignalId, Trend};
 use crate::units::{Bytes, ClockWindow};
 
@@ -121,8 +124,105 @@ impl Gate {
     /// `--verbose`.
     #[must_use]
     pub fn judge(&self, reading: &Reading, trend: Option<Trend>) -> Verdict {
-        let _ = (self, reading, trend);
-        Verdict::Warming
+        match reading {
+            Reading::Value(raw) => self.judge_value(*raw, trend),
+            Reading::Warming => Verdict::Warming,
+            Reading::Unsupported { reason } => Verdict::Unsupported {
+                reason: reason.clone(),
+            },
+        }
+    }
+
+    /// The verdict on a value, adjusted then compared.
+    fn judge_value(&self, raw: Measure, trend: Option<Trend>) -> Verdict {
+        let Some(value) = self.adjust.apply(raw) else {
+            return self.mismatch(raw);
+        };
+        match self.passes(value) {
+            Some(true) => Verdict::Pass,
+            Some(false) => Verdict::Fail {
+                value,
+                threshold: self.threshold,
+                trend,
+            },
+            None => self.mismatch(value),
+        }
+    }
+
+    /// Whether `value` passes; `None` when it cannot be compared with the
+    /// threshold at all.
+    fn passes(&self, value: Measure) -> Option<bool> {
+        match (self.op, self.threshold) {
+            (Op::Below, Threshold::Value(t)) => {
+                order(value, t).map(Ordering::is_lt)
+            }
+            (Op::Above, Threshold::Value(t)) => {
+                order(value, t).map(Ordering::is_gt)
+            }
+            (Op::Is, Threshold::Value(t)) => state(value, t),
+            (Op::Is, Threshold::Window(w)) => match value {
+                Measure::Clock(t) => Some(w.contains(t)),
+                _ => None,
+            },
+            (Op::Below | Op::Above, Threshold::Window(_)) => None,
+        }
+    }
+
+    /// The verdict on a value the gate cannot compare: unsupported, never
+    /// a silent pass (src/gate:V3).
+    fn mismatch(&self, value: Measure) -> Verdict {
+        let why = format!(
+            "{} read {value}, which cannot be compared with {}",
+            self.signal, self.threshold
+        );
+        Verdict::Unsupported {
+            reason: Reason::from(why),
+        }
+    }
+}
+
+impl Adjust {
+    /// The compared value from the raw one; `None` when the adjustment
+    /// does not fit the unit or divides by no CPUs.
+    fn apply(self, raw: Measure) -> Option<Measure> {
+        match (self, raw) {
+            (Self::Whole, _) => Some(raw),
+            (Self::PerCpu(cpus), Measure::Number(n)) => {
+                load_per_cpu(n, cpus).map(Measure::Number)
+            }
+            (Self::PerCpu(cpus), Measure::Bytes(b)) => {
+                mem_per_cpu(b, cpus).map(Measure::Bytes)
+            }
+            (Self::Unreserved(reserved), Measure::Bytes(b)) => {
+                Some(Measure::Bytes(mem_unreserved(b, reserved)))
+            }
+            (Self::PerCpu(_) | Self::Unreserved(_), _) => None,
+        }
+    }
+}
+
+/// How `a` orders against `b` when both are quantities in one unit.
+fn order(a: Measure, b: Measure) -> Option<Ordering> {
+    use Measure as M;
+    match (a, b) {
+        (M::Number(a), M::Number(b)) => Some(a.cmp(&b)),
+        (M::Count(a), M::Count(b)) => Some(a.cmp(&b)),
+        (M::Percent(a), M::Percent(b)) => Some(a.cmp(&b)),
+        (M::Bytes(a), M::Bytes(b)) => Some(a.cmp(&b)),
+        (M::Rate(a), M::Rate(b)) => Some(a.cmp(&b)),
+        (M::Duration(a), M::Duration(b)) => Some(a.cmp(&b)),
+        (M::Celsius(a), M::Celsius(b)) => Some(a.cmp(&b)),
+        _ => None,
+    }
+}
+
+/// Whether state `value` meets `wanted`: the same flag, or a level at
+/// most the limit (src/mem:V5).
+fn state(value: Measure, wanted: Measure) -> Option<bool> {
+    match (value, wanted) {
+        (Measure::Flag(a), Measure::Flag(b)) => Some(a == b),
+        (Measure::Level(a), Measure::Level(b)) => Some(level_within(a, b)),
+        _ => None,
     }
 }
 
