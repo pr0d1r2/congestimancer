@@ -8,7 +8,11 @@
 #![allow(dead_code, reason = "parts land before the entry point wires them")]
 
 mod args;
+mod env;
+mod exit;
 mod help;
+mod layers;
+mod profiles;
 mod switches;
 mod table;
 mod values;
