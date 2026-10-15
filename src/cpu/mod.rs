@@ -1,12 +1,14 @@
 //! `src/cpu`: load, run queue, CPU idle, CPU pressure, steal.
 //!
-//! Scaffold: the node's code lands here (`src/cpu` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): the logical CPU count and per-CPU arithmetic
+//! in `count`.
 
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
+
+mod count;
+
+pub use count::{cpu_count, load_per_cpu};
 
 use crate::cgroup as _;
 use crate::signal as _;
 use crate::sys as _;
-use crate::units as _;
