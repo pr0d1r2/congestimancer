@@ -16,8 +16,8 @@ use crate::sys::{
 };
 use crate::units::{Celsius, Percent};
 
-/// The highest sysfs index probed for zones and cooling devices.
-const MAX_INDEX: u32 = 1024;
+/// The Linux thermal class: `thermal_zone<N>` & `cooling_device<N>`.
+const THERMAL_DIR: &str = "/sys/class/thermal";
 
 /// The Linux power supply directory, one entry per supply.
 const SUPPLY_DIR: &str = "/sys/class/power_supply";
@@ -81,22 +81,23 @@ impl PowerSignal {
         read_text(&self.root, path)
     }
 
-    /// `(index, text)` of `<prefix><index>/<file>` from index 0 up to the
-    /// first that does not exist; unreadable ones are skipped.
-    fn indexed<'a>(
-        &'a self,
-        prefix: &'a str,
-        file: &'a str,
-    ) -> impl Iterator<Item = (u32, String)> + 'a {
-        (0..MAX_INDEX)
-            .map(move |i| (i, self.text(&format!("{prefix}{i}/{file}"))))
-            .take_while(|(_, text)| {
-                text.as_ref().map_or_else(
-                    |e| e.kind() != io::ErrorKind::Unsupported,
-                    |_| true,
-                )
+    /// `(entry, text)` of `/sys/class/thermal/<kind><index>/<file>` for
+    /// every listed index; unreadable ones are skipped.
+    fn thermal(&self, kind: &str, file: &str) -> Vec<(String, String)> {
+        let names = list_dir(&self.root, THERMAL_DIR).unwrap_or_default();
+        names
+            .into_iter()
+            .filter(|name| {
+                name.strip_prefix(kind).is_some_and(|index| {
+                    !index.is_empty()
+                        && index.bytes().all(|b| b.is_ascii_digit())
+                })
             })
-            .filter_map(|(i, text)| Some((i, text.ok()?)))
+            .filter_map(|name| {
+                let text = self.text(&format!("{THERMAL_DIR}/{name}/{file}"));
+                Some((name, text.ok()?))
+            })
+            .collect()
     }
 }
 
@@ -146,12 +147,13 @@ impl PowerSignal {
 
     /// Whether any CPU cooling device is active; `None` without one.
     fn cooling_active(&self) -> Option<bool> {
-        let prefix = "/sys/class/thermal/cooling_device";
         let states: Vec<u64> = self
-            .indexed(prefix, "type")
+            .thermal("cooling_device", "type")
+            .into_iter()
             .filter(|(_, kind)| is_cpu_cooling(kind))
-            .filter_map(|(i, _)| {
-                let text = self.text(&format!("{prefix}{i}/cur_state")).ok()?;
+            .filter_map(|(name, _)| {
+                let path = format!("{THERMAL_DIR}/{name}/cur_state");
+                let text = self.text(&path).ok()?;
                 parse_sysfs_u64("cur_state", &text).ok()
             })
             .collect();
@@ -163,7 +165,8 @@ impl PowerSignal {
         if self.os == Os::Macos {
             return Err(Reason::from("no public temperature API on macOS"));
         }
-        self.indexed("/sys/class/thermal/thermal_zone", "temp")
+        self.thermal("thermal_zone", "temp")
+            .into_iter()
             .filter_map(|(_, text)| parse_millicelsius(&text).ok())
             .max()
             .ok_or_else(|| {
