@@ -5,7 +5,7 @@ use std::ffi::OsString;
 use std::io::Write;
 use std::process::Command;
 
-use super::{clean_env, exec_command};
+use super::{background, clean_env, exec_command};
 use crate::slot::Release;
 
 /// How the command starts once released.
@@ -44,11 +44,13 @@ pub fn launch<I>(
 where
     I: IntoIterator<Item = (OsString, OsString)>,
 {
-    let _ = log;
     let held = start.release.as_ref().and_then(Release::held_marker);
     let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
+    if start.background {
+        background(log);
+    }
     exec_command(&mut command)
 }
 

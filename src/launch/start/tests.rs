@@ -1,7 +1,36 @@
 use std::ffi::{OsStr, OsString};
+use std::io;
+use std::process::Command;
 
 use super::{Start, command, launch};
 use crate::slot::HELD_SLOTS_ENV;
+
+/// Set only in the child [`exec_hands_over_the_exit_code`] spawns: that
+/// child execs into a shell, which no other test may do.
+const PROBE: &str = "LAUNCH_EXEC_PROBE";
+
+#[test]
+fn exec_probe() {
+    if std::env::var_os(PROBE).is_none() {
+        return;
+    }
+    let script = "test -z \"$CGMR_LOAD\" && exit 7; exit 1";
+    let argv = ["/bin/sh", "-c", script].map(OsString::from);
+    let vars = std::env::vars_os();
+    let code = launch(&argv, Start::new(None, true), vars, &mut io::stderr());
+    unreachable!("exec failed with {code}");
+}
+
+#[test]
+fn exec_hands_over_the_exit_code() -> io::Result<()> {
+    let status = Command::new(std::env::current_exe()?)
+        .args(["--exact", "launch::start::tests::exec_probe"])
+        .env(PROBE, "1")
+        .env("CGMR_LOAD", "2")
+        .status()?;
+    assert_eq!(status.code(), Some(7));
+    Ok(())
+}
 
 #[test]
 fn no_command_exits_0() {
