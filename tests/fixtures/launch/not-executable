@@ -1,0 +1,4 @@
+#!/bin/sh
+# Mode 0644 on purpose: exec of it fails with EACCES, exit 126
+# (src/launch:V1).
+exit 0

@@ -62,6 +62,8 @@ pub use io::{
     mount_of, parse_diskstats, parse_io_device, parse_mountinfo,
 };
 
+pub use launch::{exec_command, exec_failure_code};
+
 pub use limits::{
     FileNr, LimitsError, LimitsSignal, limit_share, parse_file_nr,
     parse_loadavg_tasks, parse_pid_max,
