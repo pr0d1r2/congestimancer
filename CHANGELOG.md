@@ -464,6 +464,11 @@ is a development series, not for production.
 - `--quiet` hides warnings, never errors; `--version` prints the version.
 - `CGMR_FIXTURE_ROOT` (hidden, for tests) is read once and every kernel
   file is read under it; `CGMR_DOGFOOD` is a known variable.
+- `cgmr --help` shows an example of every verb, the exit codes and the
+  exit-code collision note; each verb's `--help` has its own examples and
+  every switch names its `CGMR_` variable. `cgmr completions SHELL` and
+  `cgmr man` print a completion script and a roff man page from the same
+  switch table.
 
 ### Fixed
 
