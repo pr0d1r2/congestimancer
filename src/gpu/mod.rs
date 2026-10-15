@@ -9,6 +9,7 @@
 mod amd;
 mod device;
 mod error;
+mod nvidia;
 
 pub use amd::{amd_gpus, parse_busy_percent, parse_vram};
 pub use device::Gpu;
