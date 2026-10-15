@@ -6,7 +6,7 @@ use std::io;
 use super::parse::{LOADAVG, STAT};
 use super::{LoadWindow, Loads, ProcStat, parse_loadavg, parse_stat};
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
-use crate::sys::{LoadAverage, PsetLoad, Snapshot, read_text};
+use crate::sys::{LoadAverage, PsetLoad, Snapshot, pset_load, read_text};
 use crate::units::{Decimal, parse_decimal};
 
 /// Which OS's sources a [`CpuSignal`] reads.
@@ -86,9 +86,12 @@ impl CpuSignal {
         parse_stat(&text).map_err(reason)
     }
 
-    /// Tasks running or runnable now (`--run-queue`, src/cpu:V3).
+    /// Tasks running or runnable now (`--run-queue`, src/cpu:V3): Linux
+    /// `procs_running`, macOS the processor set's load (R1).
     fn run_queue(&self) -> Result<Decimal, Reason> {
-        let _ = run_queue_from;
+        if self.os == Os::Macos {
+            return run_queue_from(pset_load());
+        }
         let running = self.stat()?.procs_running;
         running
             .checked_mul(1000)
@@ -141,8 +144,14 @@ fn decimal(load: f64) -> Result<Decimal, Reason> {
 /// `load_average` / 1000 (src/cpu:R1, V3); a failed read or a negative
 /// load is unsupported.
 fn run_queue_from(read: io::Result<PsetLoad>) -> Result<Decimal, Reason> {
-    let _ = read;
-    Err(Reason::from("todo"))
+    let load = read.map_err(reason)?.load_average;
+    u64::try_from(load)
+        .map(Decimal::from_thousandths)
+        .map_err(|_| {
+            Reason::from(format!(
+                "processor_set_statistics: negative load {load}"
+            ))
+        })
 }
 
 /// An error as the reason a signal has no value.

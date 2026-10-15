@@ -288,3 +288,6 @@ is a development series, not for production.
 - `parse_stat` reads `/proc/stat` (`ProcStat`, `CpuTimes`); on Linux
   `--run-queue X` (per CPU) and `--all-run-queue X` gate on
   `procs_running`.
+- On macOS `--run-queue X` and `--all-run-queue X` read the default
+  processor set's `load_average` / 1000, a ~5 s average of runnable
+  threads.

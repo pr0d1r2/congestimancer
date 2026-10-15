@@ -64,7 +64,7 @@ T1|x|N from `available_parallelism`, ≥ 1|V7
 T2|x|load avg reader both OS + `--load` `--all-load`|V1
 T3|x|`--load-window`|V2
 T4|x|`/proc/stat` parser: `procs_running`, cpu times, steal|V3,V4,V6
-T5|.|macOS run queue: pset `load_average` / 1000 via `src/sys`|V3
+T5|x|macOS run queue: pset `load_average` / 1000 via `src/sys`|V3
 T6|.|`--cpu-idle` both OS (deltas)|V4
 T7|.|`--cpu-pressure` via shared PSI parser|V5
 T8|.|`--steal`|V6
