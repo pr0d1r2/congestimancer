@@ -181,3 +181,29 @@ mod busy_and_latency {
         assert_eq!(other, Err("io-queue is not an io counter".to_owned()));
     }
 }
+
+/// `--io-queue` (src/io:T7).
+mod queue {
+    use super::{Os, Sample, Signal, SignalId, linux, on, reason};
+    use crate::signal::Measure;
+    use crate::units::Count;
+
+    #[test]
+    fn linux_queue_is_the_requests_in_flight() {
+        let queue = Sample::Gauge(Measure::Count(Count(1)));
+        assert_eq!(linux(SignalId::IoQueue), queue);
+    }
+
+    #[test]
+    fn linux_queue_on_tmpfs_is_unsupported() {
+        let sample = on("tmp", Os::Linux, "/x").sample(SignalId::IoQueue);
+        assert!(reason(sample).is_some());
+    }
+
+    #[test]
+    fn macos_queue_is_unsupported() {
+        let sample = on("linux", Os::Macos, "/").sample(SignalId::IoQueue);
+        let want = Some("no in-flight count on macOS".to_owned());
+        assert_eq!(reason(sample), want);
+    }
+}
