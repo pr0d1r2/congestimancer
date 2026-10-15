@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use super::{MemSignal, Os};
-use crate::signal::{Measure, Root, Sample, Signal, SignalId};
+use super::{MemSignal, Os, level_from};
+use crate::signal::{Level, Measure, Root, Sample, Signal, SignalId};
 use crate::units::Percent;
 
 /// The fixture tree `tests/fixtures/mem/<case>`, laid out like `/`.
@@ -133,4 +133,25 @@ fn macos_mem_pressure_is_unsupported() {
             Some("no PSI on macOS; use --mem-level".to_owned())
         );
     }
+}
+
+#[test]
+fn a_known_level_read_decodes() {
+    assert_eq!(level_from(Ok(2)).ok(), Some(Level::Warning));
+}
+
+#[test]
+fn an_unknown_level_read_is_unsupported() {
+    let level = level_from(Ok(3)).map_err(|r| r.to_string());
+    assert_eq!(
+        level,
+        Err("kern.memorystatus_vm_pressure_level: unknown level 3".to_owned())
+    );
+}
+
+#[test]
+fn a_failed_level_read_is_unsupported() {
+    let err = std::io::Error::other("no sysctl");
+    let level = level_from(Err(err)).map_err(|r| r.to_string());
+    assert_eq!(level, Err("no sysctl".to_owned()));
 }

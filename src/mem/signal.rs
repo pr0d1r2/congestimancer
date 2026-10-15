@@ -1,14 +1,20 @@
 //! [`MemSignal`]: the memory signals, from Linux `/proc` under a
-//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3).
+//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3, T4).
 
+use std::io;
+
+use super::pressure_level;
 use crate::signal::{
-    Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
+    Level, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
 };
-use crate::sys::{Snapshot, read_text};
+use crate::sys::{Snapshot, read_text, sysctl_int};
 use crate::units::{Bytes, Percent};
 
 /// Linux memory pressure stall information.
 const PRESSURE: &str = "/proc/pressure/memory";
+
+/// macOS memory pressure level: 1 normal, 2 warning, 4 critical.
+const PRESSURE_LEVEL: &str = "kern.memorystatus_vm_pressure_level";
 
 /// Which OS's sources a [`MemSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,6 +85,17 @@ impl MemSignal {
             Reason::from(format!("{PRESSURE} has no `full` line"))
         })
     }
+
+    /// `--mem-level`: the kernel's own pressure level; macOS only
+    /// (src/mem:V5).
+    fn level(&self) -> Result<Level, Reason> {
+        if self.os == Os::Linux {
+            return Err(Reason::from(
+                "no memory pressure level on Linux; use --mem-pressure",
+            ));
+        }
+        level_from(sysctl_int(PRESSURE_LEVEL))
+    }
 }
 
 impl Signal for MemSignal {
@@ -89,10 +106,20 @@ impl Signal for MemSignal {
             SignalId::MemPressureFull => {
                 self.pressure(true).map(Measure::Percent)
             }
+            SignalId::MemLevel => self.level().map(Measure::Level),
             _ => Err(Reason::from(format!("{id} is not a mem signal"))),
         };
         measure.map_or_else(Sample::Unsupported, Sample::Gauge)
     }
+}
+
+/// The level a read of `kern.memorystatus_vm_pressure_level` gives; a
+/// failed read or an unknown number is unsupported with its reason.
+fn level_from(raw: io::Result<i64>) -> Result<Level, Reason> {
+    let raw = raw.map_err(reason)?;
+    pressure_level(raw).ok_or_else(|| {
+        Reason::from(format!("{PRESSURE_LEVEL}: unknown level {raw}"))
+    })
 }
 
 /// An error as the reason a signal has no value.

@@ -261,3 +261,7 @@ is a development series, not for production.
 - `--mem-pressure X` and `--mem-pressure-full X` pass while the `some` or
   `full` avg10 of `/proc/pressure/memory` is under X; macOS is
   unsupported, pointing at `--mem-level`.
+- `--mem-level normal|warning` passes while the macOS memory pressure level
+  (`kern.memorystatus_vm_pressure_level`) is at most that level
+  (`pressure_level`, `level_within`); Linux is unsupported, pointing at
+  `--mem-pressure`.

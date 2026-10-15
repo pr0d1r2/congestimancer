@@ -59,7 +59,7 @@ id|status|task|cites
 T1|x|available memory both OS + `--mem` `--all-mem`|V1,V2
 T2|x|`--needs-mem` using reservation total|V3
 T3|x|`--mem-pressure` & `--mem-pressure-full`|V4
-T4|.|macOS pressure level + `--mem-level`|V5
+T4|x|macOS pressure level + `--mem-level`|V5
 T5|.|`/proc/vmstat` parser + Linux swap rate|V6
 T6|.|macOS swap rate from `host_statistics64`|V6
 T7|.|`/proc/meminfo` parser + `--dirty`|V7
