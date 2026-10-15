@@ -113,6 +113,9 @@ is a development series, not for production.
   anything that names a person.
 - `list_dir`: the sorted entry names of a kernel directory under a `Root`;
   a directory this machine lacks is `Unsupported`.
+- `user_id`, `user_name` and `current_uid`: a user's uid by name and name
+  by uid from the password database, `None` for no such user, and the
+  real uid of this process.
 - `Cgroup` and `parse_proc_cgroup`: on Linux, the cgroup v2 this process
   sits in, from `/proc/self/cgroup`, with its files and ancestors under
   `/sys/fs/cgroup`; cgroup v1 (or a hybrid host) is unsupported.

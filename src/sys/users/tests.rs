@@ -39,3 +39,36 @@ fn the_current_user_round_trips_when_named() {
         assert_eq!(user_id(&name).ok(), Some(Some(uid)));
     }
 }
+
+#[test]
+fn a_small_buffer_grows_until_the_entry_fits() {
+    let mut sizes = Vec::new();
+    let found = super::with_buffer(|buf| {
+        sizes.push(buf.len());
+        if buf.len() < 4096 {
+            Err(libc::ERANGE)
+        } else {
+            Ok(Some(7))
+        }
+    });
+    assert_eq!(found.ok(), Some(Some(7)));
+    assert_eq!(sizes, vec![1024, 2048, 4096]);
+}
+
+#[test]
+fn a_buffer_past_the_cap_is_an_error() {
+    let found = super::with_buffer(|_| Err::<Option<()>, _>(libc::ERANGE));
+    let code = found.err().and_then(|e| e.raw_os_error());
+    assert_eq!(code, Some(libc::ERANGE));
+}
+
+#[test]
+fn not_found_codes_are_none_and_others_are_errors() {
+    for code in [libc::ENOENT, libc::ESRCH, libc::EBADF, libc::EPERM] {
+        let found = super::with_buffer(|_| Err::<Option<()>, _>(code));
+        assert_eq!(found.ok(), Some(None));
+    }
+    let found = super::with_buffer(|_| Err::<Option<()>, _>(libc::EIO));
+    let code = found.err().and_then(|e| e.raw_os_error());
+    assert_eq!(code, Some(libc::EIO));
+}
