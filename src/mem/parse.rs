@@ -1,5 +1,5 @@
 //! Pure parsers for Linux memory files and the swap byte count
-//! (src/mem:T5, V6).
+//! (src/mem:T5, T7, V6, V7).
 
 use super::MemError;
 use crate::units::Bytes;
@@ -51,7 +51,7 @@ impl DirtyPages {
     /// (src/mem:V7).
     #[must_use]
     pub fn backlog(self) -> Option<Bytes> {
-        None
+        self.dirty.0.checked_add(self.writeback.0).map(Bytes)
     }
 }
 
@@ -62,10 +62,11 @@ impl DirtyPages {
 /// [`MemError::Malformed`] for one of them not `N kB`;
 /// [`MemError::Missing`] when either is absent.
 pub fn parse_meminfo(text: &str) -> Result<DirtyPages, MemError> {
-    let _ = text;
-    Err(MemError::Missing {
-        file: MEMINFO,
-        key: "Dirty",
+    let [dirty, writeback] =
+        lookup(text, MEMINFO, ["Dirty", "Writeback"], kib)?;
+    Ok(DirtyPages {
+        dirty: Bytes(dirty),
+        writeback: Bytes(writeback),
     })
 }
 

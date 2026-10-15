@@ -272,3 +272,5 @@ is a development series, not for production.
   math past 64 bits is unsupported, never wrapped.
 - `--swap-rate X/s` on macOS counts `host_statistics64` swapins and
   swapouts times `hw.pagesize`.
+- `--dirty X` passes while `Dirty` plus `Writeback` in `/proc/meminfo`
+  (`parse_meminfo`, `DirtyPages`) is under X; macOS is unsupported.

@@ -1,10 +1,12 @@
 //! [`MemSignal`]: the memory signals, from Linux `/proc` under a
-//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3, T4, T5, T6).
+//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3-T7).
 
 use std::io;
 
-use super::parse::{SMAPS, VMSTAT};
-use super::{SwapPages, parse_page_size, parse_vmstat, pressure_level};
+use super::parse::{MEMINFO, SMAPS, VMSTAT};
+use super::{
+    SwapPages, parse_meminfo, parse_page_size, parse_vmstat, pressure_level,
+};
 use crate::signal::{
     Counter, Level, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
 };
@@ -115,6 +117,18 @@ impl MemSignal {
         }
     }
 
+    /// `--dirty`: `Dirty` plus `Writeback`; Linux only (src/mem:V7).
+    fn dirty(&self) -> Result<Bytes, Reason> {
+        if self.os == Os::Macos {
+            return Err(Reason::from("no dirty page count on macOS"));
+        }
+        let text = read_text(&self.root, MEMINFO).map_err(reason)?;
+        let pages = parse_meminfo(&text).map_err(reason)?;
+        pages
+            .backlog()
+            .ok_or_else(|| Reason::from("dirty bytes past 64 bits"))
+    }
+
     /// The Linux base page size from `/proc/self/smaps`, read once.
     fn linux_page_size(&mut self) -> Result<u64, Reason> {
         if let Some(size) = self.page_size {
@@ -129,21 +143,29 @@ impl MemSignal {
 
 impl Signal for MemSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
-        if id == SignalId::SwapRate {
-            return self.swapped().map_or_else(Sample::Unsupported, |total| {
-                Sample::Counter(Counter::Rate { total })
-            });
-        }
-        let measure = match id {
+        let sample = match id {
+            SignalId::SwapRate => self
+                .swapped()
+                .map(|total| Sample::Counter(Counter::Rate { total })),
+            _ => self.gauge(id).map(Sample::Gauge),
+        };
+        sample.unwrap_or_else(Sample::Unsupported)
+    }
+}
+
+impl MemSignal {
+    /// The value of a memory signal that stands alone.
+    fn gauge(&mut self, id: SignalId) -> Result<Measure, Reason> {
+        match id {
             SignalId::Mem => Ok(Measure::Bytes(self.available())),
             SignalId::MemPressure => self.pressure(false).map(Measure::Percent),
             SignalId::MemPressureFull => {
                 self.pressure(true).map(Measure::Percent)
             }
             SignalId::MemLevel => self.level().map(Measure::Level),
+            SignalId::Dirty => self.dirty().map(Measure::Bytes),
             _ => Err(Reason::from(format!("{id} is not a mem signal"))),
-        };
-        measure.map_or_else(Sample::Unsupported, Sample::Gauge)
+        }
     }
 }
 
