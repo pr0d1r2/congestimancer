@@ -39,7 +39,10 @@ pub use signal::{
     SystemClock, Trend, Trends, parse_psi, refresh,
 };
 
-pub use sys::{LoadAverage, Memory, ProcessInfo, Snapshot, read_text};
+pub use sys::{
+    FsStats, LoadAverage, Memory, ProcessInfo, Snapshot, nice, read_text,
+    set_nice, statvfs, try_lock_exclusive, unlock,
+};
 
 pub use units::{
     Bytes, Celsius, ClockTime, ClockWindow, Count, Decimal, Name, Percent,
