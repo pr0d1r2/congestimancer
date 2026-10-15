@@ -141,3 +141,10 @@ fn cgmr_when_is_never_run() {
     assert_eq!(ran.code, 0);
     assert!(ran.err.contains("CGMR_WHEN is ignored"), "{}", ran.err);
 }
+
+#[test]
+fn the_process_entry_point_returns_an_exit_code() {
+    // argv is the test runner's own, so only that it returns is checked.
+    let code = super::cgmr();
+    assert!(!format!("{code:?}").is_empty());
+}

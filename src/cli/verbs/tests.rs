@@ -75,3 +75,11 @@ fn a_bad_selector_is_a_usage_error() {
     let cgroup = cgmr(&["check", "--cgroup", "/no/such/cgroup"]);
     assert_eq!(cgroup.code, 64, "{}", cgroup.err);
 }
+
+#[test]
+fn the_report_names_the_host_under_the_root() {
+    let vars = [("CGMR_FIXTURE_ROOT", "tests/fixtures/cli")];
+    let args = ["check", "--json"];
+    let ran = ran(&args, &vars, &mut ScriptedSsh::default());
+    assert!(ran.out.contains("\"host\":\"fixture-box\""), "{}", ran.out);
+}

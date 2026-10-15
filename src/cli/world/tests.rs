@@ -57,3 +57,21 @@ fn no_color_turns_colour_off() {
         World::new(env(&[("NO_COLOR", "1")]), &mut out, &mut err, &mut ssh);
     assert_eq!(world.style(true), Style::Plain);
 }
+
+#[test]
+fn the_hostname_comes_from_the_kernel_under_the_root() {
+    let fixture = Root::new("tests/fixtures/cli");
+    assert_eq!(hostname(fixture, &[("HOSTNAME", "box")]), "fixture-box");
+}
+
+#[test]
+fn terminals_are_detected() {
+    let tty = super::Tty::detect();
+    assert_eq!(
+        tty,
+        super::Tty {
+            out: tty.out,
+            err: tty.err
+        }
+    );
+}

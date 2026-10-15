@@ -85,3 +85,16 @@ fn flags_take_no_value() {
 fn every_switch_has_help() {
     assert!(SWITCHES.iter().all(|s| !s.help().is_empty()));
 }
+
+#[test]
+fn the_row_builders_set_role_and_arity() {
+    use super::{Adj, Role, Value, above, below, flag, one, procs, state};
+    use crate::gate::Op;
+    let gate = |op| Role::Gate(op, Adj::Whole);
+    assert_eq!(below("a", Value::Rate, "h").role, gate(Op::Below));
+    assert_eq!(above("a", Value::Bytes, "h").role, gate(Op::Above));
+    assert_eq!(state("a", Value::Level, "h").role, gate(Op::Is));
+    assert!(!flag("a", Role::Run, "h").takes_value());
+    assert!(procs("a", "h").repeats());
+    assert!(!one("a", Value::Name, Role::Meta, "h").repeats());
+}
