@@ -372,8 +372,9 @@ uses a TCP connect probe (no raw sockets, no root), to port 443 unless
 | `--pids X` | processes / system maximum < X percent |
 
 Sources: `/proc/sys/fs/file-nr` and `/proc/sys/kernel/pid_max` (Linux);
-`kern.num_files` / `kern.maxfiles` and `kern.num_tasks` / `kern.maxproc`
-(macOS).
+`kern.num_files` / `kern.maxfiles`, and the count of live processes /
+`kern.maxproc` (macOS). `kern.num_tasks` is not used: it is a fixed cap,
+not a count of what runs.
 
 ## Thermal and power
 
