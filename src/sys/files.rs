@@ -1,4 +1,4 @@
-//! [`read_text`]: kernel text files (procfs, sysfs, cgroupfs) read under a
+//! [`read_text`] and [`list_dir`]: kernel text files and directories (procfs, sysfs, cgroupfs) read under a
 //! [`Root`], so tests and `CGMR_FIXTURE_ROOT` read a fixture tree
 //! (src/sys:T2, src/signal:V5).
 
@@ -22,6 +22,19 @@ pub fn read_text(root: &Root, path: &str) -> io::Result<String> {
             err
         }
     })
+}
+
+/// The entry names of the absolute directory `path` (such as
+/// `/sys/class/power_supply`) under `root`, sorted, without `.` and `..`.
+///
+/// # Errors
+///
+/// A directory that does not exist is [`io::ErrorKind::Unsupported`]
+/// naming the path (src/sys:V4). Any other failure (permission, not a
+/// directory, a name not UTF-8) passes through with its own kind.
+pub fn list_dir(root: &Root, path: &str) -> io::Result<Vec<String>> {
+    let _ = (root, path);
+    Err(io::Error::other("stub"))
 }
 
 #[cfg(test)]

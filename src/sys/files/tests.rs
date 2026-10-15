@@ -1,7 +1,7 @@
 use std::io;
 use std::path::Path;
 
-use super::read_text;
+use super::{list_dir, read_text};
 use crate::signal::Root;
 
 /// This node's fixture tree, laid out like `/`.
@@ -32,6 +32,39 @@ fn a_missing_file_is_unsupported_and_names_the_path() {
 #[test]
 fn other_failures_keep_their_kind() {
     let err = read_text(&fixtures(), "/proc/sys").err();
+    let kind = err.map(|e| e.kind());
+    assert!(kind.is_some());
+    assert_ne!(kind, Some(io::ErrorKind::Unsupported));
+}
+
+#[test]
+fn lists_a_directory_sorted() {
+    let names = list_dir(&fixtures(), "/sys/class/power_supply");
+    assert_eq!(names.ok(), Some(vec!["AC".to_owned(), "BAT0".to_owned()]));
+}
+
+#[test]
+fn lists_files_as_well_as_directories() {
+    let names = list_dir(&fixtures(), "/proc/sys/fs");
+    assert_eq!(names.ok(), Some(vec!["file-nr".to_owned()]));
+}
+
+#[test]
+fn a_missing_directory_is_unsupported_and_names_the_path() {
+    let err = list_dir(&fixtures(), "/sys/class/net").err();
+    let err = err.map(|e| (e.kind(), e.to_string()));
+    assert_eq!(
+        err,
+        Some((
+            io::ErrorKind::Unsupported,
+            "/sys/class/net: not present".to_owned()
+        ))
+    );
+}
+
+#[test]
+fn listing_a_file_keeps_its_own_error_kind() {
+    let err = list_dir(&fixtures(), "/proc/sys/fs/file-nr").err();
     let kind = err.map(|e| e.kind());
     assert!(kind.is_some());
     assert_ne!(kind, Some(io::ErrorKind::Unsupported));
