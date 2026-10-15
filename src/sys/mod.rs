@@ -10,11 +10,13 @@
 mod error;
 mod files;
 mod fs;
+mod mach;
 mod raw;
 mod snapshot;
 mod sysctl;
 
 pub use files::read_text;
 pub use fs::{FsStats, nice, set_nice, statvfs, try_lock_exclusive, unlock};
+pub use mach::{CpuTicks, PsetLoad, VmStats, cpu_ticks, pset_load, vm_stats};
 pub use snapshot::{LoadAverage, Memory, ProcessInfo, Snapshot};
 pub use sysctl::{SwapUsage, swap_usage, sysctl_int};

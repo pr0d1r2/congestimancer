@@ -6,6 +6,11 @@ fn field<const N: usize>(bytes: &[u8], at: usize) -> Option<[u8; N]> {
     bytes.get(at..at.checked_add(N)?)?.try_into().ok()
 }
 
+/// The native-endian `u32` at byte `at`.
+pub(crate) fn ne_u32(bytes: &[u8], at: usize) -> Option<u32> {
+    field(bytes, at).map(u32::from_ne_bytes)
+}
+
 /// The native-endian `i32` at byte `at`.
 pub(crate) fn ne_i32(bytes: &[u8], at: usize) -> Option<i32> {
     field(bytes, at).map(i32::from_ne_bytes)
