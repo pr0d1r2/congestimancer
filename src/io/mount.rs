@@ -34,8 +34,12 @@ pub struct Mount {
 /// [`IoError::Malformed`] for a line without `major:minor`, a mount
 /// point, the `-` separator, a filesystem type and a source.
 pub fn parse_mountinfo(text: &str) -> Result<Vec<Mount>, IoError> {
-    let _ = (parse_line(text), MOUNTINFO);
-    Ok(Vec::new())
+    text.lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            parse_line(line).ok_or_else(|| IoError::malformed(MOUNTINFO, line))
+        })
+        .collect()
 }
 
 /// One line: id, parent, `major:minor`, root, mount point, options,
@@ -98,8 +102,20 @@ pub fn linux_device(
     disks: &[DiskStat],
     path: &Path,
 ) -> Result<String, IoError> {
-    let _ = (mount_of(mounts, path), disks);
-    Err(not_block(path, ""))
+    let mount = mount_of(mounts, path).ok_or_else(|| IoError::NoMount {
+        path: path.to_path_buf(),
+    })?;
+    let by_number =
+        |d: &&DiskStat| (d.major, d.minor) == (mount.major, mount.minor);
+    let by_source = |d: &&DiskStat| {
+        mount.source.strip_prefix("/dev/") == Some(d.name.as_str())
+    };
+    disks
+        .iter()
+        .find(by_number)
+        .or_else(|| disks.iter().find(by_source))
+        .map(|d| d.name.clone())
+        .ok_or_else(|| not_block(path, &mount.fs_type))
 }
 
 /// The BSD name of the disk holding `path`, from where its filesystem
@@ -115,8 +131,12 @@ pub fn macos_device(
     source: &MountSource,
     path: &Path,
 ) -> Result<String, IoError> {
-    let _ = source;
-    Err(not_block(path, ""))
+    source
+        .device
+        .strip_prefix("/dev/")
+        .filter(|name| name.starts_with("disk"))
+        .map(str::to_owned)
+        .ok_or_else(|| not_block(path, &source.fs_type))
 }
 
 /// [`IoError::NotBlock`] for `path` on `fs_type`.
