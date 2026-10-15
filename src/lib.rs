@@ -40,8 +40,9 @@ pub use signal::{
 };
 
 pub use sys::{
-    FsStats, LoadAverage, Memory, ProcessInfo, Snapshot, nice, read_text,
-    set_nice, statvfs, try_lock_exclusive, unlock,
+    FsStats, LoadAverage, Memory, ProcessInfo, Snapshot, SwapUsage, nice,
+    read_text, set_nice, statvfs, swap_usage, sysctl_int, try_lock_exclusive,
+    unlock,
 };
 
 pub use units::{
