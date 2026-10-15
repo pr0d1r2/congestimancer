@@ -5,4 +5,4 @@
 
 mod signal;
 
-pub use signal::{DiskSignal, free_space};
+pub use signal::{DiskSignal, free_inodes, free_space};

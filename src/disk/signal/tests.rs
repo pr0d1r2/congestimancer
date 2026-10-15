@@ -1,9 +1,9 @@
 use std::path::{Path, PathBuf};
 
-use super::{DiskSignal, free_space};
+use super::{DiskSignal, free_inodes, free_space};
 use crate::signal::{Measure, Sample, Signal, SignalId};
 use crate::sys::FsStats;
-use crate::units::Bytes;
+use crate::units::{Bytes, Count};
 
 /// The fixture directory `tests/fixtures/disk/<case>`.
 fn fixture(case: &str) -> PathBuf {
@@ -57,6 +57,39 @@ fn disk_on_a_path_that_is_gone_is_unsupported() {
     let gone = fixture("gone");
     let mut disk = DiskSignal::new(&gone);
     let why = reason(disk.sample(SignalId::Disk)).unwrap_or_default();
+    assert!(why.starts_with(&gone.display().to_string()), "{why}");
+}
+
+#[test]
+fn free_inodes_is_files_available() {
+    let stats = FsStats {
+        files: 100,
+        files_free: 40,
+        files_available: 30,
+        ..stats()
+    };
+    assert_eq!(free_inodes(&stats), Some(Count(30)));
+}
+
+#[test]
+fn free_inodes_on_a_filesystem_without_inodes_is_none() {
+    assert_eq!(free_inodes(&stats()), None);
+}
+
+#[test]
+fn inodes_read_a_count_or_say_why_not() {
+    let mut disk = DiskSignal::new(&fixture("mount"));
+    let sample = disk.sample(SignalId::Inodes);
+    let counted = matches!(sample, Sample::Gauge(Measure::Count(_)));
+    let why = reason(sample).unwrap_or_default();
+    assert!(counted || why.ends_with("does not count inodes"), "{why}");
+}
+
+#[test]
+fn inodes_on_a_path_that_is_gone_is_unsupported() {
+    let gone = fixture("gone");
+    let mut disk = DiskSignal::new(&gone);
+    let why = reason(disk.sample(SignalId::Inodes)).unwrap_or_default();
     assert!(why.starts_with(&gone.display().to_string()), "{why}");
 }
 
