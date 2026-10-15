@@ -7,10 +7,12 @@
 
 mod env;
 mod exec;
+mod priority;
 mod start;
 
 pub use env::clean_env;
 pub use exec::{exec_command, exec_failure_code};
+pub use priority::{BACKGROUND_NICE, background};
 pub use start::{Start, launch};
 
 use crate::gate as _;

@@ -62,7 +62,10 @@ pub use io::{
     mount_of, parse_diskstats, parse_io_device, parse_mountinfo,
 };
 
-pub use launch::{Start, clean_env, exec_command, exec_failure_code, launch};
+pub use launch::{
+    BACKGROUND_NICE, Start, background, clean_env, exec_command,
+    exec_failure_code, launch,
+};
 
 pub use limits::{
     FileNr, LimitsError, LimitsSignal, limit_share, parse_file_nr,
