@@ -32,15 +32,18 @@ pub fn user_id(name: &str) -> io::Result<Option<u32>> {
 /// other than "not found" as the OS error.
 pub fn user_name(uid: u32) -> io::Result<Option<String>> {
     with_buffer(|buf| ffi::name_of(uid, buf))?
-        .map(|bytes| {
-            String::from_utf8(bytes).map_err(|_| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("uid {uid}: name is not UTF-8"),
-                )
-            })
-        })
+        .map(|bytes| utf8_name(uid, bytes))
         .transpose()
+}
+
+/// The name `bytes` of `uid` as UTF-8, or [`io::ErrorKind::InvalidData`].
+fn utf8_name(uid: u32, bytes: Vec<u8>) -> io::Result<String> {
+    String::from_utf8(bytes).map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("uid {uid}: name is not UTF-8"),
+        )
+    })
 }
 
 /// The real uid of this process.

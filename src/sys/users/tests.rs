@@ -72,3 +72,18 @@ fn not_found_codes_are_none_and_others_are_errors() {
     let code = found.err().and_then(|e| e.raw_os_error());
     assert_eq!(code, Some(libc::EIO));
 }
+
+#[test]
+fn a_name_not_utf8_is_invalid_data_naming_the_uid() {
+    let err = super::utf8_name(501, vec![b'a', 0xff]).err();
+    let err = err.map(|e| (e.kind(), e.to_string()));
+    assert_eq!(
+        err,
+        Some((
+            io::ErrorKind::InvalidData,
+            "uid 501: name is not UTF-8".to_owned()
+        ))
+    );
+    let name = super::utf8_name(0, b"root".to_vec());
+    assert_eq!(name.ok().as_deref(), Some("root"));
+}
