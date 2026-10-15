@@ -199,3 +199,6 @@ is a development series, not for production.
   over every up, non-loopback interface (`selected`), from
   `/proc/net/dev` on Linux and 64-bit `NET_RT_IFLIST2` counters on macOS;
   an interface that wrapped, came or went warms up, never a huge rate.
+- `NetSignal::iface` reads only `--net-iface I`, up or not (`selected`);
+  an `I` this machine does not list is `NetError::UnknownIface`, a usage
+  error, and one that goes away later is unsupported.

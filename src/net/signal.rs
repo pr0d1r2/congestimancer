@@ -66,6 +66,11 @@ impl NetSignal {
     /// [`NetError::UnknownIface`] when the interfaces can be listed and
     /// `name` is not among them: a usage error, exit 64.
     pub fn iface(self, name: Name) -> Result<Self, NetError> {
+        if let Ok(all) = self.interfaces()
+            && selected(&all, Some(&name)).is_empty()
+        {
+            return Err(NetError::UnknownIface { name });
+        }
         Ok(Self {
             iface: Some(name),
             ..self
@@ -73,14 +78,19 @@ impl NetSignal {
     }
 }
 
-/// The interfaces the rates count: every one up and not loopback
-/// (src/net:V1).
+/// The interfaces the rates count: the one named `iface`, up or not, or
+/// else every one up and not loopback (src/net:V1).
 #[must_use]
 pub fn selected<'a>(
     all: &'a [InterfaceCounters],
-    _iface: Option<&Name>,
+    iface: Option<&Name>,
 ) -> Vec<&'a InterfaceCounters> {
-    all.iter().filter(|i| i.up && !i.loopback).collect()
+    all.iter()
+        .filter(|i| match iface {
+            Some(name) => i.name == name.as_str(),
+            None => i.up && !i.loopback,
+        })
+        .collect()
 }
 
 impl NetSignal {
@@ -92,6 +102,23 @@ impl NetSignal {
         };
         found.map_err(|err| Reason::from(err.to_string()))
     }
+
+    /// The interfaces the rates count now, or why there are none: a
+    /// `--net-iface` that went away is unsupported.
+    fn chosen(&self) -> Result<Vec<InterfaceCounters>, Reason> {
+        let all = self.interfaces()?;
+        let chosen: Vec<InterfaceCounters> =
+            selected(&all, self.iface.as_ref())
+                .into_iter()
+                .cloned()
+                .collect();
+        match &self.iface {
+            Some(name) if chosen.is_empty() => {
+                Err(Reason::from(format!("{name}: no such interface")))
+            }
+            _ => Ok(chosen),
+        }
+    }
 }
 
 impl Source for NetSignal {
@@ -99,10 +126,10 @@ impl Source for NetSignal {
         if !matches!(id, SignalId::NetRx | SignalId::NetTx | SignalId::Net) {
             return Reading::unsupported(format!("{id} is not a net rate"));
         }
-        match self.interfaces() {
-            Ok(all) => {
-                self.rates
-                    .read(id, &selected(&all, self.iface.as_ref()), now)
+        match self.chosen() {
+            Ok(chosen) => {
+                let chosen: Vec<&InterfaceCounters> = chosen.iter().collect();
+                self.rates.read(id, &chosen, now)
             }
             Err(reason) => {
                 self.rates.forget(id);
