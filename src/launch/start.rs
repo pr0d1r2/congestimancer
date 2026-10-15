@@ -3,7 +3,9 @@
 
 use std::ffi::OsString;
 use std::io::Write;
+use std::process::Command;
 
+use super::exec_command;
 use crate::slot::Release;
 
 /// How the command starts once released.
@@ -42,8 +44,13 @@ pub fn launch<I>(
 where
     I: IntoIterator<Item = (OsString, OsString)>,
 {
-    let _ = (argv, start, vars, log);
-    1
+    let _ = (start, vars, log);
+    let Some((program, args)) = argv.split_first() else {
+        return 0;
+    };
+    let mut command = Command::new(program);
+    command.args(args);
+    exec_command(&mut command)
 }
 
 #[cfg(test)]

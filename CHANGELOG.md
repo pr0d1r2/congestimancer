@@ -409,3 +409,4 @@ is a development series, not for production.
 - `exec_command`: the released command replaces `cgmr`, so its exit code
   and signals pass through; a command not found exits 127, one that
   cannot run exits 126.
+- `launch`: with no command after `--`, `cgmr` exits 0 once released.
