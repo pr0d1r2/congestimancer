@@ -38,7 +38,7 @@ impl DiskSignal {
 /// `f_bavail * f_frsize` (src/disk:V1).
 #[must_use]
 pub const fn free_space(stats: &FsStats) -> Bytes {
-    Bytes(stats.blocks_free)
+    Bytes(stats.bytes_available())
 }
 
 impl Signal for DiskSignal {

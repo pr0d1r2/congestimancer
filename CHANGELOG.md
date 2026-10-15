@@ -184,3 +184,6 @@ is a development series, not for production.
   process count can leave out cgmr and its ancestors.
 - `--max-procs` and `--max-user-procs` leave out cgmr and its ancestors on
   the live machine, not only in fixture tables.
+- `DiskSignal` reads `--disk`: the bytes an unprivileged user may still
+  write on the filesystem holding a path (`free_space`), from `statvfs` on
+  both OSes; a path that is gone is unsupported.

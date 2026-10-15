@@ -51,7 +51,7 @@ V4: both OS via `statvfs`; ⊥ mount-table matching.
 ## §T TASKS
 
 id|status|task|cites
-T1|.|`--disk` via statvfs|V1,V4
+T1|x|`--disk` via statvfs|V1,V4
 T2|.|`--inodes`|V2
 T3|.|`--disk-path` default & validation|V3
 
