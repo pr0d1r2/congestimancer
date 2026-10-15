@@ -5,7 +5,7 @@ use std::io;
 
 use super::{limit_share, parse_file_nr};
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
-use crate::sys::read_text;
+use crate::sys::{read_text, sysctl_int};
 use crate::units::Percent;
 
 /// Linux file handles: allocated, unused, maximum.
@@ -63,7 +63,11 @@ impl LimitsSignal {
                 let nr = parse_file_nr(&text).map_err(reason)?;
                 share(nr.open(), nr.max, "fs.file-max")
             }
-            Os::Macos => sysctl_share(Ok(0), Ok(0), "kern.maxfiles"),
+            Os::Macos => sysctl_share(
+                sysctl_int("kern.num_files"),
+                sysctl_int("kern.maxfiles"),
+                "kern.maxfiles",
+            ),
         }
     }
 }
@@ -94,8 +98,13 @@ fn sysctl_share(
     max: io::Result<i64>,
     limit: &str,
 ) -> Result<Percent, Reason> {
-    let _ = (used, max, limit);
-    Err(Reason::from("stub"))
+    let count = |n: i64| {
+        u64::try_from(n)
+            .map_err(|_| Reason::from(format!("negative sysctl count {n}")))
+    };
+    let used = count(used.map_err(reason)?)?;
+    let max = count(max.map_err(reason)?)?;
+    share(used, max, limit)
 }
 
 /// An error as the reason a signal has no value.

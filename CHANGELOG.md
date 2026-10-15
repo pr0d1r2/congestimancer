@@ -162,3 +162,5 @@ is a development series, not for production.
   the system maximum; on Linux from `/proc/sys/fs/file-nr` (`parse_file_nr`,
   `FileNr`). A maximum of 0 or an unreadable source is unsupported, never
   a division (`limit_share`).
+- `--fds` on macOS reads `kern.num_files` over `kern.maxfiles`; a failed
+  read or a negative count is unsupported.
