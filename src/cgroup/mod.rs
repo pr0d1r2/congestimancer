@@ -13,6 +13,4 @@ mod membership;
 pub use error::CgroupError;
 pub use membership::{Cgroup, parse_proc_cgroup};
 
-use crate::signal as _;
-use crate::sys as _;
 use crate::units as _;
