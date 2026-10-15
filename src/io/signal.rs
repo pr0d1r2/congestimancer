@@ -11,9 +11,14 @@ use super::{
     DiskStat, IoError, linux_device, macos_device, parse_diskstats,
     parse_mountinfo,
 };
-use crate::signal::{Counter, Measure, Reason, Root, Sample, Signal, SignalId};
+use crate::signal::{
+    Counter, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
+};
 use crate::sys::{BlockStats, mount_source, physical_disk_stats, read_text};
-use crate::units::Count;
+use crate::units::{Count, Percent};
+
+/// Linux IO pressure stall information.
+const PRESSURE: &str = "/proc/pressure/io";
 
 /// Which OS's sources an [`IoSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -71,6 +76,8 @@ impl IoSignal {
 impl Signal for IoSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
+            SignalId::IoPressure => self.pressure(false),
+            SignalId::IoPressureFull => self.pressure(true),
             SignalId::IoQueue => self.queue(),
             SignalId::IoRead
             | SignalId::IoWrite
@@ -87,6 +94,21 @@ impl Signal for IoSignal {
 }
 
 impl IoSignal {
+    /// `--io-pressure` (`some avg10`) or, when `full`, `--io-pressure-full`
+    /// (`full avg10`); Linux only (src/io:V9).
+    fn pressure(&self, full: bool) -> Result<Sample, Reason> {
+        if self.os == Os::Macos {
+            return Err(Reason::from("no PSI on macOS"));
+        }
+        let text = read_text(&self.root, PRESSURE).map_err(reason)?;
+        let psi = parse_psi(&text).map_err(reason)?;
+        let line = if full { psi.full } else { Some(psi.some) };
+        let line = line.ok_or_else(|| {
+            Reason::from(format!("{PRESSURE} has no `full` line"))
+        })?;
+        Ok(percent(line.avg10))
+    }
+
     /// `--io-queue`: requests in flight now; Linux only (src/io:V8).
     fn queue(&self) -> Result<Sample, Reason> {
         if self.os == Os::Macos {
@@ -199,6 +221,11 @@ fn counter(id: SignalId, totals: &Totals) -> Result<Counter, Reason> {
 fn both(totals: &Totals) -> Result<u64, Reason> {
     let sum = totals.read.checked_add(totals.written);
     sum.ok_or_else(|| Reason::from("IO bytes past 64 bits"))
+}
+
+/// A percent gauge.
+const fn percent(p: Percent) -> Sample {
+    Sample::Gauge(Measure::Percent(p))
 }
 
 /// An error as the reason a signal has no value.

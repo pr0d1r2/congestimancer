@@ -318,3 +318,6 @@ is a development series, not for production.
   reading warms up.
 - `--io-queue X` passes while fewer than X requests are in flight on the
   device (`/proc/diskstats`); macOS is unsupported.
+- `--io-pressure X` and `--io-pressure-full X` pass while IO pressure
+  stall (`/proc/pressure/io` `some` or `full` `avg10`) is under X; in a
+  cgroup they read the cgroup's `io.pressure`; macOS is unsupported.
