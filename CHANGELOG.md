@@ -381,3 +381,7 @@ is a development series, not for production.
   the `advise` verb reads the gates once (one extra sample only for a rate
   gate), then the load and available memory, and never waits; any advice
   exits 0, even `wait`, and a gate or reading with no source exits 69.
+- `write_advice` and `write_advice_json`: `advise` prints one line such as
+  `jobs=3 limit=mem action=reduce`, or with `--json` one line sharing
+  `status`'s `schema_version` with `jobs`, `limit`, `action` and the
+  `blocking` gates, each with its value and threshold.
