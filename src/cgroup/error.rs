@@ -23,6 +23,11 @@ pub enum CgroupError {
     /// The process sits in cgroup v1 hierarchies, which are unsupported
     /// (src/cgroup:V5).
     V1,
+    /// `--cgroup` is not `auto`, `host` or an absolute path.
+    Mode {
+        /// The value as given.
+        input: String,
+    },
 }
 
 impl CgroupError {
@@ -43,6 +48,11 @@ impl fmt::Display for CgroupError {
             }
             Self::Missing { file, key } => write!(f, "{file} has no {key}"),
             Self::V1 => f.write_str("cgroup v1 is unsupported"),
+            Self::Mode { input } => write!(
+                f,
+                "--cgroup takes auto, host or an absolute cgroup path, \
+                 not `{input}`"
+            ),
         }
     }
 }

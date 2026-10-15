@@ -28,9 +28,9 @@ mod units;
 mod wait;
 
 pub use cgroup::{
-    Cgroup, CgroupError, CgroupSignal, CpuMax, CpuStat, Throttling,
-    memory_available, parse_cpu_max, parse_cpu_stat, parse_memory_current,
-    parse_memory_max, parse_proc_cgroup,
+    Cgroup, CgroupError, CgroupMode, CgroupSignal, CpuMax, CpuStat, Scope,
+    Throttling, memory_available, parse_cgroup_mode, parse_cpu_max,
+    parse_cpu_stat, parse_memory_current, parse_memory_max, parse_proc_cgroup,
 };
 
 pub use profile::{
