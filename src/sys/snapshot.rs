@@ -31,7 +31,8 @@ pub struct Memory {
     pub swap_used: u64,
 }
 
-/// One process: its name and owner's uid, nothing more (src/sys:V7).
+/// One process: its name, owner's uid and lineage, nothing more
+/// (src/sys:V7).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub struct ProcessInfo {
@@ -39,14 +40,26 @@ pub struct ProcessInfo {
     pub name: String,
     /// The owner's uid, when the OS tells.
     pub uid: Option<u32>,
+    /// The process id.
+    pub pid: u32,
+    /// The parent's process id, when it has one.
+    pub parent: Option<u32>,
 }
 
 impl ProcessInfo {
-    /// A process named `name` (lossily UTF-8), owned by `uid`.
-    fn new(name: &OsStr, uid: Option<u32>) -> Self {
+    /// A process named `name` (lossily UTF-8), owned by `uid`, with id
+    /// `pid` and parent `parent`.
+    fn new(
+        name: &OsStr,
+        uid: Option<u32>,
+        pid: u32,
+        parent: Option<u32>,
+    ) -> Self {
         Self {
             name: name.to_string_lossy().into_owned(),
             uid,
+            pid,
+            parent,
         }
     }
 }
@@ -112,7 +125,14 @@ impl Snapshot {
         self.system
             .processes()
             .values()
-            .map(|p| ProcessInfo::new(p.name(), p.user_id().map(|uid| **uid)))
+            .map(|p| {
+                ProcessInfo::new(
+                    p.name(),
+                    p.user_id().map(|uid| **uid),
+                    0,
+                    None,
+                )
+            })
             .collect()
     }
 }

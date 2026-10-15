@@ -3,10 +3,11 @@ use std::ffi::OsStr;
 use super::{Memory, ProcessInfo, Snapshot};
 
 #[test]
-fn a_process_keeps_its_name_and_uid() {
-    let info = ProcessInfo::new(OsStr::new("cargo"), Some(501));
+fn a_process_keeps_its_name_uid_and_lineage() {
+    let info = ProcessInfo::new(OsStr::new("cargo"), Some(501), 7, Some(1));
     assert_eq!(info.name, "cargo");
     assert_eq!(info.uid, Some(501));
+    assert_eq!((info.pid, info.parent), (7, Some(1)));
 }
 
 #[cfg(unix)]
@@ -14,7 +15,7 @@ fn a_process_keeps_its_name_and_uid() {
 fn a_name_that_is_not_utf8_is_read_lossily() {
     use std::os::unix::ffi::OsStrExt;
 
-    let info = ProcessInfo::new(OsStr::from_bytes(b"a\xffb"), None);
+    let info = ProcessInfo::new(OsStr::from_bytes(b"a\xffb"), None, 2, None);
     assert_eq!(info.name, "a\u{fffd}b");
 }
 
@@ -39,7 +40,10 @@ fn host_memory_refresh_reads_memory_only() {
 fn host_process_refresh_finds_this_test() {
     let mut snapshot = Snapshot::new();
     snapshot.refresh_processes();
-    assert!(snapshot.processes().len() > 1);
+    let procs = snapshot.processes();
+    assert!(procs.len() > 1);
+    let me = procs.iter().find(|p| p.pid == std::process::id());
+    assert!(me.is_some_and(|p| p.parent.is_some()), "{me:?}");
     assert_eq!(snapshot.memory(), Memory::default());
 }
 
