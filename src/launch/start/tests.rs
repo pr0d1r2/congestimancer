@@ -43,7 +43,7 @@ fn the_command_inherits_the_slot_and_reservation() -> io::Result<()> {
         unreachable!("one slot and a reservation were asked: {release:?}");
     };
     let mut command = seeing(&[slot.file(), reserved.file()]);
-    hand_over(&release, &mut command)?;
+    hand_over(&release, &mut command);
     assert!(command.status()?.success(), "locks not inherited");
     Ok(())
 }
@@ -56,7 +56,7 @@ fn no_other_child_inherits_the_slot_or_reservation() -> io::Result<()> {
     else {
         unreachable!("one slot and a reservation were asked: {release:?}");
     };
-    hand_over(&release, &mut seeing(&[]))?;
+    hand_over(&release, &mut seeing(&[]));
     assert!(
         !child_sees(slot.file())?,
         "a gate's child holds the slot (V9)"

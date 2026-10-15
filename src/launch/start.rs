@@ -2,12 +2,12 @@
 //! no command (src/launch:V2), else the command execs (src/launch:V1).
 
 use std::ffi::OsString;
-use std::io::{self, Write};
+use std::io::Write;
 use std::process::Command;
 
 use super::{background, clean_env, exec_command};
 use crate::slot::Release;
-use crate::sys::set_inheritable;
+use crate::sys::inherit_in;
 
 /// How the command starts once released.
 #[derive(Debug, Default)]
@@ -49,31 +49,24 @@ where
     let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
-    if let Err(code) = prepare(&start, &mut command, log) {
-        return code;
-    }
+    prepare(&start, &mut command, log);
     exec_command(&mut command)
 }
 
-/// Readies this process to start the command as `start` says: the slot
-/// handed over, background priority; the exit code (126) when the slot
-/// cannot be handed over.
+/// Readies `command` and this process to start as `start` says: the
+/// slot handed over to the command, background priority. A hand-over
+/// that fails in the child fails its start, which exits 126.
 pub(super) fn prepare(
     start: &Start,
     command: &mut Command,
     log: &mut dyn Write,
-) -> Result<(), u8> {
-    if let Some(Err(err)) =
-        start.release.as_ref().map(|r| hand_over(r, command))
-    {
-        // The exit code says it; a lost stderr changes nothing.
-        let _ = writeln!(log, "cgmr: cannot hand the slot over: {err}");
-        return Err(126);
+) {
+    if let Some(release) = &start.release {
+        hand_over(release, command);
     }
     if start.background {
         background(log);
     }
-    Ok(())
 }
 
 /// The command for `argv`, its environment cleaned (src/launch:V3), or
@@ -93,18 +86,17 @@ where
     Some(command)
 }
 
-/// Lets the command inherit `release`'s slot and reservation locks
-/// across exec, so the kernel lets go of them only when it exits
-/// (src/slot:V2, V7).
-fn hand_over(release: &Release, command: &mut Command) -> io::Result<()> {
-    let _ = command;
+/// Lets `command` inherit `release`'s slot and reservation locks across
+/// exec, so the kernel lets go of them only when it exits (src/slot:V2,
+/// V7); cgmr's own descriptors stay close-on-exec, so no other child it
+/// starts (a gate's shell, ssh) holds them (src/launch:V9).
+fn hand_over(release: &Release, command: &mut Command) {
     if let Some(slot) = release.slot() {
-        set_inheritable(slot.file())?;
+        inherit_in(command, slot.file());
     }
     if let Some(reservation) = release.reservation() {
-        set_inheritable(reservation.file())?;
+        inherit_in(command, reservation.file());
     }
-    Ok(())
 }
 
 #[cfg(test)]

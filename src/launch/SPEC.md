@@ -63,8 +63,9 @@ T4|x|`--govern` spawn, stop/cont, forward signals|V4
 T5|x|`--background` both OS|V5
 T6|x|`--or-background`|V6
 T7|~|govern w/ slots, timeout & host|V8
-T8|~|hand slot over via cmd's child, not cgmr|V9
+T8|x|hand slot over via cmd's child, not cgmr|V9
 
 ## §B BUGS
 
 id|date|cause|fix
+B1|2026-10-15|`hand_over` cleared `FD_CLOEXEC` on cgmr's own slot & reservation fds ∴ `--govern` gate shells & ssh children inherited the lock, could outlive cmd holding slot|V9

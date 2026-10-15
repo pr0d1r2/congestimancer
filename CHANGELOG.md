@@ -439,3 +439,9 @@ is a development series, not for production.
   keeps its slot and memory reservation.
 - `inherit_in`: hands an open file's descriptor to the one child a
   `Command` starts, leaving it close-on-exec in `cgmr` itself.
+
+### Fixed
+
+- `--govern` no longer lets every child `cgmr` starts (a custom gate's
+  shell, ssh for `--host`) inherit the slot and memory reservation; only
+  the command does, so nothing else can keep the slot after it ends.

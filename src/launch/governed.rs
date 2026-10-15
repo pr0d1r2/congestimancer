@@ -64,9 +64,7 @@ where
     let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
-    if let Err(code) = prepare(&start, &mut command, governing.log) {
-        return code;
-    }
+    prepare(&start, &mut command, governing.log);
     let code = match Spawned::spawn(&mut command) {
         Ok(mut group) => run(&mut group, governing),
         Err(err) => exec_failure_code(&err),
