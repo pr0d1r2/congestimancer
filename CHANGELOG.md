@@ -76,3 +76,6 @@ is a development series, not for production.
 - `statvfs` (space and inodes of the filesystem holding a path, byte totals
   saturating), `try_lock_exclusive` and `unlock` (`flock` locks that never
   wait), and `nice` and `set_nice` for this process.
+- `sysctl_int` and `swap_usage`: macOS integer sysctls (such as
+  `kern.maxfiles` or `kern.memorystatus_vm_pressure_level`) and
+  `vm.swapusage`; an unknown sysctl, or any other OS, is `Unsupported`.

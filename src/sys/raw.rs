@@ -3,8 +3,7 @@
 
 /// The `N` bytes at `at`, if `bytes` holds them.
 fn field<const N: usize>(bytes: &[u8], at: usize) -> Option<[u8; N]> {
-    let _ = (bytes, at);
-    None
+    bytes.get(at..at.checked_add(N)?)?.try_into().ok()
 }
 
 /// The native-endian `i32` at byte `at`.
@@ -26,8 +25,19 @@ pub(crate) fn ne_i64(bytes: &[u8], at: usize) -> Option<i64> {
 /// for an odd length or a non-hex digit. Tests read fixtures with it.
 #[cfg(test)]
 pub(crate) fn decode_hex(text: &str) -> Option<Vec<u8>> {
-    let _ = text;
-    None
+    let text = text.trim().as_bytes();
+    if !text.len().is_multiple_of(2) {
+        return None;
+    }
+    text.chunks(2)
+        .map(|pair| {
+            let pair = std::str::from_utf8(pair).ok()?;
+            if pair.starts_with('+') {
+                return None;
+            }
+            u8::from_str_radix(pair, 16).ok()
+        })
+        .collect()
 }
 
 #[cfg(test)]

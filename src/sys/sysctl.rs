@@ -51,15 +51,21 @@ fn malformed(name: &str, len: usize) -> io::Error {
 
 /// A 4 or 8 byte native-endian integer.
 fn decode_int(bytes: &[u8]) -> Option<i64> {
-    let _ = (bytes, ne_i32(bytes, 0), ne_i64(bytes, 0));
-    None
+    match bytes.len() {
+        4 => ne_i32(bytes, 0).map(i64::from),
+        8 => ne_i64(bytes, 0),
+        _ => None,
+    }
 }
 
 /// `struct xsw_usage`: total, avail and used as `u64`, then page size and
 /// the encrypted flag.
 fn decode_swap_usage(bytes: &[u8]) -> Option<SwapUsage> {
-    let _ = ne_u64(bytes, 0);
-    None
+    Some(SwapUsage {
+        total: ne_u64(bytes, 0)?,
+        available: ne_u64(bytes, 8)?,
+        used: ne_u64(bytes, 16)?,
+    })
 }
 
 /// The raw value of sysctl `name`.
@@ -109,8 +115,26 @@ fn not_present(name: &str, err: io::Error) -> io::Error {
 pub(crate) fn sized(
     mut call: impl FnMut(*mut libc::c_void, &mut usize) -> io::Result<()>,
 ) -> io::Result<Vec<u8>> {
-    let _ = &mut call;
-    Ok(Vec::new())
+    for _ in 0..4 {
+        match sized_once(&mut call) {
+            Err(err) if err.raw_os_error() == Some(libc::ENOMEM) => {}
+            done => return done,
+        }
+    }
+    Err(io::Error::from_raw_os_error(libc::ENOMEM))
+}
+
+/// One size query and one fill.
+#[cfg(any(test, target_os = "macos"))]
+fn sized_once(
+    call: &mut impl FnMut(*mut libc::c_void, &mut usize) -> io::Result<()>,
+) -> io::Result<Vec<u8>> {
+    let mut len = 0;
+    call(std::ptr::null_mut(), &mut len)?;
+    let mut buf = vec![0_u8; len];
+    call(buf.as_mut_ptr().cast(), &mut len)?;
+    buf.truncate(len);
+    Ok(buf)
 }
 
 #[cfg(not(target_os = "macos"))]
