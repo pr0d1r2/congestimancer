@@ -11,10 +11,12 @@
 mod custom;
 mod eval;
 mod model;
+mod once;
 
 pub use custom::Custom;
 pub use eval::{Checked, Evaluation, Gates, Overall, Subject, evaluate};
 pub use model::{Adjust, Gate, Op, Threshold, Verdict};
+pub use once::{evaluate_once, sample_once};
 
 use crate::cgroup as _;
 use crate::cpu as _;

@@ -43,7 +43,7 @@ pub use disk::{DiskError, DiskSignal, free_inodes, free_space};
 
 pub use gate::{
     Adjust, Checked, Custom, Evaluation, Gate, Gates, Op, Overall, Subject,
-    Threshold, Verdict, evaluate,
+    Threshold, Verdict, evaluate, evaluate_once, sample_once,
 };
 
 pub use gpu::{
