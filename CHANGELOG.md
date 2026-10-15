@@ -133,3 +133,6 @@ is a development series, not for production.
 - `Dual` and `Scoped::dual`: `status` can show each cgroup signal as the
   cgroup reads it beside the host's value, and why the cgroup column is
   empty on the host.
+- `parse_millicelsius`, `parse_sysfs_u64`, `parse_cpu_list` and
+  `is_cpu_cooling`: Linux thermal zone temperatures, CPU throttle counters,
+  online CPU lists and which cooling devices throttle the CPU.
