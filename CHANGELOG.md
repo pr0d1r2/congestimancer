@@ -291,3 +291,6 @@ is a development series, not for production.
 - On macOS `--run-queue X` and `--all-run-queue X` read the default
   processor set's `load_average` / 1000, a ~5 s average of runnable
   threads.
+- `--cpu-idle X` passes while the CPUs were more than X% idle over the
+  last interval: Linux `/proc/stat` idle plus iowait, macOS
+  `host_processor_info` ticks; the first sample is warming.

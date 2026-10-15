@@ -7,7 +7,7 @@ use super::parse::{LOADAVG, STAT};
 use super::{LoadWindow, Loads, ProcStat, parse_loadavg, parse_stat};
 use crate::signal::{Counter, Measure, Reason, Root, Sample, Signal, SignalId};
 use crate::sys::{
-    CpuTicks, LoadAverage, PsetLoad, Snapshot, pset_load, read_text,
+    CpuTicks, LoadAverage, PsetLoad, Snapshot, cpu_ticks, pset_load, read_text,
 };
 use crate::units::{Decimal, parse_decimal};
 
@@ -92,7 +92,6 @@ impl CpuSignal {
     /// `procs_running`, macOS the processor set's load (R1).
     fn run_queue(&self) -> Result<Decimal, Reason> {
         if self.os == Os::Macos {
-            let _ = macos_idle;
             return run_queue_from(pset_load());
         }
         let running = self.stat()?.procs_running;
@@ -103,11 +102,26 @@ impl CpuSignal {
     }
 }
 
+impl CpuSignal {
+    /// `--cpu-idle`: idle ticks of all ticks so far, a counter the
+    /// sampler turns into the idle percent of the last interval
+    /// (src/cpu:V4). Linux counts `iowait` as idle.
+    fn idle(&self) -> Result<Counter, Reason> {
+        if self.os == Os::Macos {
+            return macos_idle(cpu_ticks());
+        }
+        let times = self.stat()?.times;
+        share(times.idle_total(), times.total(), "/proc/stat cpu")
+    }
+}
+
 impl Signal for CpuSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
-        self.gauge(id)
-            .map(Sample::Gauge)
-            .unwrap_or_else(Sample::Unsupported)
+        let sample = match id {
+            SignalId::CpuIdle => self.idle().map(Sample::Counter),
+            _ => self.gauge(id).map(Sample::Gauge),
+        };
+        sample.unwrap_or_else(Sample::Unsupported)
     }
 }
 
@@ -161,8 +175,29 @@ fn run_queue_from(read: io::Result<PsetLoad>) -> Result<Decimal, Reason> {
 /// every CPU (src/cpu:V4); a failed read or a sum past 64 bits is
 /// unsupported.
 fn macos_idle(read: io::Result<Vec<CpuTicks>>) -> Result<Counter, Reason> {
-    let _ = read;
-    Err(Reason::from("todo"))
+    let cpus = read.map_err(reason)?;
+    let part = sum(cpus.iter().map(|t| t.idle));
+    let whole =
+        sum(cpus.iter().flat_map(|t| [t.user, t.system, t.idle, t.nice]));
+    share(part, whole, "host_processor_info")
+}
+
+/// `values` summed; `None` past 64 bits.
+fn sum(values: impl IntoIterator<Item = u64>) -> Option<u64> {
+    values.into_iter().try_fold(0_u64, u64::checked_add)
+}
+
+/// A share counter of `part` of `whole` ticks read from `source`;
+/// either past 64 bits is unsupported.
+fn share(
+    part: Option<u64>,
+    whole: Option<u64>,
+    source: &str,
+) -> Result<Counter, Reason> {
+    match (part, whole) {
+        (Some(part), Some(whole)) => Ok(Counter::Share { part, whole }),
+        _ => Err(Reason::from(format!("{source} ticks past 64 bits"))),
+    }
 }
 
 /// An error as the reason a signal has no value.
