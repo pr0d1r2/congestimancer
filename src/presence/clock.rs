@@ -1,6 +1,7 @@
 //! [`WallClock`]: the wall time `src/presence` reads, injected so tests
 //! set it (src/signal:V4, src/presence:T4).
 
+use std::io;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::signal::Reason;
@@ -34,10 +35,17 @@ impl WallClock for SystemWallClock {
     }
 
     fn local_time(&self) -> Result<ClockTime, Reason> {
+        let _ = clock_time;
         Err(Reason::from(
             "local time of day is not read on this build yet",
         ))
     }
+}
+
+/// The local time of day `read` from `crate::sys`, or why there is none.
+fn clock_time(read: io::Result<(u8, u8)>) -> Result<ClockTime, Reason> {
+    let _ = read;
+    Err(Reason::from("not yet"))
 }
 
 #[cfg(test)]
