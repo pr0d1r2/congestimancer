@@ -11,7 +11,11 @@ mod apple;
 mod device;
 mod error;
 mod nvidia;
+mod select;
+mod signal;
 
 pub use amd::{amd_gpus, parse_busy_percent, parse_vram};
 pub use device::Gpu;
 pub use error::GpuError;
+pub use select::{worst_busy, worst_free};
+pub use signal::GpuSignal;
