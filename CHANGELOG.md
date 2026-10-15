@@ -344,3 +344,5 @@ is a development series, not for production.
   write schema v1 (`schema_version`, `host`, `signals`, `gates`) with
   stable field names; numbers use a `.` whatever the locale.
 - `Style`: output is coloured only on a terminal with `NO_COLOR` unset.
+- `write_status`: the `status` table lists every signal with its source,
+  value and trend; an unsupported signal shows its reason, never hidden.
