@@ -9,12 +9,16 @@
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
 
 mod error;
+mod supply;
 mod thermal;
 
 pub use error::PowerError;
+pub use supply::{
+    Supply, SupplyKind, battery_charge, on_mains, parse_supply_uevent,
+    supplies_of,
+};
 pub use thermal::{
     is_cpu_cooling, parse_cpu_list, parse_millicelsius, parse_sysfs_u64,
 };
 
 use crate::signal as _;
-use crate::sys as _;
