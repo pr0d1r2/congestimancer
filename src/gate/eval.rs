@@ -1,11 +1,12 @@
 //! [`evaluate`]: every gate in one round, AND over the verdicts
 //! (src/gate:T2, T5, V2, V3, V6, V7).
 
+use std::collections::HashMap;
 use std::fmt;
 use std::time::Instant;
 
 use super::{Gate, Verdict};
-use crate::signal::{Source, Trends};
+use crate::signal::{Reading, SignalId, SignalSet, Source, Trends, refresh};
 
 /// The gates one evaluation runs, in the order they were given.
 ///
@@ -115,7 +116,7 @@ pub struct Evaluation {
 }
 
 /// Evaluates `gates` at instant `now`: reads each shared signal once,
-/// judges every gate, and ANDs the verdicts. `trends` keeps the history
+/// judges every gate, and joins the verdicts by AND. `trends` keeps the history
 /// across rounds so a failure says which way its signal moves.
 pub fn evaluate<S: Source + ?Sized>(
     gates: &mut Gates,
@@ -123,14 +124,91 @@ pub fn evaluate<S: Source + ?Sized>(
     now: Instant,
     trends: &mut Trends,
 ) -> Evaluation {
-    let own = gates.entries.iter().filter_map(|entry| match entry {
-        Entry::Own(_, own) => Some(own),
-        Entry::Shared(_) => None,
-    });
-    let _ = (own.count(), source, now, trends);
-    Evaluation {
-        verdicts: Vec::new(),
-        overall: Overall::Fail,
+    let wanted = gates.shared_signals();
+    let readings: HashMap<SignalId, Reading> =
+        refresh(source, wanted, now).into_iter().collect();
+    for (id, reading) in &readings {
+        trends.record(*id, reading);
+    }
+    let verdicts: Vec<Checked> = gates
+        .entries
+        .iter_mut()
+        .map(|entry| entry.check(&readings, trends, now))
+        .collect();
+    let overall = Overall::of(verdicts.iter().map(|c| &c.verdict));
+    Evaluation { verdicts, overall }
+}
+
+impl Gates {
+    /// The signals the shared-source gates read, each once (src/gate:V7).
+    fn shared_signals(&self) -> SignalSet {
+        self.entries
+            .iter()
+            .filter_map(|entry| match entry {
+                Entry::Shared(gate) => Some(gate.signal),
+                Entry::Own(..) => None,
+            })
+            .collect()
+    }
+}
+
+impl Entry {
+    /// This gate's verdict: shared gates judge the round's readings, an
+    /// own-source gate reads its source now.
+    fn check(
+        &mut self,
+        readings: &HashMap<SignalId, Reading>,
+        trends: &Trends,
+        now: Instant,
+    ) -> Checked {
+        let (gate, reading, trend) = match self {
+            Self::Shared(gate) => {
+                let reading = readings.get(&gate.signal).cloned();
+                (*gate, reading, trends.trend(gate.signal))
+            }
+            Self::Own(gate, own) => {
+                (*gate, Some(own.read(gate.signal, now)), None)
+            }
+        };
+        let verdict = gate.judge(&reading.unwrap_or(Reading::Warming), trend);
+        Checked {
+            subject: Subject::Signal(gate),
+            verdict,
+        }
+    }
+}
+
+impl Overall {
+    /// The AND over `verdicts`: unsupported beats a failure, which beats
+    /// warming; only all passes (or none at all) pass (src/gate:V2,
+    /// V3, V6).
+    fn of<'a>(verdicts: impl IntoIterator<Item = &'a Verdict>) -> Self {
+        verdicts
+            .into_iter()
+            .map(|verdict| match verdict {
+                Verdict::Pass => Self::Pass,
+                Verdict::Warming => Self::Warming,
+                Verdict::Fail { .. } => Self::Fail,
+                Verdict::Unsupported { .. } => Self::Unsupported,
+            })
+            .max_by_key(|overall| overall.rank())
+            .unwrap_or(Self::Pass)
+    }
+
+    /// How strongly this outcome overrides the others.
+    const fn rank(self) -> u8 {
+        match self {
+            Self::Pass => 0,
+            Self::Warming => 1,
+            Self::Fail => 2,
+            Self::Unsupported => 3,
+        }
+    }
+
+    /// Whether the gates let the command run.
+    #[must_use]
+    pub const fn is_pass(self) -> bool {
+        matches!(self, Self::Pass)
     }
 }
 

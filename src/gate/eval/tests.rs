@@ -130,3 +130,9 @@ fn gates_debug_lists_the_gates() {
     assert!(!gates.is_empty());
     assert!(format!("{gates:?}").contains("Mem"));
 }
+
+#[test]
+fn only_a_pass_lets_the_command_run() {
+    assert!(Overall::Pass.is_pass());
+    assert!(!Overall::Warming.is_pass());
+}

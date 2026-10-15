@@ -329,3 +329,8 @@ is a development series, not for production.
   equality fails, and a reading the threshold cannot be compared with is
   unsupported, never a pass. `per_cpu` and `unreserved` turn the raw
   reading into the `--load`/`--mem` per-CPU and `--needs-mem` values.
+- `evaluate`: every gate in one round, joined by AND. No gates pass at once; a
+  warming gate never passes; a gate with no source on this OS makes the
+  whole `Overall::Unsupported` (exit 69), never a silent pass. Several
+  gates on one signal read it once per round, and a failure carries
+  which way its signal moves.
