@@ -47,6 +47,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 - rustix: `statvfs`, `flock`, `setpriority`; `fcntl` clear `FD_CLOEXEC` (slot lock fd survives exec); `stat` → `st_dev` (major, minor), follows symlinks.
 - macOS FFI: `sysctlbyname` (`kern.memorystatus_*`, `kern.num_*`, `kern.max*`, `vm.swapusage`), `host_processor_info`, `host_statistics64`, IOKit (block stats, power, `HIDIdleTime`, GPU stats), `notify_get_state`, `setiopolicy_np`.
 - Linux FFI: `ioprio_set`; NVML `dlopen` (R3).
+- signals: `signal_group` (rustix `kill_process_group`); `block_forwarded` → `Blocked`: mask INT TERM HUP CHLD (`pthread_sigmask`), `wait_timeout` (Linux `sigtimedwait`; macOS kqueue `EVFILT_SIGNAL` + `sigwait`), old mask back on drop. ⊥ handler (`.:V22`).
 - net: `NET_RT_IFLIST2` (macOS, R5); TCP connect w/ timeout (std); Linux system bus `UnixStream`, ⊥ codec.
 
 ## §R RESEARCH
@@ -91,6 +92,8 @@ T17|x|`list_dir`: sorted names|V4
 T18|x|`getpw*_r`, localtime_r|V1,V2
 T19|x|`set_inheritable(&File)`: clear `FD_CLOEXEC` via rustix ⊥ `unsafe` ∵ `src/slot`, `src/launch` lock fd across exec|V2
 T20|x|`device_of(&Path)` → (major, minor) of `st_dev` via rustix `stat` ∵ `src/io` T2|V2
+T21|.|`signal_group(pgid, GroupSignal)` STOP CONT INT TERM HUP via rustix ⊥ `unsafe` ∵ `src/launch` V4|V2
+T22|.|`block_forwarded()` → `Blocked`; `wait_timeout(d)` → forwarded sig, child exit or none; drop restores mask ∵ `src/launch` V4|V1,V2
 
 ## §B BUGS
 
