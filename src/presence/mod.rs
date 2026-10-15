@@ -1,11 +1,13 @@
 //! `src/presence`: user idle time, clock window.
 //!
-//! Scaffold: the node's code lands here (`src/presence` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): each part lives in its own submodule, and the
+//! public surface is re-exported here and again from the crate root
+//! (src:V3). macOS idle comes from `crate::sys`'s IOKit call; Linux idle
+//! from logind over a hand-written D-Bus codec on the stream `crate::sys`
+//! connects (R1). The wall clock is injected, so tests set the time.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod clock;
+mod signal;
 
-use crate::signal as _;
-use crate::sys as _;
-use crate::units as _;
+pub use clock::{SystemWallClock, WallClock};
+pub use signal::PresenceSignal;
