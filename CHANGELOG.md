@@ -421,3 +421,5 @@ is a development series, not for production.
 - `govern_step` and `status_code`: the rules `--govern` will follow; a
   failing round stops the command's group, a pass resumes it, and its
   end passes on as its own exit code or 128 + n for signal n.
+- `signal_group` and `GroupSignal`: stop, continue, interrupt, terminate
+  or hang up a whole process group; group 0 (`cgmr`'s own) is refused.
