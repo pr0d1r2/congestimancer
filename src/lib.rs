@@ -40,12 +40,13 @@ pub use signal::{
 };
 
 pub use sys::{
-    BlockCounters, BlockDevice, BlockStats, CpuTicks, FsStats, LOW_POWER_MODE,
-    LoadAverage, Memory, MountSource, PowerState, ProcessInfo, PropValue,
-    Props, PsetLoad, Snapshot, SwapUsage, THERMAL_PRESSURE, VmStats,
-    block_devices, cpu_ticks, hid_idle_ns, mount_source, nice, notify_state,
-    physical_disk_stats, power_state, pset_load, read_text, set_nice, statvfs,
-    swap_usage, sysctl_int, try_lock_exclusive, unlock, vm_stats,
+    BlockCounters, BlockDevice, BlockStats, CpuTicks, FsStats, GpuUsage,
+    LOW_POWER_MODE, LoadAverage, Memory, MountSource, PowerState, ProcessInfo,
+    PropValue, Props, PsetLoad, Snapshot, SwapUsage, THERMAL_PRESSURE, VmStats,
+    block_devices, cpu_ticks, gpu_usage, hid_idle_ns, mount_source, nice,
+    notify_state, physical_disk_stats, power_state, pset_load, read_text,
+    set_nice, statvfs, swap_usage, sysctl_int, try_lock_exclusive, unlock,
+    vm_stats,
 };
 
 pub use units::{
