@@ -1,11 +1,8 @@
 //! `src/disk`: free space & inodes on a path.
 //!
-//! Scaffold: the node's code lands here (`src/disk` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): the gates in `signal`, read through
+//! `crate::sys::statvfs` on both OSes (src/disk:V4).
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod signal;
 
-use crate::signal as _;
-use crate::sys as _;
-use crate::units as _;
+pub use signal::{DiskSignal, free_space};
