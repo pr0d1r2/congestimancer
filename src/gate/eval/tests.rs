@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use super::{Gates, Overall, Subject, evaluate};
-use crate::gate::{Gate, Verdict};
+use crate::gate::{Custom, Gate, Verdict};
 use crate::signal::{FakeSource, Measure, Reading, SignalId, Trend, Trends};
 use crate::units::{Bytes, Decimal};
 
@@ -135,4 +135,22 @@ fn gates_debug_lists_the_gates() {
 fn only_a_pass_lets_the_command_run() {
     assert!(Overall::Pass.is_pass());
     assert!(!Overall::Warming.is_pass());
+}
+
+#[test]
+fn a_custom_gate_joins_the_and() {
+    let mut gates = two_gates();
+    gates.push_custom(Custom::When("exit 1".to_owned()));
+    let mut source =
+        source(Reading::Value(load(1)), Reading::Value(bytes(101)));
+    assert_eq!(overall(&mut gates, &mut source), Overall::Fail);
+    assert!(format!("{gates:?}").contains("When"));
+}
+
+#[test]
+fn a_passing_custom_gate_lets_the_whole_pass() {
+    let mut gates = Gates::new();
+    gates.push_custom(Custom::When("exit 0".to_owned()));
+    let mut source = FakeSource::new();
+    assert_eq!(overall(&mut gates, &mut source), Overall::Pass);
 }

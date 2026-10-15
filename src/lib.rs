@@ -42,8 +42,8 @@ pub use cpu::{
 pub use disk::{DiskError, DiskSignal, free_inodes, free_space};
 
 pub use gate::{
-    Adjust, Checked, Evaluation, Gate, Gates, Op, Overall, Subject, Threshold,
-    Verdict, evaluate,
+    Adjust, Checked, Custom, Evaluation, Gate, Gates, Op, Overall, Subject,
+    Threshold, Verdict, evaluate,
 };
 
 pub use gpu::{

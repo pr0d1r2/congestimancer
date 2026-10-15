@@ -8,9 +8,11 @@
 
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
 
+mod custom;
 mod eval;
 mod model;
 
+pub use custom::Custom;
 pub use eval::{Checked, Evaluation, Gates, Overall, Subject, evaluate};
 pub use model::{Adjust, Gate, Op, Threshold, Verdict};
 

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::time::Instant;
 
-use super::{Gate, Verdict};
+use super::{Custom, Gate, Verdict};
 use crate::signal::{Reading, SignalId, SignalSet, Source, Trends, refresh};
 
 /// The gates one evaluation runs, in the order they were given.
@@ -26,6 +26,8 @@ enum Entry {
     Shared(Gate),
     /// Reads its own source.
     Own(Gate, Box<dyn Source>),
+    /// Reads no signal.
+    Custom(Custom),
 }
 
 impl Gates {
@@ -51,6 +53,12 @@ impl Gates {
         self
     }
 
+    /// Adds a `--when` or `--when-file` gate.
+    pub fn push_custom(&mut self, custom: Custom) -> &mut Self {
+        self.entries.push(Entry::Custom(custom));
+        self
+    }
+
     /// How many gates there are.
     #[must_use]
     pub fn len(&self) -> usize {
@@ -67,10 +75,14 @@ impl Gates {
 /// Lists the gates; the sources are opaque.
 impl fmt::Debug for Gates {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let gates = self.entries.iter().map(|entry| match entry {
-            Entry::Shared(gate) | Entry::Own(gate, _) => gate,
-        });
-        f.debug_list().entries(gates).finish()
+        let mut list = f.debug_list();
+        for entry in &self.entries {
+            match entry {
+                Entry::Shared(gate) | Entry::Own(gate, _) => list.entry(gate),
+                Entry::Custom(custom) => list.entry(custom),
+            };
+        }
+        list.finish()
     }
 }
 
@@ -93,6 +105,8 @@ pub enum Overall {
 pub enum Subject {
     /// A gate on a signal.
     Signal(Gate),
+    /// A `--when` or `--when-file` gate.
+    Custom(Custom),
 }
 
 /// One gate and its verdict this round.
@@ -146,7 +160,7 @@ impl Gates {
             .iter()
             .filter_map(|entry| match entry {
                 Entry::Shared(gate) => Some(gate.signal),
-                Entry::Own(..) => None,
+                Entry::Own(..) | Entry::Custom(_) => None,
             })
             .collect()
     }
@@ -161,17 +175,34 @@ impl Entry {
         trends: &Trends,
         now: Instant,
     ) -> Checked {
-        let (gate, reading, trend) = match self {
+        match self {
             Self::Shared(gate) => {
-                let reading = readings.get(&gate.signal).cloned();
-                (*gate, reading, trends.trend(gate.signal))
+                let reading = readings.get(&gate.signal);
+                let reading = reading.unwrap_or(&Reading::Warming);
+                let trend = trends.trend(gate.signal);
+                Checked::signal(*gate, gate.judge(reading, trend))
             }
             Self::Own(gate, own) => {
-                (*gate, Some(own.read(gate.signal, now)), None)
+                let reading = own.read(gate.signal, now);
+                Checked::signal(*gate, gate.judge(&reading, None))
             }
-        };
-        let verdict = gate.judge(&reading.unwrap_or(Reading::Warming), trend);
-        Checked {
+            Self::Custom(custom) => Checked::custom(custom),
+        }
+    }
+}
+
+impl Checked {
+    /// A custom gate's verdict, run now.
+    fn custom(custom: &Custom) -> Self {
+        Self {
+            verdict: custom.check(),
+            subject: Subject::Custom(custom.clone()),
+        }
+    }
+
+    /// A signal gate's verdict.
+    const fn signal(gate: Gate, verdict: Verdict) -> Self {
+        Self {
             subject: Subject::Signal(gate),
             verdict,
         }
