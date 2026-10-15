@@ -61,7 +61,7 @@ T2|x|`--needs-mem` using reservation total|V3
 T3|x|`--mem-pressure` & `--mem-pressure-full`|V4
 T4|x|macOS pressure level + `--mem-level`|V5
 T5|x|`/proc/vmstat` parser + Linux swap rate|V6
-T6|.|macOS swap rate from `host_statistics64`|V6
+T6|x|macOS swap rate from `host_statistics64`|V6
 T7|.|`/proc/meminfo` parser + `--dirty`|V7
 T8|.|`kern.memorystatus_level` reading for status|V8
 

@@ -270,3 +270,5 @@ is a development series, not for production.
   move under X bytes a second; the page size is the smallest
   `KernelPageSize` in `/proc/self/smaps` (`parse_page_size`), and byte
   math past 64 bits is unsupported, never wrapped.
+- `--swap-rate X/s` on macOS counts `host_statistics64` swapins and
+  swapouts times `hw.pagesize`.

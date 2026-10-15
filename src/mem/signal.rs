@@ -1,5 +1,5 @@
 //! [`MemSignal`]: the memory signals, from Linux `/proc` under a
-//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3, T4, T5).
+//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3, T4, T5, T6).
 
 use std::io;
 
@@ -161,8 +161,15 @@ fn macos_swapped(
     stats: io::Result<VmStats>,
     page_size: io::Result<i64>,
 ) -> Result<u64, Reason> {
-    let _ = (stats, page_size);
-    Err(Reason::from("--swap-rate: not built on macOS"))
+    let stats = stats.map_err(reason)?;
+    let raw = page_size.map_err(reason)?;
+    let page_size = u64::try_from(raw)
+        .map_err(|_| Reason::from(format!("hw.pagesize: negative {raw}")))?;
+    let pages = SwapPages {
+        pages_in: stats.swapins,
+        pages_out: stats.swapouts,
+    };
+    swap_bytes(pages, page_size)
 }
 
 /// The level a read of `kern.memorystatus_vm_pressure_level` gives; a
