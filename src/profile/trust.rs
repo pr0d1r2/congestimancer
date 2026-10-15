@@ -16,8 +16,16 @@ pub(super) const WHEN: &str = "--when";
 ///
 /// [`ProfileError::Untrusted`] naming the line (src/profile:V3).
 pub(super) fn check_trust(file: &ProfileFile) -> Result<(), ProfileError> {
-    let _ = (file, Origin::User, WHEN);
-    Ok(())
+    if file.origin() == Origin::User {
+        return Ok(());
+    }
+    let switches = file.profiles().iter().flat_map(|p| p.switches());
+    match switches.into_iter().find(|s| s.flag() == WHEN) {
+        Some(when) => Err(ProfileError::Untrusted {
+            at: when.at().clone(),
+        }),
+        None => Ok(()),
+    }
 }
 
 #[cfg(test)]

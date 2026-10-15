@@ -61,3 +61,6 @@ is a development series, not for production.
   `~/.config/cgmr/profiles`); the project file wins a name both define, a
   missing file is skipped, an unreadable one is an error, and an unknown
   name lists the names there are.
+- `--when` in a profile is allowed only in the user file: in a project
+  `.cgmr` or an explicit `--profile-file` it is refused, naming the line,
+  so a cloned repository cannot run commands.

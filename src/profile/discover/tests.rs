@@ -76,12 +76,12 @@ fn outside_any_project_only_the_user_file_is_read() {
 
 #[test]
 fn an_explicit_file_is_read_alone() {
-    let explicit = tree().join("xdg/cgmr/profiles");
+    let explicit = tree().join("me/.config/cgmr/profiles");
     let places = places()
         .explicit(Some(explicit))
-        .home(Some(tree().join("me")));
+        .config_home(Some(tree().join("xdg")));
     let files = found(&places);
-    let only = (Origin::Explicit, PathBuf::from("xdg/cgmr/profiles"));
+    let only = (Origin::Explicit, PathBuf::from("me/.config/cgmr/profiles"));
     assert_eq!(files, Ok(vec![only]));
 }
 
