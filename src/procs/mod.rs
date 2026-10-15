@@ -2,17 +2,19 @@
 //!
 //! Composes only (src:C): each part lives in its own submodule, and the
 //! public surface is re-exported here and again from the crate root
-//! (src:V3).
+//! (src:V3). The machine's process table comes from `crate::sys`
+//! ([`LiveTable`]); tests count over `tests/fixtures/procs/` tables.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
-
+mod count;
 mod error;
+#[cfg(test)]
+mod fixture;
 mod glob;
 mod limit;
+mod signal;
 
+pub use count::{Proc, count_by_name, lineage};
 pub use error::ProcsError;
 pub use glob::Glob;
 pub use limit::{ProcLimit, parse_proc_limit};
-
-use crate::signal as _;
-use crate::sys as _;
+pub use signal::{LiveTable, ProcMatch, ProcessTable, ProcsSignal};
