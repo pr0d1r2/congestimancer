@@ -9,6 +9,7 @@ mod catalog;
 mod discover;
 mod error;
 mod file;
+mod layer;
 mod switch;
 mod trust;
 
@@ -17,3 +18,6 @@ pub use discover::{PROJECT_FILE, Places, ReadText, discover};
 pub use error::{At, ProfileError};
 pub use file::{Origin, Profile, ProfileFile, parse_profiles};
 pub use switch::{Arity, Switch, SwitchFault, SwitchTable};
+
+#[cfg(test)]
+pub(crate) use switch::TestTable;

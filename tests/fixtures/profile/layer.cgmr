@@ -1,0 +1,15 @@
+[build]
+--load 2
+--mem 4GB
+--path a
+--path b
+--quiet
+
+[twice]
+--load 2
+--path a
+--load 3
+
+[typo]
+--load 2
+--loud 3
