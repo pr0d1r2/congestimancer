@@ -3,6 +3,9 @@
 
 use std::fmt::Display;
 
+use crate::gate::Overall;
+use crate::slot::SlotError;
+
 /// Every gate passed and there is no command; `check`: every gate passed.
 pub(crate) const OK: u8 = 0;
 /// `check`: a gate failed.
@@ -38,6 +41,25 @@ impl Failure {
             code,
             message: message.to_string(),
         }
+    }
+}
+
+/// `check`'s exit for what the gates say together: 0 pass, 1 fail (or
+/// still warming), 69 unsupported (src/cli:V4).
+pub(crate) const fn check_code(overall: Overall) -> u8 {
+    match overall {
+        Overall::Pass => OK,
+        Overall::Fail | Overall::Warming => FAIL,
+        Overall::Unsupported => UNSUPPORTED,
+    }
+}
+
+/// A slot step that cannot run: 64 for a bad key (src/slot:V10), else 69
+/// (an unsafe or unreadable lock dir, src/slot:V1).
+pub(crate) fn slot_failure(err: SlotError) -> Failure {
+    match err {
+        SlotError::BadKey { .. } => Failure::usage(err),
+        _ => Failure::unsupported(err),
     }
 }
 

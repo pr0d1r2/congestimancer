@@ -57,11 +57,6 @@ impl Resolved {
         self.text(name).is_some_and(|v| v != super::env::FALSE)
     }
 
-    /// Every switch set, with its entry, in name order.
-    pub(crate) fn iter(&self) -> impl Iterator<Item = (&'static str, &Entry)> {
-        self.0.iter().map(|(k, v)| (*k, v))
-    }
-
     /// Switch `name`'s first value read by `parse`.
     ///
     /// # Errors

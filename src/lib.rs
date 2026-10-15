@@ -40,7 +40,7 @@ pub use cgroup::{
     parse_memory_max, parse_proc_cgroup,
 };
 
-pub use cli::{SWITCHES, SwitchSpec, env_name};
+pub use cli::{SWITCHES, SwitchSpec, cgmr, env_name};
 
 pub use cpu::{
     CpuError, CpuSignal, CpuTimes, LoadWindow, Loads, ProcStat, cpu_count,

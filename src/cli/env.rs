@@ -39,6 +39,12 @@ impl Env {
         Self(vars.into_iter().collect())
     }
 
+    /// Every variable, as the command inherits them before cleaning.
+    pub(crate) fn vars(&self) -> Vec<(OsString, OsString)> {
+        let pairs = self.0.iter();
+        pairs.map(|(k, v)| (k.clone(), v.clone())).collect()
+    }
+
     /// The variable `name`, if set.
     pub(crate) fn var_os(&self, name: &str) -> Option<&OsStr> {
         self.0.get(OsStr::new(name)).map(OsString::as_os_str)

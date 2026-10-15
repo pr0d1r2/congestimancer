@@ -4,29 +4,25 @@
 //! public surface is re-exported here and again from the crate root
 //! (src:V3).
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
-#![allow(dead_code, reason = "parts land before the entry point wires them")]
-
 mod args;
+mod entry;
 mod env;
 mod exit;
+mod gates;
 mod help;
+mod host;
 mod layers;
+mod meta;
 mod profiles;
+mod remote;
+mod run;
+mod slots;
 mod switches;
 mod table;
 mod values;
+mod verbs;
+mod world;
 
+pub use entry::cgmr;
 pub use switches::SWITCHES;
 pub use table::{SwitchSpec, env_name};
-
-use crate::advise as _;
-use crate::gate as _;
-use crate::launch as _;
-use crate::profile as _;
-use crate::remote as _;
-use crate::report as _;
-use crate::signal as _;
-use crate::slot as _;
-use crate::units as _;
-use crate::wait as _;

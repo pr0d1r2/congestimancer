@@ -119,13 +119,6 @@ impl Given {
         self.0.get(name).map(Vec::as_slice)
     }
 
-    /// Every switch given, in table order.
-    pub(crate) fn iter(
-        &self,
-    ) -> impl Iterator<Item = (&'static str, &[String])> {
-        self.0.iter().map(|(k, v)| (*k, v.as_slice()))
-    }
-
     /// The switches in `matches`.
     fn from_matches(matches: &ArgMatches) -> Self {
         let found = SWITCHES.iter().filter_map(|spec| {
