@@ -1,0 +1,6 @@
+# user profiles (XDG)
+[build]
+--load 8
+
+[night]
+--when "test -f /tmp/night"

@@ -1,0 +1,6 @@
+# project profiles
+[build]
+--load 2
+
+[ci]
+--quiet

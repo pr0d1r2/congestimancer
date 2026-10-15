@@ -28,8 +28,9 @@ mod units;
 mod wait;
 
 pub use profile::{
-    Arity, At, Origin, Profile, ProfileError, ProfileFile, Switch, SwitchFault,
-    SwitchTable, parse_profiles,
+    Arity, At, Catalog, Origin, PROJECT_FILE, Places, Profile, ProfileError,
+    ProfileFile, ReadText, Switch, SwitchFault, SwitchTable, discover,
+    parse_profiles,
 };
 
 pub use signal::{

@@ -5,10 +5,14 @@
 //! public surface is re-exported here and again from the crate root
 //! (src:V3).
 
+mod catalog;
+mod discover;
 mod error;
 mod file;
 mod switch;
 
+pub use catalog::Catalog;
+pub use discover::{PROJECT_FILE, Places, ReadText, discover};
 pub use error::{At, ProfileError};
 pub use file::{Origin, Profile, ProfileFile, parse_profiles};
 pub use switch::{Arity, Switch, SwitchFault, SwitchTable};
