@@ -25,8 +25,7 @@ pub fn notify_state(name: &str) -> io::Result<u64> {
 /// A notify status code as an error naming the call.
 #[cfg(any(test, target_os = "macos"))]
 fn status_error(call: &str, name: &str, status: u32) -> io::Error {
-    let _ = (call, name, status);
-    io::Error::other("")
+    io::Error::other(format!("{call} {name}: notify status {status}"))
 }
 
 #[cfg(target_os = "macos")]

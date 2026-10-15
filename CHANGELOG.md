@@ -86,3 +86,7 @@ is a development series, not for production.
   device holding a path, and read and write bytes, operations and time of a
   physical disk from IOKit, an APFS volume walked up to its disk;
   `PropValue` and `Props` carry IOKit property tables.
+- `power_state`, `hid_idle_ns` and `notify_state`: on macOS, whether the
+  machine is on wall power with its battery charge, the time since the last
+  input, and notify state such as thermal pressure (`THERMAL_PRESSURE`) and
+  Low Power Mode (`LOW_POWER_MODE`).

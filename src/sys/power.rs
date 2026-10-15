@@ -5,7 +5,7 @@
 
 use std::io;
 
-use super::props::Props;
+use super::props::{PropValue, Props};
 
 /// What powers the machine now.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -44,15 +44,31 @@ type Sources = (Option<String>, Vec<Props>);
 
 /// `IOPSGetProvidingPowerSourceType` and every source's description.
 fn decode_power(providing: Option<&str>, sources: &[Props]) -> PowerState {
-    let _ = (providing, sources);
-    PowerState::default()
+    let battery = sources.iter().find(|source| {
+        source.get("Type").and_then(PropValue::as_str)
+            == Some("InternalBattery")
+    });
+    PowerState {
+        external: providing == Some("AC Power"),
+        battery_percent: battery.and_then(percent),
+        charging: battery
+            .and_then(|b| b.get("Is Charging"))
+            .and_then(PropValue::as_bool),
+    }
+}
+
+/// Current over max capacity, as a whole percent up to 100.
+fn percent(battery: &Props) -> Option<u32> {
+    let current = battery.get("Current Capacity")?.as_u64()?;
+    let max = battery.get("Max Capacity")?.as_u64()?;
+    let percent = current.checked_mul(100)?.checked_div(max)?;
+    u32::try_from(percent.min(100)).ok()
 }
 
 /// `HIDIdleTime` of an `IOHIDSystem` table.
 #[cfg(any(test, target_os = "macos"))]
 fn decode_idle(props: &Props) -> Option<u64> {
-    let _ = props;
-    None
+    props.get("HIDIdleTime")?.as_u64()
 }
 
 #[cfg(target_os = "macos")]
