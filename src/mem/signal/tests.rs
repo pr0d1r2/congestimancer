@@ -105,6 +105,27 @@ fn linux_mem_pressure_without_psi_is_unsupported() {
 }
 
 #[test]
+fn linux_mem_level_is_unsupported() {
+    assert_eq!(
+        reason(on("linux", Os::Linux).sample(SignalId::MemLevel)),
+        Some(
+            "no memory pressure level on Linux; use --mem-pressure".to_owned()
+        )
+    );
+}
+
+#[test]
+fn macos_mem_level_is_a_level_from_the_kernel() {
+    let sample = on("linux", Os::Macos).sample(SignalId::MemLevel);
+    let ok = match &sample {
+        Sample::Gauge(Measure::Level(_)) => true,
+        Sample::Unsupported(_) => !cfg!(target_os = "macos"),
+        Sample::Gauge(_) | Sample::Counter(_) => false,
+    };
+    assert!(ok, "{sample:?}");
+}
+
+#[test]
 fn macos_mem_pressure_is_unsupported() {
     for id in [SignalId::MemPressure, SignalId::MemPressureFull] {
         assert_eq!(

@@ -8,7 +8,9 @@
 //! `crate::cgroup::Scoped`.
 
 mod fit;
+mod level;
 mod signal;
 
 pub use fit::{mem_per_cpu, mem_unreserved};
+pub use level::{level_within, pressure_level};
 pub use signal::MemSignal;
