@@ -40,13 +40,14 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §I INTERFACES
 
 - switches: `--fds X` · `--pids X` (percent).
-- sources: Linux `/proc/sys/fs/file-nr`, `/proc/sys/kernel/pid_max` + process count · macOS `kern.num_files`/`kern.maxfiles`, `kern.num_tasks`/`kern.maxproc`.
+- sources: Linux `/proc/sys/fs/file-nr` · tasks ∈ `/proc/loadavg` / `/proc/sys/kernel/pid_max` · macOS `kern.num_files`/`kern.maxfiles` · `src/sys` `Snapshot` process count / `kern.maxproc`.
 
 ## §V INVARIANTS
 
 V1: `--fds X` ⇔ open / max × 100 < X.
 V2: `--pids X` ⇔ processes / max × 100 < X.
 V3: max = 0 | unreadable → `Unsupported`, ⊥ divide.
+V4: `--pids` numerator = live count: Linux tasks ∵ ∀ thread holds a pid; macOS processes. ⊥ `kern.num_tasks` (cap).
 
 ## §T TASKS
 
@@ -58,3 +59,4 @@ T3|x|`--pids` both OS|V2,V3
 ## §B BUGS
 
 id|date|cause|fix
+B1|2026-10-15|§I took `kern.num_tasks` (cap 4096) as count|V4
