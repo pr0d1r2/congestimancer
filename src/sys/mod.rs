@@ -15,6 +15,7 @@ mod gpu;
 #[cfg(target_os = "macos")]
 #[allow(unsafe_code, reason = "IOKit FFI (src/sys:C)")]
 mod iokit;
+mod iopolicy;
 mod mach;
 mod notify;
 mod power;
@@ -30,6 +31,7 @@ pub use disk::{
 pub use files::read_text;
 pub use fs::{FsStats, nice, set_nice, statvfs, try_lock_exclusive, unlock};
 pub use gpu::{GpuUsage, gpu_usage};
+pub use iopolicy::{IoPriority, io_priority, set_io_priority};
 pub use mach::{CpuTicks, PsetLoad, VmStats, cpu_ticks, pset_load, vm_stats};
 pub use notify::{LOW_POWER_MODE, THERMAL_PRESSURE, notify_state};
 pub use power::{PowerState, hid_idle_ns, power_state};
