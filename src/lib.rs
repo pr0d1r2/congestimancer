@@ -40,6 +40,8 @@ pub use power::{
     parse_ppd_profile, parse_supply_uevent, parse_sysfs_u64, supplies_of,
 };
 
+pub use procs::Glob;
+
 pub use profile::{
     Arity, At, Catalog, Origin, PROJECT_FILE, Places, Profile, ProfileError,
     ProfileFile, ReadText, Switch, SwitchFault, SwitchTable, discover,

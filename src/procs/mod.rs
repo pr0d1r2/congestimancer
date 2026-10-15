@@ -1,10 +1,14 @@
 //! `src/procs`: process counts by name & by user.
 //!
-//! Scaffold: the node's code lands here (`src/procs` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): each part lives in its own submodule, and the
+//! public surface is re-exported here and again from the crate root
+//! (src:V3).
 
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
+
+mod glob;
+
+pub use glob::Glob;
 
 use crate::signal as _;
 use crate::sys as _;
