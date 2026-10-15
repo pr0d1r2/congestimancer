@@ -12,6 +12,7 @@ mod overlay;
 mod scope;
 mod signal;
 mod stat;
+mod warn;
 
 pub use error::CgroupError;
 pub use limits::{
@@ -23,3 +24,4 @@ pub use overlay::{CGROUP_SIGNALS, Scoped};
 pub use scope::{CgroupMode, Scope, parse_cgroup_mode};
 pub use signal::CgroupSignal;
 pub use stat::{CpuStat, Throttling, parse_cpu_stat};
+pub use warn::load_warning;
