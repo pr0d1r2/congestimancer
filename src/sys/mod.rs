@@ -9,5 +9,7 @@
 
 mod error;
 mod files;
+mod snapshot;
 
 pub use files::read_text;
+pub use snapshot::{LoadAverage, Memory, ProcessInfo, Snapshot};

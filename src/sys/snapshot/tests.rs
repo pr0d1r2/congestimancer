@@ -1,0 +1,53 @@
+use std::ffi::OsStr;
+
+use super::{Memory, ProcessInfo, Snapshot};
+
+#[test]
+fn a_process_keeps_its_name_and_uid() {
+    let info = ProcessInfo::new(OsStr::new("cargo"), Some(501));
+    assert_eq!(info.name, "cargo");
+    assert_eq!(info.uid, Some(501));
+}
+
+#[cfg(unix)]
+#[test]
+fn a_name_that_is_not_utf8_is_read_lossily() {
+    use std::os::unix::ffi::OsStrExt;
+
+    let info = ProcessInfo::new(OsStr::from_bytes(b"a\xffb"), None);
+    assert_eq!(info.name, "a\u{fffd}b");
+}
+
+#[test]
+fn nothing_is_read_before_a_refresh_asks() {
+    let snapshot = Snapshot::new();
+    assert_eq!(snapshot.memory(), Memory::default());
+    assert!(snapshot.processes().is_empty());
+}
+
+#[test]
+#[ignore = "live machine (src:V4): run with --ignored"]
+fn live_memory_refresh_reads_memory_only() {
+    let mut snapshot = Snapshot::new();
+    snapshot.refresh_memory();
+    let memory = snapshot.memory();
+    assert!(memory.total > 0);
+    assert!(memory.available <= memory.total);
+    assert!(snapshot.processes().is_empty());
+}
+
+#[test]
+#[ignore = "live machine (src:V4): run with --ignored"]
+fn live_process_refresh_finds_this_test() {
+    let mut snapshot = Snapshot::new();
+    snapshot.refresh_processes();
+    assert!(snapshot.processes().len() > 1);
+    assert_eq!(snapshot.memory(), Memory::default());
+}
+
+#[test]
+#[ignore = "live machine (src:V4): run with --ignored"]
+fn live_load_average_is_not_negative() {
+    let load = Snapshot::load_average();
+    assert!(load.one >= 0.0 && load.five >= 0.0 && load.fifteen >= 0.0);
+}
