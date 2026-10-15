@@ -181,3 +181,5 @@ is a development series, not for production.
   with no known owner never matches.
 - `ProcessInfo` carries each process's `pid` and `parent`, so a live
   process count can leave out cgmr and its ancestors.
+- `--max-procs` and `--max-user-procs` leave out cgmr and its ancestors on
+  the live machine, not only in fixture tables.

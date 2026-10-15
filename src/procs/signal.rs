@@ -28,7 +28,12 @@ impl ProcessTable for LiveTable {
         let procs = self.snapshot.processes();
         procs
             .into_iter()
-            .map(|p| Proc::new(p.name, p.uid))
+            .map(|p| {
+                let mut proc = Proc::new(p.name, p.uid);
+                proc.pid = Some(p.pid);
+                proc.parent = p.parent;
+                proc
+            })
             .collect()
     }
 
