@@ -300,3 +300,6 @@ is a development series, not for production.
 - `--steal X` passes while the hypervisor stole under X% of the CPUs'
   ticks over the last interval (`/proc/stat` `steal`); macOS is
   unsupported.
+- `parse_diskstats`, `DiskStat` and `Direction`: the Linux
+  `/proc/diskstats` counters the IO gates read per device (reads,
+  writes, sectors as 512 bytes, time, in flight, `io_ticks`).

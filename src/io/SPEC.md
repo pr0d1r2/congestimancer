@@ -65,7 +65,7 @@ V10: `--io-device D`: D = `Name` (`src/units:V13`) ∴ ⊥ sysfs path escape.
 ## §T TASKS
 
 id|status|task|cites
-T1|.|`/proc/diskstats` parser|V5,V6,V7,V8
+T1|x|`/proc/diskstats` parser|V5,V6,V7,V8
 T2|.|path → device: Linux (`st_dev` → sysfs)|V1,V3
 T3|.|path → physical disk: macOS APFS|V1,V2,V3
 T4|.|`--io-read` `--io-write` `--io` both OS|V4,V5

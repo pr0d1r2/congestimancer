@@ -60,8 +60,12 @@ pub struct DiskStat {
 /// [`IoError::Malformed`] for a line with fewer than 13 columns or a
 /// column that is not a whole number.
 pub fn parse_diskstats(text: &str) -> Result<Vec<DiskStat>, IoError> {
-    let _ = parse_line(text);
-    Err(IoError::malformed(DISKSTATS, text))
+    text.lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            parse_line(line).ok_or_else(|| IoError::malformed(DISKSTATS, line))
+        })
+        .collect()
 }
 
 /// One line: major, minor, name, then ten counters.
