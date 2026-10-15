@@ -1,12 +1,12 @@
 use std::path::Path;
 use std::time::Duration;
 
-use super::{NetSignal, Os, up_interfaces};
+use super::{NetError, NetSignal, Os, selected};
 use crate::signal::{
     Clock, ManualClock, Measure, Reading, Root, SignalId, Source,
 };
 use crate::sys::{InterfaceCounters, LinkCounters};
-use crate::units::Rate;
+use crate::units::{Name, Rate, parse_name};
 
 /// The fixture tree `tests/fixtures/net/<case>`, laid out like `/`.
 fn root(case: &str) -> Root {
@@ -41,7 +41,7 @@ fn rates_count_up_non_loopback_interfaces() {
         iface(("en1", false, false)),
         iface(("utun0", true, false)),
     ];
-    let names: Vec<&str> = up_interfaces(&all)
+    let names: Vec<&str> = selected(&all, None)
         .iter()
         .map(|i| i.name.as_str())
         .collect();
@@ -96,4 +96,64 @@ fn other_signals_are_unsupported() {
     let mut net = NetSignal::new(root("linux"));
     let [first, _] = twice(&mut net, SignalId::Disk);
     assert!(matches!(first, Reading::Unsupported { .. }), "{first}");
+}
+
+/// The interface name `s`.
+fn name(s: &str) -> Option<Name> {
+    parse_name(s).ok()
+}
+
+/// A Linux net signal over fixture `case`, reading only `iface`.
+fn linux_iface(case: &str, iface: &str) -> Option<NetSignal> {
+    let net = NetSignal::on(root(case), Os::Linux);
+    net.iface(name(iface)?).ok()
+}
+
+/// A rate of zero bytes per second.
+const ZERO: Reading = Reading::Value(Measure::Rate(Rate(0)));
+
+#[test]
+fn net_iface_reads_that_interface_even_when_down() {
+    let mut net = linux_iface("linux", "docker0");
+    let readings = net.as_mut().map(|n| twice(n, SignalId::NetRx));
+    assert_eq!(readings, Some([Reading::Warming, ZERO]));
+}
+
+#[test]
+fn net_iface_counts_only_that_interface() {
+    let all = [iface(("en0", true, false)), iface(("en1", true, false))];
+    let one = name("en1");
+    let names: Vec<&str> = selected(&all, one.as_ref())
+        .iter()
+        .map(|i| i.name.as_str())
+        .collect();
+    assert_eq!(names, ["en1"]);
+}
+
+#[test]
+fn unknown_net_iface_is_a_usage_error() {
+    let eth9 = name("eth9");
+    let net = NetSignal::on(root("linux"), Os::Linux);
+    let err = eth9.clone().and_then(|n| net.iface(n).err());
+    assert_eq!(err, eth9.map(|name| NetError::UnknownIface { name }));
+    let shown = err.map(|e| e.to_string()).unwrap_or_default();
+    assert_eq!(shown, "--net-iface eth9: no such interface");
+}
+
+#[test]
+fn net_iface_is_taken_when_interfaces_cannot_be_listed() {
+    assert!(linux_iface("absent", "eth0").is_some());
+}
+
+#[test]
+fn net_iface_that_went_away_is_unsupported() {
+    let mut net = linux_iface("linux", "eth0");
+    let first = net.as_mut().map(|net| {
+        net.root = root("noflags");
+        twice(net, SignalId::Net)[0].to_string()
+    });
+    assert_eq!(
+        first.as_deref(),
+        Some("unsupported: eth0: no such interface")
+    );
 }

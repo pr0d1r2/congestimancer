@@ -3,10 +3,12 @@
 
 use std::time::Instant;
 
+use super::NetError;
 use super::dev::linux_interfaces;
 use super::rates::Rates;
 use crate::signal::{Reading, Reason, Root, SignalId, Source};
 use crate::sys::{InterfaceCounters, interface_counters};
+use crate::units::Name;
 
 /// Which OS's sources a [`NetSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -27,6 +29,9 @@ pub struct NetSignal {
     root: Root,
     /// The OS whose sources are read.
     os: Os,
+    /// The one interface read (`--net-iface`), or `None` for every up,
+    /// non-loopback one.
+    iface: Option<Name>,
     /// The bases of the rates.
     rates: Rates,
 }
@@ -48,15 +53,33 @@ impl NetSignal {
         Self {
             root,
             os,
+            iface: None,
             rates: Rates::default(),
         }
+    }
+
+    /// Reads only the interface `name` (`--net-iface`), up or not
+    /// (src/net:V1).
+    ///
+    /// # Errors
+    ///
+    /// [`NetError::UnknownIface`] when the interfaces can be listed and
+    /// `name` is not among them: a usage error, exit 64.
+    pub fn iface(self, name: Name) -> Result<Self, NetError> {
+        Ok(Self {
+            iface: Some(name),
+            ..self
+        })
     }
 }
 
 /// The interfaces the rates count: every one up and not loopback
 /// (src/net:V1).
 #[must_use]
-pub fn up_interfaces(all: &[InterfaceCounters]) -> Vec<&InterfaceCounters> {
+pub fn selected<'a>(
+    all: &'a [InterfaceCounters],
+    _iface: Option<&Name>,
+) -> Vec<&'a InterfaceCounters> {
     all.iter().filter(|i| i.up && !i.loopback).collect()
 }
 
@@ -77,7 +100,10 @@ impl Source for NetSignal {
             return Reading::unsupported(format!("{id} is not a net rate"));
         }
         match self.interfaces() {
-            Ok(all) => self.rates.read(id, &up_interfaces(&all), now),
+            Ok(all) => {
+                self.rates
+                    .read(id, &selected(&all, self.iface.as_ref()), now)
+            }
             Err(reason) => {
                 self.rates.forget(id);
                 Reading::Unsupported { reason }

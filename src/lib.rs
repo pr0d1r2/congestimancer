@@ -42,8 +42,8 @@ pub use limits::{
 };
 
 pub use net::{
-    NetDevError, NetSignal, linux_interfaces, parse_if_flags, parse_net_dev,
-    up_interfaces,
+    NetDevError, NetError, NetSignal, linux_interfaces, parse_if_flags,
+    parse_net_dev, selected,
 };
 
 pub use power::{
