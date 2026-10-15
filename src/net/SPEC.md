@@ -40,7 +40,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §I INTERFACES
 
 - switches: `--net-rx X/s` · `--net-tx X/s` · `--net X/s` · `--net-iface I` · `--rtt D` · `--rtt-host H[:PORT]`.
-- sources: Linux `/proc/net/dev` · macOS `getifaddrs` + `if_data`.
+- sources: Linux `/proc/net/dev` · macOS `sys::interface_counters` (64-bit `NET_RT_IFLIST2`, `src/sys` R5).
 
 ## §V INVARIANTS
 
