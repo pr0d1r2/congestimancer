@@ -11,8 +11,9 @@ use super::{
     DiskStat, IoError, linux_device, macos_device, parse_diskstats,
     parse_mountinfo,
 };
-use crate::signal::{Counter, Reason, Root, Sample, Signal, SignalId};
+use crate::signal::{Counter, Measure, Reason, Root, Sample, Signal, SignalId};
 use crate::sys::{BlockStats, mount_source, physical_disk_stats, read_text};
+use crate::units::Count;
 
 /// Which OS's sources an [`IoSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -70,6 +71,7 @@ impl IoSignal {
 impl Signal for IoSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
+            SignalId::IoQueue => self.queue(),
             SignalId::IoRead
             | SignalId::IoWrite
             | SignalId::Io
@@ -85,6 +87,15 @@ impl Signal for IoSignal {
 }
 
 impl IoSignal {
+    /// `--io-queue`: requests in flight now; Linux only (src/io:V8).
+    fn queue(&self) -> Result<Sample, Reason> {
+        if self.os == Os::Macos {
+            return Err(Reason::from("no in-flight count on macOS"));
+        }
+        let disk = self.linux_disk()?;
+        Ok(Sample::Gauge(Measure::Count(Count(disk.in_flight))))
+    }
+
     /// The device's running totals on this OS.
     fn totals(&self) -> Result<Totals, Reason> {
         match self.os {

@@ -71,7 +71,7 @@ T3|x|path → physical disk: macOS APFS|V1,V2,V3
 T4|x|`--io-read` `--io-write` `--io` both OS|V4,V5
 T5|x|`--io-busy` both OS|V6
 T6|x|`--io-latency` both OS|V7
-T7|.|`--io-queue`|V8
+T7|x|`--io-queue`|V8
 T8|.|`--io-pressure` & `-full`|V9
 T9|.|`--io-device` override|V1,V10
 T10|x|SPIKE: settle R1–R2|-

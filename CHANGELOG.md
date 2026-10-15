@@ -316,3 +316,5 @@ is a development series, not for production.
   bound capped at 100%); `--io-latency D` while the mean time per
   completed request is under D, passing when none completed. The first
   reading warms up.
+- `--io-queue X` passes while fewer than X requests are in flight on the
+  device (`/proc/diskstats`); macOS is unsupported.
