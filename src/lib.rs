@@ -30,6 +30,7 @@ mod wait;
 pub use advise::{
     Advice, AdviceAction, AdviceLimit, AdviseRequest, AdviseUnsupported,
     advise, advise_exit_code, advise_readings, cpu_fit, decide, mem_fit,
+    write_advice, write_advice_json,
 };
 
 pub use cgroup::{

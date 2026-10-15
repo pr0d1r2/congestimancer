@@ -7,10 +7,12 @@
 
 mod decide;
 mod fit;
+mod render;
 mod verb;
 
 pub use decide::{Advice, AdviceAction, AdviceLimit, AdviseRequest, decide};
 pub use fit::{cpu_fit, mem_fit};
+pub use render::{write_advice, write_advice_json};
 pub use verb::{AdviseUnsupported, advise, advise_exit_code, advise_readings};
 
 use crate::cpu as _;
