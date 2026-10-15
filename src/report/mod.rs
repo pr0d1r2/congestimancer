@@ -7,8 +7,10 @@
 //! write to a `Vec<u8>` and only the caller (`src/cli`) owns the real
 //! streams; nothing here reads the environment or asks for a TTY.
 
+mod colour;
 mod json;
 mod model;
 
+pub use colour::{Paint, Style};
 pub use json::{SCHEMA_VERSION, json_string, write_json};
 pub use model::{StatusReport, StatusRow, switch_name};
