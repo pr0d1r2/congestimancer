@@ -113,13 +113,16 @@ where
     C: Clock + ?Sized,
     A: Admit,
 {
-    let mut run = Run::new(pacing);
+    let mut run = Run::new(pacing, rig.clock.now());
     loop {
         let now = rig.clock.now();
         if let Some(outcome) = run.round(&mut rig, now, admit)? {
             return Ok(outcome);
         }
-        rig.clock.sleep(run.pause());
+        if run.expired(now) {
+            return Ok(Outcome::TimedOut(run.last.take()));
+        }
+        rig.clock.sleep(run.pause(now));
     }
 }
 
@@ -136,17 +139,28 @@ struct Run<'p> {
     pause: Duration,
     /// Whether the last round that decided anything failed.
     failing: bool,
+    /// When `--timeout` runs out, if it can.
+    deadline: Option<Instant>,
+    /// The last round's evaluation.
+    last: Option<Evaluation>,
 }
 
 impl<'p> Run<'p> {
-    /// A wait that has not checked yet.
-    fn new(pacing: &'p Pacing) -> Self {
+    /// A wait that starts at `start` and has not checked yet.
+    fn new(pacing: &'p Pacing, start: Instant) -> Self {
         Self {
             pacing,
             trends: Trends::new(),
             pause: pacing.base(),
             failing: false,
+            deadline: pacing.timeout.and_then(|t| start.checked_add(t)),
+            last: None,
         }
+    }
+
+    /// Whether `--timeout` has run out at `now` (src/wait:V3).
+    fn expired(&self, now: Instant) -> bool {
+        self.deadline.is_some_and(|deadline| now >= deadline)
     }
 
     /// Evaluates the gates at `now`; the outcome when the wait is over.
@@ -162,8 +176,10 @@ impl<'p> Run<'p> {
         A: Admit,
     {
         let evaluation = evaluate(rig.gates, rig.source, now, &mut self.trends);
-        self.pace(evaluation.overall);
-        if !evaluation.overall.is_pass() {
+        let overall = evaluation.overall;
+        self.pace(overall);
+        self.last = Some(evaluation);
+        if !overall.is_pass() {
             return Ok(None);
         }
         Ok(admit.try_admit()?.map(Outcome::Released))
@@ -186,9 +202,12 @@ impl<'p> Run<'p> {
         }
     }
 
-    /// How long to sleep before the next round.
-    const fn pause(&self) -> Duration {
-        self.pause
+    /// How long to sleep at `now` before the next round: the pause, cut
+    /// short so the last round falls on the deadline.
+    fn pause(&self, now: Instant) -> Duration {
+        self.deadline.map_or(self.pause, |deadline| {
+            self.pause.min(deadline.saturating_duration_since(now))
+        })
     }
 }
 

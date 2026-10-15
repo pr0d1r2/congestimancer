@@ -358,3 +358,5 @@ is a development series, not for production.
   interval.
 - With `--backoff D`, each further failed round doubles the pause up to `D`;
   a passing round puts it back to `--interval`.
+- With `--timeout D`, the wait takes one last round on the deadline and then
+  gives up with exit 124, keeping that round's verdicts for the report.
