@@ -55,6 +55,15 @@ impl Pacing {
     pub(super) fn base(&self) -> Duration {
         self.interval.max(MIN_INTERVAL)
     }
+
+    /// The pause after another failed round that followed one paused for
+    /// `current`: doubled up to `--backoff`, never below the interval;
+    /// the interval itself without `--backoff` (src/wait:V2).
+    pub(super) fn backed_off(&self, current: Duration) -> Duration {
+        let base = self.base();
+        self.backoff
+            .map_or(base, |cap| current.saturating_mul(2).min(cap).max(base))
+    }
 }
 
 impl Default for Pacing {

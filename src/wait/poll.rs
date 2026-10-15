@@ -6,7 +6,7 @@ use std::io::Write;
 use std::time::{Duration, Instant};
 
 use super::Pacing;
-use crate::gate::{Evaluation, Gates, evaluate};
+use crate::gate::{Evaluation, Gates, Overall, evaluate};
 use crate::signal::{Clock, Source, Trends};
 
 /// The slot steps that run once the gates pass and settle, before
@@ -132,6 +132,10 @@ struct Run<'p> {
     pacing: &'p Pacing,
     /// Each signal's history, for the trend in a block reason.
     trends: Trends,
+    /// The pause before the next round.
+    pause: Duration,
+    /// Whether the last round that decided anything failed.
+    failing: bool,
 }
 
 impl<'p> Run<'p> {
@@ -140,6 +144,8 @@ impl<'p> Run<'p> {
         Self {
             pacing,
             trends: Trends::new(),
+            pause: pacing.base(),
+            failing: false,
         }
     }
 
@@ -156,15 +162,33 @@ impl<'p> Run<'p> {
         A: Admit,
     {
         let evaluation = evaluate(rig.gates, rig.source, now, &mut self.trends);
+        self.pace(evaluation.overall);
         if !evaluation.overall.is_pass() {
             return Ok(None);
         }
         Ok(admit.try_admit()?.map(Outcome::Released))
     }
 
+    /// Sets the next pause from this round's `overall`: a pass resets it,
+    /// a failure after a failure backs it off, warming keeps it
+    /// (src/wait:V2).
+    fn pace(&mut self, overall: Overall) {
+        match overall {
+            Overall::Pass => {
+                self.pause = self.pacing.base();
+                self.failing = false;
+            }
+            Overall::Fail if self.failing => {
+                self.pause = self.pacing.backed_off(self.pause);
+            }
+            Overall::Fail => self.failing = true,
+            Overall::Warming | Overall::Unsupported => {}
+        }
+    }
+
     /// How long to sleep before the next round.
-    fn pause(&self) -> Duration {
-        self.pacing.base()
+    const fn pause(&self) -> Duration {
+        self.pause
     }
 }
 

@@ -356,3 +356,5 @@ is a development series, not for production.
   evaluates the gates every `--interval` (default `2s`) on the monotonic
   clock, sleeping between rounds and never spinning, even on a zero
   interval.
+- With `--backoff D`, each further failed round doubles the pause up to `D`;
+  a passing round puts it back to `--interval`.
