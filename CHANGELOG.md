@@ -385,3 +385,6 @@ is a development series, not for production.
   `jobs=3 limit=mem action=reduce`, or with `--json` one line sharing
   `status`'s `schema_version` with `jobs`, `limit`, `action` and the
   `blocking` gates, each with its value and threshold.
+- `ssh_argv` and `shell_quote`: `--host` runs `ssh -o BatchMode=yes H
+  cgmr check --json` with each gate word its own argv word, single-quoted
+  for the remote shell so nothing in it expands.
