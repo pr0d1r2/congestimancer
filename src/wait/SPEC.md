@@ -61,7 +61,7 @@ id|status|task|cites
 T1|x|loop w/ interval & fake clock tests|V1,V7
 T2|x|backoff|V2
 T3|x|timeout|V3
-T4|.|settle|V4
+T4|x|settle|V4
 T5|.|jitter|V5
 T6|.|heartbeat|V6
 T7|.|unsupported short-circuit|V8

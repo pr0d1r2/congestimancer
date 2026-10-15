@@ -143,6 +143,8 @@ struct Run<'p> {
     deadline: Option<Instant>,
     /// The last round's evaluation.
     last: Option<Evaluation>,
+    /// Since when the gates have passed without a break.
+    since: Option<Instant>,
 }
 
 impl<'p> Run<'p> {
@@ -155,6 +157,7 @@ impl<'p> Run<'p> {
             failing: false,
             deadline: pacing.timeout.and_then(|t| start.checked_add(t)),
             last: None,
+            since: None,
         }
     }
 
@@ -179,10 +182,28 @@ impl<'p> Run<'p> {
         let overall = evaluation.overall;
         self.pace(overall);
         self.last = Some(evaluation);
-        if !overall.is_pass() {
+        if !self.settled(overall, now) {
             return Ok(None);
         }
         Ok(admit.try_admit()?.map(Outcome::Released))
+    }
+
+    /// Whether the gates have passed without a break for `--settle` at
+    /// `now`, given this round's `overall`; anything but a pass starts the
+    /// span again (src/wait:V4).
+    fn settled(&mut self, overall: Overall, now: Instant) -> bool {
+        if !overall.is_pass() {
+            self.since = None;
+            return false;
+        }
+        let since = *self.since.get_or_insert(now);
+        let hold = self.pacing.settle.unwrap_or_default();
+        now.saturating_duration_since(since) >= hold
+    }
+
+    /// When the current pass will have held for `--settle`.
+    fn settles_at(&self) -> Option<Instant> {
+        self.since?.checked_add(self.pacing.settle?)
     }
 
     /// Sets the next pause from this round's `overall`: a pass resets it,
@@ -203,11 +224,14 @@ impl<'p> Run<'p> {
     }
 
     /// How long to sleep at `now` before the next round: the pause, cut
-    /// short so the last round falls on the deadline.
+    /// short so a round falls on the deadline and on the end of settle.
     fn pause(&self, now: Instant) -> Duration {
-        self.deadline.map_or(self.pause, |deadline| {
-            self.pause.min(deadline.saturating_duration_since(now))
-        })
+        [self.deadline, self.settles_at()]
+            .into_iter()
+            .flatten()
+            .filter(|&at| at > now)
+            .map(|at| at.saturating_duration_since(now))
+            .fold(self.pause, Duration::min)
     }
 }
 

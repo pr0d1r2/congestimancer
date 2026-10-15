@@ -360,3 +360,5 @@ is a development series, not for production.
   a passing round puts it back to `--interval`.
 - With `--timeout D`, the wait takes one last round on the deadline and then
   gives up with exit 124, keeping that round's verdicts for the report.
+- With `--settle D`, the gates must pass without a break for `D` before the
+  command is let go; a failing or warming round starts the span again.
