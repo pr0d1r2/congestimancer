@@ -343,3 +343,4 @@ is a development series, not for production.
 - `write_json` and `StatusReport`: `status --json` and `check --json`
   write schema v1 (`schema_version`, `host`, `signals`, `gates`) with
   stable field names; numbers use a `.` whatever the locale.
+- `Style`: output is coloured only on a terminal with `NO_COLOR` unset.
