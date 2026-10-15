@@ -127,3 +127,6 @@ is a development series, not for production.
   the cgroup's own `cpu.pressure`, `memory.pressure` and `io.pressure`, and
   `--mem` reads the least memory any limited cgroup above has left, never
   more than the host has available.
+- `load_warning`: inside a cgroup, a `--load` gate gets a warning that the
+  host's load does not match the container's CPUs, suggesting
+  `--cpu-pressure`.
