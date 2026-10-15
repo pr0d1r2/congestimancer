@@ -220,3 +220,5 @@ is a development series, not for production.
   each DRM card's `gpu_busy_percent` and `mem_info_vram_total|used`, as a
   `Gpu` with its busy percent and free VRAM; an unparsed file leaves its
   field empty, never a fake number.
+- `Gpu::from(&NvmlGpu)`: NVIDIA busy percent and free memory from NVML;
+  a reading NVML did not give stays empty.
