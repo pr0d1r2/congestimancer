@@ -58,7 +58,7 @@ id|status|task|cites
 T1|x|exec + exit codes 126/127|V1
 T2|x|no-cmd exit 0|V2
 T3|x|env cleanup & held marker|V3
-T4|.|`--govern` spawn, stop/cont, forward signals|V4
+T4|~|`--govern` spawn, stop/cont, forward signals|V4
 T5|x|`--background` both OS|V5
 T6|x|`--or-background`|V6
 T7|.|govern w/ slots, timeout & host|V8

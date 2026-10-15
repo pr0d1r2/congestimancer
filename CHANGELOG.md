@@ -418,3 +418,6 @@ is a development series, not for production.
   at background priority, instead of exiting 124.
 - `Slots`: the slot steps as the wait's admission; the command inherits
   its slot and memory reservation locks, so they last until it exits.
+- `govern_step` and `status_code`: the rules `--govern` will follow; a
+  failing round stops the command's group, a pass resumes it, and its
+  end passes on as its own exit code or 128 + n for signal n.
