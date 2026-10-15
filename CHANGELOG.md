@@ -258,3 +258,6 @@ is a development series, not for production.
   available memory per CPU (`mem_per_cpu`), never divided by zero.
 - `mem_unreserved`: `--needs-mem X` compares available memory less the
   memory running cgmr jobs reserved, never below zero.
+- `--mem-pressure X` and `--mem-pressure-full X` pass while the `some` or
+  `full` avg10 of `/proc/pressure/memory` is under X; macOS is
+  unsupported, pointing at `--mem-level`.

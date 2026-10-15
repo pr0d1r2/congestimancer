@@ -1,9 +1,14 @@
 //! [`MemSignal`]: the memory signals, from Linux `/proc` under a
-//! [`Root`] or macOS sysctls and mach counters (src/mem:T1).
+//! [`Root`] or macOS sysctls and mach counters (src/mem:T1, T3).
 
-use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
-use crate::sys::Snapshot;
-use crate::units::Bytes;
+use crate::signal::{
+    Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
+};
+use crate::sys::{Snapshot, read_text};
+use crate::units::{Bytes, Percent};
+
+/// Linux memory pressure stall information.
+const PRESSURE: &str = "/proc/pressure/memory";
 
 /// Which OS's sources a [`MemSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -60,18 +65,39 @@ impl MemSignal {
         self.snapshot.refresh_memory();
         Bytes(self.snapshot.memory().available)
     }
+
+    /// `--mem-pressure` (`some avg10`) or, when `full`,
+    /// `--mem-pressure-full` (`full avg10`); Linux only (src/mem:V4).
+    fn pressure(&self, full: bool) -> Result<Percent, Reason> {
+        if self.os == Os::Macos {
+            return Err(Reason::from("no PSI on macOS; use --mem-level"));
+        }
+        let text = read_text(&self.root, PRESSURE).map_err(reason)?;
+        let psi = parse_psi(&text).map_err(reason)?;
+        let line = if full { psi.full } else { Some(psi.some) };
+        line.map(|line| line.avg10).ok_or_else(|| {
+            Reason::from(format!("{PRESSURE} has no `full` line"))
+        })
+    }
 }
 
 impl Signal for MemSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
-        let _ = (&self.root, self.os);
-        match id {
-            SignalId::Mem => Sample::Gauge(Measure::Bytes(self.available())),
-            _ => Sample::Unsupported(Reason::from(format!(
-                "{id} is not a mem signal"
-            ))),
-        }
+        let measure = match id {
+            SignalId::Mem => Ok(Measure::Bytes(self.available())),
+            SignalId::MemPressure => self.pressure(false).map(Measure::Percent),
+            SignalId::MemPressureFull => {
+                self.pressure(true).map(Measure::Percent)
+            }
+            _ => Err(Reason::from(format!("{id} is not a mem signal"))),
+        };
+        measure.map_or_else(Sample::Unsupported, Sample::Gauge)
     }
+}
+
+/// An error as the reason a signal has no value.
+fn reason(err: impl ToString) -> Reason {
+    Reason::from(err.to_string())
 }
 
 #[cfg(test)]
