@@ -1,0 +1,297 @@
+//! [`SWITCHES`]: every switch `docs/CONGESTION.md` lists, in its order
+//! (src/cli:V7). Data only; the row builders live in `table`.
+
+use super::table::{
+    Adj, Role, SwitchSpec, Value, WHEN, above, below, flag, one, procs, state,
+};
+use crate::gate::Op;
+
+/// Every switch, in `docs/CONGESTION.md` order (src/cli:V7).
+pub const SWITCHES: &[SwitchSpec] = &[
+    one(
+        "load",
+        Value::Decimal,
+        Role::Gate(Op::Below, Adj::PerCpu),
+        "load average / CPUs < X",
+    ),
+    below("all-load", Value::Decimal, "load average < X"),
+    one(
+        "load-window",
+        Value::LoadWindow,
+        Role::Select,
+        "load average to read: 1m, 5m or 15m [default: 1m]",
+    ),
+    one(
+        "run-queue",
+        Value::Decimal,
+        Role::Gate(Op::Below, Adj::PerCpu),
+        "running tasks / CPUs < X",
+    ),
+    below("all-run-queue", Value::Decimal, "running tasks < X"),
+    above("cpu-idle", Value::Percent, "CPU idle percent > X"),
+    below(
+        "cpu-pressure",
+        Value::Percent,
+        "CPU stall (PSI some avg10) < X",
+    ),
+    below("steal", Value::Percent, "CPU steal percent < X"),
+    one(
+        "mem",
+        Value::Bytes,
+        Role::Gate(Op::Above, Adj::PerCpu),
+        "available memory / CPUs > X",
+    ),
+    above("all-mem", Value::Bytes, "available memory > X"),
+    one(
+        "needs-mem",
+        Value::Bytes,
+        Role::Gate(Op::Above, Adj::Unreserved),
+        "available memory less cgmr reservations > X; reserves X",
+    ),
+    below(
+        "mem-pressure",
+        Value::Percent,
+        "memory stall (PSI some avg10) < X",
+    ),
+    below(
+        "mem-pressure-full",
+        Value::Percent,
+        "memory stall (PSI full avg10) < X",
+    ),
+    state(
+        "mem-level",
+        Value::Level,
+        "memory pressure level at most normal|warning",
+    ),
+    below(
+        "swap-rate",
+        Value::Rate,
+        "swap in + swap out per second < X",
+    ),
+    below("dirty", Value::Bytes, "dirty + writeback pages < X"),
+    above("disk", Value::Bytes, "free space on the disk path > X"),
+    above("inodes", Value::Count, "free inodes on the disk path > X"),
+    one(
+        "disk-path",
+        Value::Path,
+        Role::Select,
+        "path for disk and IO gates [default: working directory]",
+    ),
+    below("io-read", Value::Rate, "device read rate < X"),
+    below("io-write", Value::Rate, "device write rate < X"),
+    below("io", Value::Rate, "device read + write rate < X"),
+    below("io-busy", Value::Percent, "device busy percent < X"),
+    below(
+        "io-latency",
+        Value::Duration,
+        "average time per IO request < X",
+    ),
+    below("io-queue", Value::Count, "IO requests in flight < X"),
+    below(
+        "io-pressure",
+        Value::Percent,
+        "IO stall (PSI some avg10) < X",
+    ),
+    below(
+        "io-pressure-full",
+        Value::Percent,
+        "IO stall (PSI full avg10) < X",
+    ),
+    one(
+        "io-device",
+        Value::Device,
+        Role::Select,
+        "device for IO gates [default: the one holding --disk-path]",
+    ),
+    below("net-rx", Value::Rate, "receive rate < X"),
+    below("net-tx", Value::Rate, "transmit rate < X"),
+    below("net", Value::Rate, "receive + transmit rate < X"),
+    one(
+        "net-iface",
+        Value::Iface,
+        Role::Select,
+        "interface for net gates [default: all up, non-loopback]",
+    ),
+    below("rtt", Value::Duration, "TCP connect time to --rtt-host < X"),
+    one(
+        "rtt-host",
+        Value::Text,
+        Role::Select,
+        "host or host:port for --rtt [port 443]",
+    ),
+    below(
+        "fds",
+        Value::Percent,
+        "open files / system maximum < X percent",
+    ),
+    below(
+        "pids",
+        Value::Percent,
+        "processes / system maximum < X percent",
+    ),
+    flag(
+        "cool",
+        Role::Gate(Op::Is, Adj::Whole),
+        "the CPU is not thermally throttled",
+    ),
+    below("temp", Value::Celsius, "hottest thermal zone < X"),
+    flag(
+        "on-ac",
+        Role::Gate(Op::Is, Adj::Whole),
+        "running on mains power",
+    ),
+    above(
+        "battery",
+        Value::Percent,
+        "battery charge > X percent, or no battery",
+    ),
+    flag(
+        "no-low-power",
+        Role::Gate(Op::Is, Adj::Whole),
+        "Low Power Mode / power saver is off",
+    ),
+    above(
+        "idle",
+        Value::Duration,
+        "no keyboard or mouse input for at least D",
+    ),
+    state("between", Value::Window, "local time is in HH:MM-HH:MM"),
+    below("gpu", Value::Percent, "GPU utilisation < X percent"),
+    above("gpu-mem", Value::Bytes, "free GPU memory > X"),
+    one(
+        "gpu-device",
+        Value::Count,
+        Role::Select,
+        "GPU index [default: all, worst wins]",
+    ),
+    procs(
+        "max-procs",
+        "at most N processes named NAME (NAME=N, glob; repeats)",
+    ),
+    procs(
+        "max-user-procs",
+        "at most N processes owned by USER (USER=N, glob; repeats)",
+    ),
+    one(
+        "cgroup",
+        Value::Cgroup,
+        Role::Select,
+        "auto, host or a cgroup path [default: auto]",
+    ),
+    below(
+        "cpu-throttle",
+        Value::Percent,
+        "throttled share of the cgroup's last interval < X",
+    ),
+    one(
+        "host",
+        Value::Host,
+        Role::Remote,
+        "evaluate every gate on host H over ssh",
+    ),
+    one(
+        WHEN,
+        Value::Text,
+        Role::Custom,
+        "sh -c CMD exits 0 (no environment default)",
+    ),
+    one("when-file", Value::Path, Role::Custom, "PATH exists"),
+    one(
+        "interval",
+        Value::Duration,
+        Role::Wait,
+        "time between gate checks [default: 2s]",
+    ),
+    one(
+        "backoff",
+        Value::Duration,
+        Role::Wait,
+        "while gates fail, double the interval up to D",
+    ),
+    one(
+        "timeout",
+        Value::Duration,
+        Role::Wait,
+        "give up after D: exit 124",
+    ),
+    one(
+        "settle",
+        Value::Duration,
+        Role::Wait,
+        "gates must pass for D without a break",
+    ),
+    one(
+        "jitter",
+        Value::Duration,
+        Role::Wait,
+        "random delay up to D before the start",
+    ),
+    one(
+        "heartbeat",
+        Value::Duration,
+        Role::Wait,
+        "print a waiting line to stderr every D",
+    ),
+    one(
+        "slots",
+        Value::Count,
+        Role::Wait,
+        "at most N commands with --slot-key run at once",
+    ),
+    one(
+        "slot-key",
+        Value::Name,
+        Role::Wait,
+        "slot key [default: the command's name]",
+    ),
+    flag(
+        "fifo",
+        Role::Wait,
+        "with --slots: start waiters in arrival order",
+    ),
+    one(
+        "rate",
+        Value::StartRate,
+        Role::Wait,
+        "at most N starts per D for the slot key (N/D)",
+    ),
+    one(
+        "spacing",
+        Value::Duration,
+        Role::Wait,
+        "at least D between two starts for the slot key",
+    ),
+    flag(
+        "or-background",
+        Role::Wait,
+        "on --timeout, run at background priority instead",
+    ),
+    flag(
+        "verbose",
+        Role::Wait,
+        "say which gate blocks, with value, threshold and trend",
+    ),
+    flag(
+        "govern",
+        Role::Run,
+        "stop the command while gates fail, continue it when they pass",
+    ),
+    flag(
+        "background",
+        Role::Run,
+        "run the command at background CPU and IO priority",
+    ),
+    flag("quiet", Role::Meta, "hide warnings"),
+    one(
+        "profile",
+        Value::Name,
+        Role::Meta,
+        "use the switches of profile NAME",
+    ),
+    one(
+        "profile-file",
+        Value::Path,
+        Role::Meta,
+        "read profiles from this file alone",
+    ),
+];
