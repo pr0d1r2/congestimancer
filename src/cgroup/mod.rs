@@ -8,6 +8,7 @@
 mod error;
 mod limits;
 mod membership;
+mod overlay;
 mod scope;
 mod signal;
 mod stat;
@@ -18,6 +19,7 @@ pub use limits::{
     parse_memory_max,
 };
 pub use membership::{Cgroup, parse_proc_cgroup};
+pub use overlay::{CGROUP_SIGNALS, Scoped};
 pub use scope::{CgroupMode, Scope, parse_cgroup_mode};
 pub use signal::CgroupSignal;
 pub use stat::{CpuStat, Throttling, parse_cpu_stat};

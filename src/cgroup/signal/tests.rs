@@ -7,7 +7,7 @@ use crate::signal::{
     Clock, Counter, ManualClock, Measure, Reading, Root, Sample, Sampled,
     Signal, SignalId, Source,
 };
-use crate::units::Percent;
+use crate::units::{Bytes, Percent};
 
 /// The fixture tree `tests/fixtures/cgroup/<case>`, laid out like `/`.
 fn root(case: &str) -> Root {
@@ -78,4 +78,64 @@ fn throttling_reads_as_a_share_of_the_interval() {
 fn signals_it_does_not_own_are_unsupported() {
     let why = reason(job().sample(SignalId::Load));
     assert_eq!(why, Some("load is not a cgroup signal".to_owned()));
+}
+
+/// A gauge of `hundredths` percent.
+fn pct(hundredths: u16) -> Sample {
+    let p = Percent::from_hundredths(hundredths).unwrap_or_default();
+    Sample::Gauge(Measure::Percent(p))
+}
+
+#[test]
+fn pressure_gates_read_the_cgroup_files() {
+    let mut job = job();
+    let got = [
+        SignalId::CpuPressure,
+        SignalId::MemPressure,
+        SignalId::MemPressureFull,
+        SignalId::IoPressure,
+        SignalId::IoPressureFull,
+    ]
+    .map(|id| job.sample(id));
+    assert_eq!(got, [pct(1250), pct(75), pct(25), pct(500), pct(400)]);
+}
+
+#[test]
+fn missing_pressure_is_unsupported_naming_the_file() {
+    assert_eq!(
+        reason(session().sample(SignalId::IoPressure)),
+        Some(
+            "/sys/fs/cgroup/user.slice/session-1.scope/io.pressure: \
+             not present"
+                .to_owned()
+        )
+    );
+}
+
+#[test]
+fn a_missing_full_line_is_unsupported() {
+    let mut container = CgroupSignal::new(root("container"), Cgroup::new("/"));
+    assert_eq!(
+        reason(container.sample(SignalId::CpuPressure)),
+        None,
+        "cpu.pressure has a some line"
+    );
+    assert_eq!(
+        reason(container.sample(SignalId::IoPressureFull)),
+        Some("/sys/fs/cgroup/io.pressure has no full line".to_owned())
+    );
+}
+
+#[test]
+fn memory_left_is_the_tightest_limit_in_the_lineage() {
+    let left = job().sample(SignalId::Mem);
+    assert_eq!(left, Sample::Gauge(Measure::Bytes(Bytes(5 << 30))));
+}
+
+#[test]
+fn no_memory_limit_is_unsupported() {
+    assert_eq!(
+        reason(session().sample(SignalId::Mem)),
+        Some("/user.slice/session-1.scope has no memory limit".to_owned())
+    );
 }
