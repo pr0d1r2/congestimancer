@@ -1,11 +1,13 @@
 //! `src/net`: interface rates, RTT probe.
 //!
-//! Scaffold: the node's code lands here (`src/net` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): the Linux parsers in `dev`.
 
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
+
+mod dev;
 
 use crate::signal as _;
 use crate::sys as _;
 use crate::units as _;
+
+pub use dev::{NetDevError, linux_interfaces, parse_if_flags, parse_net_dev};
