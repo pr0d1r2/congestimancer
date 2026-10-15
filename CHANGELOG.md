@@ -158,3 +158,5 @@ is a development series, not for production.
   while the power-profiles-daemon profile is not `power-saver`; Linux
   without the daemon's state is unsupported (`parse_ppd_profile`,
   `PPD_STATE`).
+- `Glob`: process and user name patterns, `*` for any run of characters
+  and `?` for exactly one, matched against the whole name.
