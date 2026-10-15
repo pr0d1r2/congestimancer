@@ -41,18 +41,19 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §I INTERFACES
 
-- files: `read_text(root, path) -> io::Result<String>` (procfs, sysfs, cgroupfs).
-- sysinfo: shared lazily refreshed `System` snapshot: load avg, memory, processes. ⊥ per-disk IO (T1: bytes only) → `/proc/diskstats` & IOKit.
+- files: `read_text`, `list_dir` under `Root` (procfs, sysfs, cgroupfs).
+- users: `user_id`, `user_name`, `current_uid`.
+- sysinfo: lazy `System` snapshot: load avg, memory, processes; per-disk IO → `/proc/diskstats` & IOKit (T1).
 - rustix: `statvfs(path)`, `flock(fd)`, `setpriority`.
-- macOS FFI: `sysctlbyname` (`kern.memorystatus_*`, `kern.num_*`, `kern.max*`, `vm.swapusage`), `host_processor_info`, `host_statistics64`, IOKit (block storage stats, power sources, `HIDIdleTime`, GPU `PerformanceStatistics`), `notify_get_state`, `setiopolicy_np`.
-- Linux FFI: `ioprio_set`; NVML via `dlopen` (R3, V4).
+- macOS FFI: `sysctlbyname` (`kern.memorystatus_*`, `kern.num_*`, `kern.max*`, `vm.swapusage`), `host_processor_info`, `host_statistics64`, IOKit (block stats, power, `HIDIdleTime`, GPU stats), `notify_get_state`, `setiopolicy_np`.
+- Linux FFI: `ioprio_set`; NVML `dlopen` (R3).
 - net: `NET_RT_IFLIST2` (macOS, R5); TCP connect w/ timeout (std); Linux system bus `UnixStream`, ⊥ codec.
 
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|mach & sysctl access|`libc` ⊥ `mach2`: `libc` has both fns + structs; `mach2` 0.7 ⊥ fns. `mach_host_self` deprecated → scoped `allow(deprecated)`. probed: kr=0|`libc` 0.2.190 `unix/bsd/apple/mod.rs`
-R2|IOKit & CoreFoundation|`objc2-io-kit` + `objc2-core-foundation` 0.3: already pulled by `sysinfo` `disk` ∴ 0 new crates; MIT option; `CFRetained` RAII. probed: block storage stats, power sources ok|`sysinfo` 0.39.6 `Cargo.toml`
+R1|mach & sysctl access|`libc` ⊥ `mach2` 0.7 (⊥ fns). `mach_host_self` deprecated → scoped `allow(deprecated)`. probed kr=0|`libc` 0.2.190 `unix/bsd/apple/mod.rs`
+R2|IOKit & CoreFoundation|`objc2-io-kit` + `objc2-core-foundation` 0.3: pulled by `sysinfo` ∴ 0 new crates; MIT; `CFRetained` RAII. probed ok|`sysinfo` 0.39.6 `Cargo.toml`
 R3|NVML loading|`libc::dlopen` ⊥ `libloading`: ISC ⊥ `deny.toml`, still `unsafe`. Linux: by source, unverified on host|`libloading` 0.9 `Cargo.toml`
 R4|Objective-C calls|settled: ⊥ ObjC. thermal & low power → C `notify_get_state`|`src/power` R1, R2
 R5|macOS iface counters|`NET_RT_IFLIST2` `if_data64` ⊥ `getifaddrs` `if_data`: 32-bit, wraps|`net/if.h`
@@ -86,6 +87,8 @@ T13|x|TCP connect probe w/ timeout|V2
 T14|x|SPIKE: settle R1–R4|-
 T15|x|fixture capture of ∀ sources|V7
 T16|x|Linux system bus `UnixStream`|V2,V4
+T17|.|`list_dir`: sorted names|V4
+T18|.|users via `getpw*_r`|V1,V2
 
 ## §B BUGS
 
