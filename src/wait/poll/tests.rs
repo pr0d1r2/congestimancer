@@ -303,3 +303,29 @@ fn warming_breaks_settle_too() {
     assert!(released(&bench.open(&settle(2, 3))));
     assert_eq!(bench.rounds(), 5);
 }
+
+#[test]
+fn an_unsupported_gate_ends_the_wait_at_once() {
+    let mut bench = Bench::new(&[]);
+    let mut turns = Turns::default();
+    let outcome = bench.run(&settle(2, 3), &mut turns);
+    assert!(matches!(&outcome, Ok(Outcome::Unsupported(_))));
+    assert_eq!(outcome.ok().and_then(|o| o.exit_code()), Some(69));
+    assert!(bench.sleeps().is_empty());
+    assert_eq!(turns.tries, 0);
+}
+
+#[test]
+fn a_gate_that_turns_unsupported_mid_wait_ends_it() {
+    let mut source = FakeSource::new();
+    let gone = Reading::unsupported("sensor gone");
+    source.script(SignalId::Load, [load(FAIL), gone]);
+    let mut bench = Bench::new(&[]);
+    bench.source = source;
+    let outcome = bench.open(&timeout(2, 60));
+    assert!(matches!(
+        outcome,
+        Outcome::Unsupported(e) if e.overall == Overall::Unsupported
+    ));
+    assert_eq!(bench.sleeps(), [secs(2)]);
+}
