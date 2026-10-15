@@ -2,7 +2,7 @@
 //! (src/sys:T13, V2; src/net). std only: no raw sockets, no root.
 
 use std::io;
-use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
+use std::net::{Ipv6Addr, SocketAddr, TcpStream, ToSocketAddrs};
 use std::time::{Duration, Instant};
 
 /// The time a TCP connect to `target` (`host`, `host:port`, `[v6]:port`)
@@ -25,8 +25,16 @@ pub fn tcp_connect_time(
 
 /// `target` with `default_port` added when it has none.
 fn with_port(target: &str, default_port: u16) -> String {
-    let _ = default_port;
-    target.to_owned()
+    if target.parse::<SocketAddr>().is_ok() {
+        return target.to_owned();
+    }
+    if target.parse::<Ipv6Addr>().is_ok() {
+        return format!("[{target}]:{default_port}");
+    }
+    match target.rsplit_once(':') {
+        Some((_, port)) if port.parse::<u16>().is_ok() => target.to_owned(),
+        _ => format!("{target}:{default_port}"),
+    }
 }
 
 /// Connects to the first of `addrs` that answers before `timeout` runs out.
@@ -37,11 +45,14 @@ fn connect_any(
     let start = Instant::now();
     let mut last = io::Error::from(io::ErrorKind::TimedOut);
     for addr in addrs {
-        let Some(left) = timeout.checked_sub(start.elapsed()) else {
+        let left = timeout.saturating_sub(start.elapsed());
+        if left.is_zero() {
             break;
-        };
-        let _ = (addr, left, TcpStream::connect_timeout);
-        last = io::Error::from(io::ErrorKind::TimedOut);
+        }
+        match TcpStream::connect_timeout(&addr, left) {
+            Ok(_) => return Ok(start.elapsed()),
+            Err(err) => last = err,
+        }
     }
     Err(last)
 }

@@ -102,3 +102,5 @@ is a development series, not for production.
 - `interface_counters`: on macOS, every network interface with 64-bit
   received and sent bytes, packets and errors, and whether it is up or
   loopback.
+- `tcp_connect_time`: how long a TCP connect to `host[:port]` takes, every
+  resolved address tried within one timeout.
