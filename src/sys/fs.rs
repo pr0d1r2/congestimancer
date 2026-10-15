@@ -32,20 +32,27 @@ impl FsStats {
     /// The filesystem size in bytes, saturating.
     #[must_use]
     pub const fn bytes_total(&self) -> u64 {
-        0
+        self.blocks.saturating_mul(self.fragment_size)
     }
 
     /// Bytes an unprivileged user may still write, saturating.
     #[must_use]
     pub const fn bytes_available(&self) -> u64 {
-        0
+        self.blocks_available.saturating_mul(self.fragment_size)
     }
 }
 
 impl From<StatVfs> for FsStats {
     fn from(raw: StatVfs) -> Self {
-        let _ = raw;
-        Self::default()
+        Self {
+            fragment_size: raw.f_frsize,
+            blocks: raw.f_blocks,
+            blocks_free: raw.f_bfree,
+            blocks_available: raw.f_bavail,
+            files: raw.f_files,
+            files_free: raw.f_ffree,
+            files_available: raw.f_favail,
+        }
     }
 }
 
@@ -66,8 +73,11 @@ pub fn statvfs(path: &Path) -> io::Result<FsStats> {
 ///
 /// The OS error for anything but "already locked".
 pub fn try_lock_exclusive(file: &File) -> io::Result<bool> {
-    let _ = (file, FlockOperation::NonBlockingLockExclusive);
-    Ok(true)
+    match rustix::fs::flock(file, FlockOperation::NonBlockingLockExclusive) {
+        Ok(()) => Ok(true),
+        Err(rustix::io::Errno::WOULDBLOCK) => Ok(false),
+        Err(err) => Err(err.into()),
+    }
 }
 
 /// Releases this open file's `flock`.

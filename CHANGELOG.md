@@ -73,3 +73,6 @@ is a development series, not for production.
   does not have is an `Unsupported` error naming the path.
 - `Snapshot`: load averages, memory and swap, and the process list (name and
   uid only) from one sysinfo view; each part is read only when asked for.
+- `statvfs` (space and inodes of the filesystem holding a path, byte totals
+  saturating), `try_lock_exclusive` and `unlock` (`flock` locks that never
+  wait), and `nice` and `set_nice` for this process.
