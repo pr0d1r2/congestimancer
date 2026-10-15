@@ -17,8 +17,7 @@ pub fn mem_per_cpu(available: Bytes, cpus: u64) -> Option<Bytes> {
 /// that holds the lock dir.
 #[must_use]
 pub const fn mem_unreserved(available: Bytes, reserved: Bytes) -> Bytes {
-    let _ = reserved;
-    available
+    Bytes(available.0.saturating_sub(reserved.0))
 }
 
 #[cfg(test)]

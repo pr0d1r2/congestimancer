@@ -57,7 +57,7 @@ V8: `status` on macOS also shows `kern.memorystatus_level` %.
 
 id|status|task|cites
 T1|x|available memory both OS + `--mem` `--all-mem`|V1,V2
-T2|.|`--needs-mem` using reservation total|V3
+T2|x|`--needs-mem` using reservation total|V3
 T3|.|`--mem-pressure` & `--mem-pressure-full`|V4
 T4|.|macOS pressure level + `--mem-level`|V5
 T5|.|`/proc/vmstat` parser + Linux swap rate|V6

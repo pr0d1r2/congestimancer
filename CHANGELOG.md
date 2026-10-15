@@ -256,3 +256,5 @@ is a development series, not for production.
 - `MemSignal`: `--all-mem X` passes while available memory, never "free",
   is over X, from `sysinfo` on Linux and macOS; `--mem X` compares
   available memory per CPU (`mem_per_cpu`), never divided by zero.
+- `mem_unreserved`: `--needs-mem X` compares available memory less the
+  memory running cgmr jobs reserved, never below zero.
