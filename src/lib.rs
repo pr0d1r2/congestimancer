@@ -97,7 +97,11 @@ pub use profile::{
     parse_profiles, render_profiles,
 };
 
-pub use remote::{Host, RemoteError, SSH, parse_host, shell_quote, ssh_argv};
+pub use remote::{
+    Host, RemoteError, RemoteGate, RemoteReport, RemoteSignal, RemoteVerdict,
+    Round, SSH, SshReply, SystemSsh, Transport, check_remote, parse_host,
+    parse_reply, shell_quote, ssh_argv,
+};
 
 pub use report::{
     Output, Paint, SCHEMA_VERSION, StatusReport, StatusRow, Stream, Streams,

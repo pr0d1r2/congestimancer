@@ -1,0 +1,1 @@
+{"schema_version":1,"host":"box","signals":[{"id":"load","value":3.5,"unit":"number","trend":"rising","supported":true,"source":"host"},{"id":"gpu","value":null,"unit":null,"trend":null,"supported":false,"source":"host"}],"gates":[{"switch":"load","threshold":"2","verdict":"fail"},{"switch":"gpu","threshold":"50%","verdict":"unsupported"}],"extra":"ignored"}
