@@ -1,12 +1,14 @@
 //! `src/mem`: available memory, memory pressure & level, swap rate, dirty pages.
 //!
-//! Scaffold: the node's code lands here (`src/mem` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): the gates' arithmetic in `fit`, the signals in
+//! `signal`. Linux files are read through `crate::sys` under a
+//! [`Root`](crate::signal::Root), so tests read `tests/fixtures/mem/`;
+//! macOS reads sysctls and mach counters through `crate::sys`. A cgroup
+//! scope lays its own memory and pressure over these signals through
+//! `crate::cgroup::Scoped`.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod fit;
+mod signal;
 
-use crate::cgroup as _;
-use crate::signal as _;
-use crate::sys as _;
-use crate::units as _;
+pub use fit::mem_per_cpu;
+pub use signal::MemSignal;

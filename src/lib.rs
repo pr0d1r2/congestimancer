@@ -46,6 +46,8 @@ pub use limits::{
     parse_loadavg_tasks, parse_pid_max,
 };
 
+pub use mem::{MemSignal, mem_per_cpu};
+
 pub use net::{
     NetDevError, NetError, NetSignal, RTT_PORT, RttSignal, linux_interfaces,
     parse_if_flags, parse_net_dev, parse_net_iface, selected,
