@@ -49,7 +49,7 @@ where
     let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
-    if let Err(code) = prepare(&start, log) {
+    if let Err(code) = prepare(&start, &mut command, log) {
         return code;
     }
     exec_command(&mut command)
@@ -58,8 +58,14 @@ where
 /// Readies this process to start the command as `start` says: the slot
 /// handed over, background priority; the exit code (126) when the slot
 /// cannot be handed over.
-pub(super) fn prepare(start: &Start, log: &mut dyn Write) -> Result<(), u8> {
-    if let Some(Err(err)) = start.release.as_ref().map(hand_over) {
+pub(super) fn prepare(
+    start: &Start,
+    command: &mut Command,
+    log: &mut dyn Write,
+) -> Result<(), u8> {
+    if let Some(Err(err)) =
+        start.release.as_ref().map(|r| hand_over(r, command))
+    {
         // The exit code says it; a lost stderr changes nothing.
         let _ = writeln!(log, "cgmr: cannot hand the slot over: {err}");
         return Err(126);
@@ -90,7 +96,8 @@ where
 /// Lets the command inherit `release`'s slot and reservation locks
 /// across exec, so the kernel lets go of them only when it exits
 /// (src/slot:V2, V7).
-fn hand_over(release: &Release) -> io::Result<()> {
+fn hand_over(release: &Release, command: &mut Command) -> io::Result<()> {
+    let _ = command;
     if let Some(slot) = release.slot() {
         set_inheritable(slot.file())?;
     }

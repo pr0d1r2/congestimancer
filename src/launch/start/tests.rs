@@ -10,14 +10,20 @@ use crate::launch::scratch::Scratch;
 use crate::slot::{HELD_SLOTS_ENV, Release};
 use crate::wait::Admit;
 
+/// A shell that succeeds when it sees every one of `files` open.
+fn seeing(files: &[&File]) -> Command {
+    let tests: Vec<_> = files
+        .iter()
+        .map(|f| format!("test -e /dev/fd/{}", f.as_raw_fd()))
+        .collect();
+    let mut command = Command::new("/bin/sh");
+    command.args(["-c", &tests.join(" && ")]);
+    command
+}
+
 /// Whether a child started now sees `file`'s descriptor open.
 fn child_sees(file: &File) -> io::Result<bool> {
-    let fd = file.as_raw_fd();
-    let test = format!("test -e /dev/fd/{fd}");
-    Ok(Command::new("/bin/sh")
-        .args(["-c", &test])
-        .status()?
-        .success())
+    Ok(seeing(&[file]).status()?.success())
 }
 
 fn claim(scratch: &Scratch) -> io::Result<Release> {
@@ -36,11 +42,26 @@ fn the_command_inherits_the_slot_and_reservation() -> io::Result<()> {
     else {
         unreachable!("one slot and a reservation were asked: {release:?}");
     };
-    assert!(!child_sees(slot.file())?, "close-on-exec before hand over");
-    assert!(!child_sees(reserved.file())?, "close-on-exec before");
-    hand_over(&release)?;
-    assert!(child_sees(slot.file())?, "slot lock not inherited");
-    assert!(child_sees(reserved.file())?, "reservation not inherited");
+    let mut command = seeing(&[slot.file(), reserved.file()]);
+    hand_over(&release, &mut command)?;
+    assert!(command.status()?.success(), "locks not inherited");
+    Ok(())
+}
+
+#[test]
+fn no_other_child_inherits_the_slot_or_reservation() -> io::Result<()> {
+    let scratch = Scratch::new("hand-over-only")?;
+    let release = claim(&scratch)?;
+    let (Some(slot), Some(reserved)) = (release.slot(), release.reservation())
+    else {
+        unreachable!("one slot and a reservation were asked: {release:?}");
+    };
+    hand_over(&release, &mut seeing(&[]))?;
+    assert!(
+        !child_sees(slot.file())?,
+        "a gate's child holds the slot (V9)"
+    );
+    assert!(!child_sees(reserved.file())?, "and the reservation (V9)");
     Ok(())
 }
 

@@ -64,7 +64,7 @@ where
     let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
-    if let Err(code) = prepare(&start, governing.log) {
+    if let Err(code) = prepare(&start, &mut command, governing.log) {
         return code;
     }
     let code = match Spawned::spawn(&mut command) {
