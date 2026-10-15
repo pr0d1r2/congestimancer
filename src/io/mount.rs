@@ -2,6 +2,7 @@
 //! against `/proc/diskstats` (src/io:T2), macOS the `statfs` mount source
 //! (src/io:T3).
 
+use std::io;
 use std::path::{Path, PathBuf};
 
 use super::{DiskStat, IoError};
@@ -88,9 +89,11 @@ pub fn mount_of<'m>(mounts: &'m [Mount], path: &Path) -> Option<&'m Mount> {
 }
 
 /// The `/proc/diskstats` name of the block device holding absolute
-/// `path` (src/io:V1): the device whose `major:minor` the mount shows,
-/// else the one its `/dev/` source names (btrfs shows an anonymous
-/// `0:N`).
+/// `path` (src/io:V1, T2): the device whose `major:minor` `lookup`
+/// gives for `path` (live: `crate::sys::device_of`, which follows
+/// symlinks across mounts); failing that, the device whose `major:minor`
+/// the mount holding `path` shows, else the one its `/dev/` source names
+/// (btrfs shows an anonymous `0:N`).
 ///
 /// # Errors
 ///
@@ -101,7 +104,9 @@ pub fn linux_device(
     mounts: &[Mount],
     disks: &[DiskStat],
     path: &Path,
+    lookup: impl FnOnce(&Path) -> io::Result<(u32, u32)>,
 ) -> Result<String, IoError> {
+    let _ = lookup;
     let mount = mount_of(mounts, path).ok_or_else(|| IoError::NoMount {
         path: path.to_path_buf(),
     })?;

@@ -1,3 +1,4 @@
+use std::io;
 use std::path::{Path, PathBuf};
 
 use super::{
@@ -22,9 +23,44 @@ fn disks(case: &str) -> Vec<DiskStat> {
     parse_diskstats(&fixture(case, "proc/diskstats")).unwrap_or_default()
 }
 
-/// The device holding `path` in fixture `case`.
+/// A device lookup that cannot stat anything, as for a path not there.
+fn no_stat(_: &Path) -> io::Result<(u32, u32)> {
+    Err(io::ErrorKind::NotFound.into())
+}
+
+/// The device holding `path` in fixture `case`, by mounts alone.
 fn device(case: &str, path: &str) -> Result<String, IoError> {
-    linux_device(&mounts(case), &disks(case), Path::new(path))
+    linux_device(&mounts(case), &disks(case), Path::new(path), no_stat)
+}
+
+/// The device holding `path` in fixture `case` when stat gives `dev`.
+fn device_at(
+    case: &str,
+    path: &str,
+    dev: (u32, u32),
+) -> Result<String, IoError> {
+    let lookup = |_: &Path| Ok(dev);
+    linux_device(&mounts(case), &disks(case), Path::new(path), lookup)
+}
+
+#[test]
+fn a_symlink_across_mounts_resolves_to_its_target_device() {
+    // `/tmp/link` sits on tmpfs by prefix, but stat follows it to dm-0.
+    assert_eq!(device_at("linux", "/tmp/link", (253, 0)), Ok("dm-0".into()));
+}
+
+#[test]
+fn the_stat_device_wins_even_under_no_mount() {
+    assert_eq!(
+        linux_device(&[], &disks("linux"), Path::new("/x"), |_| Ok((8, 0))),
+        Ok("sda".to_owned())
+    );
+}
+
+#[test]
+fn an_uncounted_stat_device_falls_back_to_mountinfo() {
+    // btrfs: stat shows the anonymous 0:40, the source names sda.
+    assert_eq!(device_at("linux", "/data/me", (0, 40)), Ok("sda".into()));
 }
 
 #[test]
@@ -99,7 +135,7 @@ fn a_mount_without_a_block_device_is_not_block() {
 #[test]
 fn a_path_under_no_mount_has_none() {
     assert_eq!(
-        linux_device(&[], &[], Path::new("/x")),
+        linux_device(&[], &[], Path::new("/x"), no_stat),
         Err(IoError::NoMount {
             path: PathBuf::from("/x")
         })

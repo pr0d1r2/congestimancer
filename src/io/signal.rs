@@ -14,7 +14,9 @@ use super::{
 use crate::signal::{
     Counter, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
 };
-use crate::sys::{BlockStats, mount_source, physical_disk_stats, read_text};
+use crate::sys::{
+    BlockStats, device_of, mount_source, physical_disk_stats, read_text,
+};
 use crate::units::{Count, Name, Percent, parse_name};
 
 /// Linux IO pressure stall information.
@@ -167,7 +169,8 @@ impl IoSignal {
         let text = read_text(&self.root, MOUNTINFO).map_err(reason)?;
         let mounts = parse_mountinfo(&text).map_err(reason)?;
         let path = std::path::absolute(&self.path).map_err(reason)?;
-        linux_device(&mounts, disks, &path).map_err(reason)
+        let lookup = |p: &Path| device_of(&self.root.join(p));
+        linux_device(&mounts, disks, &path, lookup).map_err(reason)
     }
 
     /// The IOKit counters of the physical disk measured (src/io:V2).
