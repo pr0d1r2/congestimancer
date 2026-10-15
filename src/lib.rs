@@ -63,8 +63,8 @@ pub use io::{
 };
 
 pub use launch::{
-    BACKGROUND_NICE, Start, background, clean_env, exec_command,
-    exec_failure_code, launch,
+    BACKGROUND_NICE, Priority, Start, after_wait, background, clean_env,
+    exec_command, exec_failure_code, launch,
 };
 
 pub use limits::{

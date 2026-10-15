@@ -5,11 +5,13 @@
 
 #![expect(unused_imports, reason = "scaffold: build-order edges")]
 
+mod after;
 mod env;
 mod exec;
 mod priority;
 mod start;
 
+pub use after::{Priority, after_wait};
 pub use env::clean_env;
 pub use exec::{exec_command, exec_failure_code};
 pub use priority::{BACKGROUND_NICE, background};
