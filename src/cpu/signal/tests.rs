@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use super::{CpuSignal, Os, loads_from};
+use super::{CpuSignal, Os, loads_from, run_queue_from};
 use crate::cpu::{LoadWindow, Loads};
 use crate::signal::{Measure, Root, Sample, Signal, SignalId};
-use crate::sys::LoadAverage;
+use crate::sys::{LoadAverage, PsetLoad};
 use crate::units::Decimal;
 
 /// The fixture tree `tests/fixtures/cpu/<case>`, laid out like `/`.
@@ -134,4 +134,47 @@ fn linux_run_queue_past_64_bits_is_unsupported() {
         reason(on("huge", Os::Linux).sample(SignalId::RunQueue)),
         Some("procs_running past 64 bits".to_owned())
     );
+}
+
+#[test]
+fn macos_run_queue_is_a_number_from_the_processor_set() {
+    let sample = on("absent", Os::Macos).sample(SignalId::RunQueue);
+    let ok = match &sample {
+        Sample::Gauge(Measure::Number(_)) => true,
+        Sample::Unsupported(_) => !cfg!(target_os = "macos"),
+        Sample::Gauge(_) | Sample::Counter(_) => false,
+    };
+    assert!(ok, "{sample:?}");
+}
+
+/// A processor set load of `load_average`.
+fn pset(load_average: i32) -> std::io::Result<PsetLoad> {
+    Ok(PsetLoad {
+        load_average,
+        ..PsetLoad::default()
+    })
+}
+
+#[test]
+fn the_pset_run_queue_is_its_load_in_thousandths() {
+    assert_eq!(
+        run_queue_from(pset(7_500)).ok(),
+        Some(Decimal::from_thousandths(7_500))
+    );
+}
+
+#[test]
+fn a_negative_pset_load_is_unsupported() {
+    let queue = run_queue_from(pset(-1)).map_err(|r| r.to_string());
+    assert_eq!(
+        queue,
+        Err("processor_set_statistics: negative load -1".to_owned())
+    );
+}
+
+#[test]
+fn a_failed_pset_read_is_unsupported() {
+    let err = std::io::Error::other("no mach");
+    let queue = run_queue_from(Err(err)).map_err(|r| r.to_string());
+    assert_eq!(queue, Err("no mach".to_owned()));
 }
