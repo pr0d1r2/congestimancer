@@ -406,3 +406,6 @@ is a development series, not for production.
   that round and the wait goes on, with ssh's last stderr line as the
   reason; a remote host with no `cgmr` exits 69 and a remote usage error
   exits 64.
+- `exec_command`: the released command replaces `cgmr`, so its exit code
+  and signals pass through; a command not found exits 127, one that
+  cannot run exits 126.

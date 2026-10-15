@@ -55,7 +55,7 @@ V8: `--govern`: stopped cmd keeps its slot & reservation (held fds inherited); `
 ## §T TASKS
 
 id|status|task|cites
-T1|.|exec + exit codes 126/127|V1
+T1|x|exec + exit codes 126/127|V1
 T2|.|no-cmd exit 0|V2
 T3|.|env cleanup & held marker|V3
 T4|.|`--govern` spawn, stop/cont, forward signals|V4
