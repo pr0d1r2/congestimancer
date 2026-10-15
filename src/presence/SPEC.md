@@ -60,8 +60,8 @@ V5: Linux idle = min over logind sessions class `user` ∧ ¬`Remote`; none → 
 
 id|status|task|cites
 T1|x|macOS idle via `HIDIdleTime`|V1
-T2|.|Linux logind idle hint|V1,V2,V5
-T3|.|`--idle` gate|V1,V2
+T2|x|Linux logind idle hint|V1,V2,V5
+T3|x|`--idle` gate|V1,V2
 T4|.|`--between` gate w/ injectable wall clock|V3,V4
 T5|~|SPIKE: settle R1; left: run on GNOME, KDE, headless|V5
 

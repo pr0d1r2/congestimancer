@@ -210,3 +210,6 @@ is a development series, not for production.
   or a space is `NetError::BadIface`, a usage error naming the input.
 - `PresenceSignal`: `--idle` on macOS is the time since the last keyboard
   or mouse input (IOKit `HIDIdleTime`); with no HID system it is unsupported.
+- `--idle` on Linux is the least idle local user session logind knows, read
+  over the system bus by a hand-written D-Bus client; a headless host or one
+  without a bus is unsupported.

@@ -92,8 +92,8 @@ impl<W: WallClock> PresenceSignal<W> {
 fn logind_reading(
     idle: Result<Option<Duration>, BusError>,
 ) -> Result<Duration, Reason> {
-    let _ = idle;
-    Err(Reason::from("stub"))
+    idle.map_err(reason)?
+        .ok_or_else(|| Reason::from("no local user session to read idle from"))
 }
 
 impl<W: WallClock> Signal for PresenceSignal<W> {
