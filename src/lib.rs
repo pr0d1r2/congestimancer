@@ -41,7 +41,10 @@ pub use limits::{
     parse_loadavg_tasks, parse_pid_max,
 };
 
-pub use net::{NetDevError, linux_interfaces, parse_if_flags, parse_net_dev};
+pub use net::{
+    NetDevError, NetSignal, linux_interfaces, parse_if_flags, parse_net_dev,
+    up_interfaces,
+};
 
 pub use power::{
     PPD_STATE, PowerError, PowerSignal, Supply, SupplyKind, battery_charge,
