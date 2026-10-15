@@ -277,3 +277,6 @@ is a development series, not for production.
 - `MemSignal::status_level`: on macOS, `status` can show the share of
   memory available from `kern.memorystatus_level` (`available_level`);
   Linux has none.
+- `cpu_count`: the logical CPUs `--load` and `--run-queue` divide by, from
+  `available_parallelism` and never below 1; `load_per_cpu` divides with
+  a check, never by zero.

@@ -17,8 +17,9 @@ pub fn cpu_count() -> u64 {
 /// The CPU count a read of `available_parallelism` gives; 1 when the
 /// read failed.
 fn cpus_from(read: io::Result<NonZeroUsize>) -> u64 {
-    let _ = read;
-    0
+    read.ok()
+        .and_then(|n| u64::try_from(n.get()).ok())
+        .unwrap_or(1)
 }
 
 /// `value / cpus`, rounded down to thousandths: load or running tasks
@@ -26,8 +27,10 @@ fn cpus_from(read: io::Result<NonZeroUsize>) -> u64 {
 /// never a division by zero (src/cpu:V7).
 #[must_use]
 pub fn load_per_cpu(value: Decimal, cpus: u64) -> Option<Decimal> {
-    let _ = (value, cpus);
-    None
+    value
+        .thousandths()
+        .checked_div(cpus)
+        .map(Decimal::from_thousandths)
 }
 
 #[cfg(test)]
