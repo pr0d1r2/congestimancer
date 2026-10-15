@@ -46,7 +46,10 @@ pub use gpu::{
     worst_busy, worst_free,
 };
 
-pub use io::{Direction, DiskStat, IoError, parse_diskstats};
+pub use io::{
+    Direction, DiskStat, IoError, Mount, linux_device, macos_device, mount_of,
+    parse_diskstats, parse_mountinfo,
+};
 
 pub use limits::{
     FileNr, LimitsError, LimitsSignal, limit_share, parse_file_nr,

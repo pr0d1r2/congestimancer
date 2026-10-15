@@ -1,0 +1,6 @@
+22 1 259:1 / / rw,relatime shared:1 - ext4 /dev/nvme0n1p1 rw
+23 22 0:21 / /proc rw,nosuid shared:5 - proc proc rw
+24 22 0:30 / /tmp rw,nosuid shared:6 - tmpfs tmpfs rw,size=4096k
+25 22 253:0 / /srv/my\040data rw shared:7 - xfs /dev/mapper/vg-data rw
+26 22 0:40 / /data rw shared:8 - btrfs /dev/sda rw,subvol=/data
+27 22 0:41 / /net rw shared:9 - nfs4 server:/export rw
