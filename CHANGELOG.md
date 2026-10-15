@@ -82,3 +82,7 @@ is a development series, not for production.
 - `cpu_ticks`, `vm_stats` and `pset_load`: macOS per-CPU ticks, VM page
   counts and swap and page events, and the default processor set load (the
   run queue); `Unsupported` on other OSes.
+- `mount_source`, `physical_disk_stats` and `block_devices`: on macOS, the
+  device holding a path, and read and write bytes, operations and time of a
+  physical disk from IOKit, an APFS volume walked up to its disk;
+  `PropValue` and `Props` carry IOKit property tables.

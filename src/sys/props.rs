@@ -72,15 +72,43 @@ pub type Props = BTreeMap<String, PropValue>;
 /// value is quoted.
 #[cfg(test)]
 pub(crate) fn render_props(props: &Props) -> String {
-    let _ = props;
-    String::new()
+    use std::fmt::Write as _;
+
+    let mut text = String::new();
+    for (key, value) in props {
+        let _ = match value {
+            PropValue::Int(n) => writeln!(text, "{key} = {n}"),
+            PropValue::Float(x) => writeln!(text, "{key} = {x:?}"),
+            PropValue::Bool(b) => writeln!(text, "{key} = {b}"),
+            PropValue::Text(s) => writeln!(text, "{key} = \"{s}\""),
+        };
+    }
+    text
 }
 
 /// The table [`render_props`] wrote; `None` on a line it cannot read.
 #[cfg(test)]
 pub(crate) fn parse_props(text: &str) -> Option<Props> {
-    let _ = text;
-    None
+    text.lines()
+        .map(|line| {
+            let (key, value) = line.split_once(" = ")?;
+            Some((key.to_owned(), parse_value(value)?))
+        })
+        .collect()
+}
+
+/// One value as [`render_props`] wrote it.
+#[cfg(test)]
+fn parse_value(text: &str) -> Option<PropValue> {
+    if let Some(quoted) = text.strip_prefix('"') {
+        return Some(PropValue::Text(quoted.strip_suffix('"')?.to_owned()));
+    }
+    match text {
+        "true" => Some(PropValue::Bool(true)),
+        "false" => Some(PropValue::Bool(false)),
+        _ if text.contains('.') => text.parse().ok().map(PropValue::Float),
+        _ => text.parse().ok().map(PropValue::Int),
+    }
 }
 
 #[cfg(test)]

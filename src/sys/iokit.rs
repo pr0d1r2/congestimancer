@@ -178,11 +178,23 @@ pub(crate) fn props_of(dict: &CFDictionary) -> Props {
 
 /// One CoreFoundation scalar as a [`PropValue`].
 pub(crate) fn value_of(value: &CFType) -> Option<PropValue> {
-    let _ = (
-        value.downcast_ref::<CFBoolean>(),
-        value.downcast_ref::<CFNumber>(),
-    );
-    None
+    if let Some(flag) = value.downcast_ref::<CFBoolean>() {
+        return Some(PropValue::Bool(flag.as_bool()));
+    }
+    if let Some(number) = value.downcast_ref::<CFNumber>() {
+        return number_of(number);
+    }
+    let text = value.downcast_ref::<CFString>()?;
+    Some(PropValue::Text(text.to_string()))
+}
+
+/// A number as stored: a float type as [`PropValue::Float`], else whole.
+fn number_of(number: &CFNumber) -> Option<PropValue> {
+    if number.is_float_type() {
+        number.as_f64().map(PropValue::Float)
+    } else {
+        number.as_i64().map(PropValue::Int)
+    }
 }
 
 #[cfg(test)]

@@ -75,7 +75,7 @@ T3|x|`sysinfo` snapshot w/ selective refresh|V5
 T4|x|`statvfs`, `flock`, `setpriority` via rustix|V2
 T5|x|macOS `sysctlbyname` wrapper + typed reads|V1,V2,V3
 T6|x|macOS `host_processor_info` & `host_statistics64`|V1,V3
-T7|.|macOS IOKit: block storage stats|V1,V3
+T7|x|macOS IOKit: block storage stats|V1,V3
 T8|.|macOS IOKit: power sources, `HIDIdleTime`, thermal state|V1,V3
 T9|.|macOS IOKit: GPU `PerformanceStatistics`|V1,V3,V4
 T10|.|macOS `setiopolicy_np`; Linux `ioprio_set`|V1,V2

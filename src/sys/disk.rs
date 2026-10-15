@@ -91,8 +91,18 @@ pub fn block_devices() -> io::Result<Vec<BlockDevice>> {
 /// (Read)`. Bytes, operations and total time are required.
 #[cfg(any(test, target_os = "macos"))]
 fn decode_counters(stats: &Props, direction: &str) -> Option<BlockCounters> {
-    let _ = (stats, direction);
-    None
+    let get = |name: &str| {
+        let key = format!("{name} ({direction})");
+        stats.get(&key).and_then(super::props::PropValue::as_u64)
+    };
+    Some(BlockCounters {
+        bytes: get("Bytes")?,
+        operations: get("Operations")?,
+        total_time_ns: get("Total Time")?,
+        latency_time_ns: get("Latency Time").unwrap_or(0),
+        errors: get("Errors").unwrap_or(0),
+        retries: get("Retries").unwrap_or(0),
+    })
 }
 
 /// An `IOBlockStorageDriver` `Statistics` table.
@@ -113,14 +123,20 @@ fn walk_up<T>(
     parent: impl Fn(&T) -> Option<T>,
     is_target: impl Fn(&T) -> bool,
 ) -> Option<T> {
-    let _ = (start, limit, parent, is_target);
+    let mut at = start;
+    for _ in 0..limit {
+        if is_target(&at) {
+            return Some(at);
+        }
+        at = parent(&at)?;
+    }
     None
 }
 
 /// A device path or name as its bare BSD name: `/dev/disk3s1` -> `disk3s1`.
 #[cfg(any(test, target_os = "macos"))]
 fn bsd_name_of(device: &str) -> &str {
-    device
+    device.strip_prefix("/dev/").unwrap_or(device)
 }
 
 #[cfg(target_os = "macos")]
