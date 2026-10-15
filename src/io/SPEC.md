@@ -73,7 +73,7 @@ T5|x|`--io-busy` both OS|V6
 T6|x|`--io-latency` both OS|V7
 T7|x|`--io-queue`|V8
 T8|x|`--io-pressure` & `-full`|V9
-T9|.|`--io-device` override|V1,V10
+T9|x|`--io-device` override|V1,V10
 T10|x|SPIKE: settle R1–R2|-
 
 ## §B BUGS

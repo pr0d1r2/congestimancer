@@ -48,6 +48,8 @@ pub struct IoSignal {
     os: Os,
     /// The path whose device is measured (`--disk-path`, default `.`).
     path: PathBuf,
+    /// The device `--io-device` names, measured instead of the path's.
+    device: Option<Name>,
 }
 
 impl IoSignal {
@@ -69,24 +71,26 @@ impl IoSignal {
             root,
             os,
             path: disk_path.unwrap_or_else(|| Path::new(".")).to_path_buf(),
+            device: None,
         }
     }
-}
 
-impl IoSignal {
-    /// Measures `device` instead of the path's (`--io-device`).
+    /// Measures `device` instead of the path's (`--io-device`,
+    /// src/io:V1): a `/proc/diskstats` name on Linux (`sda`,
+    /// `nvme0n1`), a BSD name on macOS (`disk0`).
     #[must_use]
-    pub fn with_device(self, device: Name) -> Self {
-        let _ = device;
+    pub fn with_device(mut self, device: Name) -> Self {
+        self.device = Some(device);
         self
     }
 }
 
-/// Parses an `--io-device` value.
+/// Parses an `--io-device` value: a [`Name`], so it cannot step out of
+/// `/sys` or `/dev` (src/io:V10).
 ///
 /// # Errors
 ///
-/// [`IoError::Device`] when the value is not a name.
+/// [`IoError::Device`] when the value is not a name: a usage error.
 pub fn parse_io_device(s: &str) -> Result<Name, IoError> {
     parse_name(s).map_err(IoError::Device)
 }
@@ -150,7 +154,10 @@ impl IoSignal {
     fn linux_disk(&self) -> Result<DiskStat, Reason> {
         let text = read_text(&self.root, DISKSTATS).map_err(reason)?;
         let disks = parse_diskstats(&text).map_err(reason)?;
-        let name = self.linux_device(&disks)?;
+        let name = match &self.device {
+            Some(device) => device.as_str().to_owned(),
+            None => self.linux_device(&disks)?,
+        };
         let found = disks.into_iter().find(|d| d.name == name);
         found.ok_or_else(|| reason(IoError::UnknownDevice { name }))
     }
@@ -165,8 +172,13 @@ impl IoSignal {
 
     /// The IOKit counters of the physical disk measured (src/io:V2).
     fn macos_totals(&self) -> Result<Totals, Reason> {
-        let source = mount_source(&self.path).map_err(reason)?;
-        let name = macos_device(&source, &self.path).map_err(reason)?;
+        let name = match &self.device {
+            Some(device) => device.as_str().to_owned(),
+            None => {
+                let source = mount_source(&self.path).map_err(reason)?;
+                macos_device(&source, &self.path).map_err(reason)?
+            }
+        };
         block_totals(&physical_disk_stats(&name).map_err(reason)?)
     }
 }

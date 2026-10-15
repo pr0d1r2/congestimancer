@@ -321,3 +321,6 @@ is a development series, not for production.
 - `--io-pressure X` and `--io-pressure-full X` pass while IO pressure
   stall (`/proc/pressure/io` `some` or `full` `avg10`) is under X; in a
   cgroup they read the cgroup's `io.pressure`; macOS is unsupported.
+- `--io-device D` measures device D (`sda`, `nvme0n1`; `disk0` on
+  macOS) instead of the one holding `--disk-path`; D must be a name, so
+  it cannot reach outside `/sys` or `/dev` (`parse_io_device`).
