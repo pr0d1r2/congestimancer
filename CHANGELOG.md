@@ -120,3 +120,6 @@ is a development series, not for production.
 - `CpuStat`, `Throttling`, `parse_cpu_stat` and `CgroupSignal`: a cgroup's
   `cpu.stat`, and `--cpu-throttle` read as the share of the last interval
   its CPU quota stopped it; no `cpu` controller is unsupported.
+- `CgroupMode`, `parse_cgroup_mode` and `Scope`: `--cgroup auto|host|PATH`.
+  `auto` reads the cgroup when it or an ancestor caps CPU or memory, or in
+  a container, and otherwise keeps host values and says why.

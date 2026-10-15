@@ -6,7 +6,7 @@ use crate::signal::{Reason, Root};
 use crate::sys::read_text;
 
 /// Where cgroup2 is mounted.
-const MOUNT: &str = "/sys/fs/cgroup";
+pub(super) const MOUNT: &str = "/sys/fs/cgroup";
 
 /// What the kernel appends to the path of a removed cgroup.
 const DELETED: &str = " (deleted)";
