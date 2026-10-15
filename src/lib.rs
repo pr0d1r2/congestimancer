@@ -35,9 +35,9 @@ pub use cgroup::{
 };
 
 pub use power::{
-    PowerError, PowerSignal, Supply, SupplyKind, battery_charge,
+    PPD_STATE, PowerError, PowerSignal, Supply, SupplyKind, battery_charge,
     is_cpu_cooling, on_mains, parse_cpu_list, parse_millicelsius,
-    parse_supply_uevent, parse_sysfs_u64, supplies_of,
+    parse_ppd_profile, parse_supply_uevent, parse_sysfs_u64, supplies_of,
 };
 
 pub use profile::{

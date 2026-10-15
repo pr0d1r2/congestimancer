@@ -5,11 +5,14 @@
 use std::io;
 
 use super::{
-    Supply, battery_charge, is_cpu_cooling, on_mains, parse_cpu_list,
-    parse_millicelsius, parse_supply_uevent, parse_sysfs_u64, supplies_of,
+    PPD_STATE, Supply, battery_charge, is_cpu_cooling, on_mains,
+    parse_cpu_list, parse_millicelsius, parse_ppd_profile, parse_supply_uevent,
+    parse_sysfs_u64, supplies_of,
 };
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
-use crate::sys::{THERMAL_PRESSURE, notify_state, power_state, read_text};
+use crate::sys::{
+    LOW_POWER_MODE, THERMAL_PRESSURE, notify_state, power_state, read_text,
+};
 use crate::units::{Celsius, Percent};
 
 /// The highest sysfs index probed for zones and cooling devices.
@@ -208,6 +211,15 @@ impl PowerSignal {
     }
 }
 
+impl PowerSignal {
+    /// `--no-low-power`: Low Power Mode or the power-saver profile is off
+    /// (src/power:V5).
+    fn no_low_power(&self) -> Result<bool, Reason> {
+        let _ = (LOW_POWER_MODE, PPD_STATE, parse_ppd_profile, self.os);
+        Err(Reason::from("stub"))
+    }
+}
+
 impl Signal for PowerSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
@@ -217,6 +229,7 @@ impl Signal for PowerSignal {
                 self.supplies().map(|s| Measure::Flag(on_mains(&s)))
             }
             SignalId::Battery => self.battery().map(Measure::Percent),
+            SignalId::NoLowPower => self.no_low_power().map(Measure::Flag),
             _ => Err(Reason::from(format!("{id} is not a power signal"))),
         };
         sample.map_or_else(Sample::Unsupported, Sample::Gauge)

@@ -7,11 +7,13 @@
 //! macOS goes through `crate::sys` notify and IOKit calls.
 
 mod error;
+mod ppd;
 mod signal;
 mod supply;
 mod thermal;
 
 pub use error::PowerError;
+pub use ppd::{PPD_STATE, parse_ppd_profile};
 pub use signal::PowerSignal;
 pub use supply::{
     Supply, SupplyKind, battery_charge, on_mains, parse_supply_uevent,

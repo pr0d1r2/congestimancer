@@ -221,3 +221,38 @@ fn macos_supplies_are_a_flag_and_a_percent() {
     let battery = power.sample(SignalId::Battery);
     assert!(shaped(&battery, |m| matches!(m, Measure::Percent(_))));
 }
+
+#[test]
+fn a_balanced_profile_is_not_low_power() {
+    assert_eq!(linux("intel").sample(SignalId::NoLowPower), flag(true));
+}
+
+#[test]
+fn the_power_saver_profile_is_low_power() {
+    assert_eq!(linux("arm").sample(SignalId::NoLowPower), flag(false));
+}
+
+#[test]
+fn a_state_without_a_profile_is_unsupported() {
+    assert_eq!(
+        reason(linux("amd").sample(SignalId::NoLowPower)),
+        Some("malformed state.ini: `[State]\nCpuDriver=amd_pstate`".to_owned())
+    );
+}
+
+#[test]
+fn no_power_profiles_daemon_is_unsupported() {
+    assert_eq!(
+        reason(linux("none").sample(SignalId::NoLowPower)),
+        Some(
+            "/var/lib/power-profiles-daemon/state.ini: not present".to_owned()
+        )
+    );
+}
+
+#[test]
+fn macos_low_power_is_a_flag() {
+    let mut power = PowerSignal::on(root("none"), Os::Macos);
+    let sample = power.sample(SignalId::NoLowPower);
+    assert!(shaped(&sample, |m| matches!(m, Measure::Flag(_))));
+}
