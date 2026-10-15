@@ -2,11 +2,25 @@
 //!
 //! Composes only (src:C): each part lives in its own submodule and the
 //! public surface is re-exported here and from the crate root (src:V3).
-//! The remaining `use crate::X as _;` lines are build-order edges for
-//! `sherd wave` (src:C) to domain nodes the gate reads through a
-//! [`Source`](crate::signal::Source), not by name.
-
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+//!
+//! The gate takes typed thresholds and a [`Source`](crate::signal::Source);
+//! it parses no switch, reads no environment and prints nothing. A caller
+//! (`src/cli`, `src/wait`, `src/report`) turns switches into [`Gates`]:
+//!
+//! - `--load X`, `--run-queue X`: [`Gate::below`] with
+//!   [`Gate::per_cpu`] of `cpu_count()`; the `--all-` forms skip it.
+//! - `--mem X`: [`Gate::above`] per CPU; `--all-mem` whole;
+//!   `--needs-mem M`: [`Gate::above`] with [`Gate::unreserved`] of the
+//!   slot ledger's reserved total.
+//! - `--mem-level L`, `--cool`, `--on-ac`, `--no-low-power`: [`Gate::is`].
+//! - `--between W`: [`Gate::within`].
+//! - `--max-procs P=N`, `--max-user-procs U=N`: one [`Gates::push_own`]
+//!   per value, each with its own `ProcsSignal`.
+//! - `--when CMD`, `--when-file P`: [`Gates::push_custom`].
+//!
+//! [`evaluate`] runs one round for `run`; [`evaluate_once`] and
+//! [`sample_once`] serve `check` and `status`. [`Overall::Unsupported`]
+//! is exit 69 (src:V5).
 
 mod custom;
 mod eval;
@@ -17,17 +31,3 @@ pub use custom::Custom;
 pub use eval::{Checked, Evaluation, Gates, Overall, Subject, evaluate};
 pub use model::{Adjust, Gate, Op, Threshold, Verdict};
 pub use once::{evaluate_once, sample_once};
-
-use crate::cgroup as _;
-use crate::cpu as _;
-use crate::disk as _;
-use crate::gpu as _;
-use crate::io as _;
-use crate::limits as _;
-use crate::mem as _;
-use crate::net as _;
-use crate::power as _;
-use crate::presence as _;
-use crate::procs as _;
-use crate::signal as _;
-use crate::units as _;

@@ -12,7 +12,7 @@ use crate::signal::{Reading, SignalId, SignalSet, Source, Trends, refresh};
 ///
 /// Most gates read the shared [`Source`] passed to [`evaluate`]. A gate
 /// whose signal depends on its own switch value (one
-/// [`ProcsSignal`](crate::procs::ProcsSignal) per `--max-procs` value)
+/// `ProcsSignal` per `--max-procs` value)
 /// brings its own source with [`Gates::push_own`].
 #[derive(Default)]
 pub struct Gates {

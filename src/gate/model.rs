@@ -52,7 +52,7 @@ pub enum Adjust {
     PerCpu(u64),
     /// Available memory less what running cgmr jobs reserved
     /// (`--needs-mem`), the total from
-    /// [`reserved_total`](crate::slot::reserved_total).
+    /// `slot::reserved_total`.
     Unreserved(Bytes),
 }
 
