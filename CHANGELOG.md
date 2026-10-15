@@ -179,3 +179,5 @@ is a development series, not for production.
 - `--max-user-procs` reads how many processes are owned by a user whose
   name matches the pattern, like `nixbld*` (`count_by_user`); a process
   with no known owner never matches.
+- `ProcessInfo` carries each process's `pid` and `parent`, so a live
+  process count can leave out cgmr and its ancestors.

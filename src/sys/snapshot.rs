@@ -3,7 +3,7 @@
 
 use std::ffi::OsStr;
 
-use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
+use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
 /// The 1, 5 and 15 minute load averages.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -107,7 +107,8 @@ impl Snapshot {
         }
     }
 
-    /// Reads the process list with each process's name and uid only.
+    /// Reads the process list with each process's name, uid, pid and
+    /// parent only.
     pub fn refresh_processes(&mut self) {
         let kind =
             ProcessRefreshKind::nothing().with_user(UpdateKind::OnlyIfNotSet);
@@ -126,12 +127,9 @@ impl Snapshot {
             .processes()
             .values()
             .map(|p| {
-                ProcessInfo::new(
-                    p.name(),
-                    p.user_id().map(|uid| **uid),
-                    0,
-                    None,
-                )
+                let uid = p.user_id().map(|uid| **uid);
+                let parent = p.parent().map(Pid::as_u32);
+                ProcessInfo::new(p.name(), uid, p.pid().as_u32(), parent)
             })
             .collect()
     }

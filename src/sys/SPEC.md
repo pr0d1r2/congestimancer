@@ -43,7 +43,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 - files: `read_text`, `list_dir` under `Root` (procfs, sysfs, cgroupfs).
 - users: `user_id`, `user_name`, `current_uid`.
-- sysinfo: lazy `System` snapshot: load avg, memory, processes; per-disk IO → `/proc/diskstats` & IOKit (T1).
+- sysinfo: lazy `System` snapshot: load avg, memory, processes w/ ppid; disk IO: `/proc/diskstats`, IOKit (T1).
 - rustix: `statvfs(path)`, `flock(fd)`, `setpriority`.
 - macOS FFI: `sysctlbyname` (`kern.memorystatus_*`, `kern.num_*`, `kern.max*`, `vm.swapusage`), `host_processor_info`, `host_statistics64`, IOKit (block stats, power, `HIDIdleTime`, GPU stats), `notify_get_state`, `setiopolicy_np`.
 - Linux FFI: `ioprio_set`; NVML `dlopen` (R3).
