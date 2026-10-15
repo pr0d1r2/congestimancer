@@ -25,7 +25,7 @@ src/disk/SPEC.md             850
 src/gate/SPEC.md             1130
 src/gpu/SPEC.md              1020
 src/io/SPEC.md               1460
-src/launch/SPEC.md           1150
+src/launch/SPEC.md           1350
 src/limits/SPEC.md           860
 src/mem/SPEC.md              1300
 src/net/SPEC.md              1080
@@ -37,7 +37,7 @@ src/remote/SPEC.md           960
 src/report/SPEC.md           1010
 src/signal/SPEC.md           1240
 src/slot/SPEC.md             1290
-src/sys/SPEC.md              2190
+src/sys/SPEC.md              2540
 src/units/SPEC.md            1410
 src/wait/SPEC.md             1250
 tests/SPEC.md                610
