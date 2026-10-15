@@ -5,11 +5,12 @@
 use std::io;
 
 use super::{
-    is_cpu_cooling, parse_cpu_list, parse_millicelsius, parse_sysfs_u64,
+    Supply, battery_charge, is_cpu_cooling, on_mains, parse_cpu_list,
+    parse_millicelsius, parse_supply_uevent, parse_sysfs_u64, supplies_of,
 };
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
-use crate::sys::{THERMAL_PRESSURE, notify_state, read_text};
-use crate::units::Celsius;
+use crate::sys::{THERMAL_PRESSURE, notify_state, power_state, read_text};
+use crate::units::{Celsius, Percent};
 
 /// The highest sysfs index probed for zones and cooling devices.
 const MAX_INDEX: u32 = 1024;
@@ -45,6 +46,9 @@ pub struct PowerSignal {
     os: Os,
     /// The summed throttle counters at the previous `--cool` sample.
     throttles: Option<u64>,
+    /// The `/sys/class/power_supply` entries to read; `None` until
+    /// `crate::sys` can list a directory.
+    supply_names: Option<Vec<String>>,
 }
 
 impl PowerSignal {
@@ -65,6 +69,7 @@ impl PowerSignal {
             root,
             os,
             throttles: None,
+            supply_names: None,
         }
     }
 
@@ -164,11 +169,31 @@ impl PowerSignal {
     }
 }
 
+impl PowerSignal {
+    /// The machine's power supplies (src/power:V3, V4).
+    fn supplies(&self) -> Result<Vec<Supply>, Reason> {
+        let _ = (&self.supply_names, power_state, supplies_of);
+        let _ = parse_supply_uevent;
+        Err(Reason::from("stub"))
+    }
+
+    /// `--battery`: the machine's charge; full with no battery
+    /// (src/power:V4).
+    fn battery(&self) -> Result<Percent, Reason> {
+        let _ = battery_charge;
+        Err(Reason::from("stub"))
+    }
+}
+
 impl Signal for PowerSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
             SignalId::Cool => self.cool().map(Measure::Flag),
             SignalId::Temp => self.temp().map(Measure::Celsius),
+            SignalId::OnAc => {
+                self.supplies().map(|s| Measure::Flag(on_mains(&s)))
+            }
+            SignalId::Battery => self.battery().map(Measure::Percent),
             _ => Err(Reason::from(format!("{id} is not a power signal"))),
         };
         sample.map_or_else(Sample::Unsupported, Sample::Gauge)

@@ -2,7 +2,7 @@ use std::path::Path;
 
 use super::{Os, PowerSignal};
 use crate::signal::{Measure, Root, Sample, Signal, SignalId};
-use crate::units::Celsius;
+use crate::units::{Celsius, Percent};
 
 /// The fixture tree `tests/fixtures/power/<case>`, laid out like `/`.
 fn root(case: &str) -> Root {
@@ -145,4 +145,79 @@ fn macos_temp_is_unsupported() {
         reason(power.sample(SignalId::Temp)),
         Some("no public temperature API on macOS".to_owned())
     );
+}
+
+/// A Linux power signal over fixture `case` that reads supplies `names`.
+fn listed(case: &str, names: &[&str]) -> PowerSignal {
+    let mut power = linux(case);
+    let names = names.iter().map(|&name| name.to_owned()).collect();
+    power.supply_names = Some(names);
+    power
+}
+
+/// A charge gauge of `whole` percent.
+fn charge(whole: u16) -> Sample {
+    let percent = Percent::from_hundredths(whole.saturating_mul(100));
+    percent.map_or_else(
+        || Sample::Unsupported("bad percent".into()),
+        |p| Sample::Gauge(Measure::Percent(p)),
+    )
+}
+
+#[test]
+fn a_laptop_on_its_adapter_is_on_ac_with_its_charge() {
+    let mut power = listed("intel", &["AC", "BAT0", "hidpp_battery_0"]);
+    assert_eq!(power.sample(SignalId::OnAc), flag(true));
+    assert_eq!(power.sample(SignalId::Battery), charge(80));
+}
+
+#[test]
+fn a_laptop_on_battery_is_not_on_ac() {
+    let mut power = listed("arm", &["ADP1", "BAT0", "BAT1"]);
+    assert_eq!(power.sample(SignalId::OnAc), flag(false));
+    assert_eq!(power.sample(SignalId::Battery), charge(75));
+}
+
+#[test]
+fn a_desktop_is_on_ac_and_passes_any_battery_gate() {
+    let mut power = listed("intel", &[]);
+    assert_eq!(power.sample(SignalId::OnAc), flag(true));
+    assert_eq!(power.sample(SignalId::Battery), charge(100));
+}
+
+#[test]
+fn a_supply_without_a_uevent_is_skipped() {
+    let mut power = listed("intel", &["gone", "AC"]);
+    assert_eq!(power.sample(SignalId::OnAc), flag(true));
+}
+
+#[test]
+fn a_battery_without_a_charge_is_unsupported() {
+    let mut power = listed("arm", &["nocharge"]);
+    assert_eq!(power.sample(SignalId::OnAc), flag(false));
+    assert_eq!(
+        reason(power.sample(SignalId::Battery)),
+        Some("the battery reports no charge".to_owned())
+    );
+}
+
+#[test]
+fn linux_supplies_wait_for_a_directory_listing() {
+    assert_eq!(
+        reason(linux("intel").sample(SignalId::OnAc)),
+        Some(
+            "listing /sys/class/power_supply needs a src/sys directory \
+             listing"
+                .to_owned()
+        )
+    );
+}
+
+#[test]
+fn macos_supplies_are_a_flag_and_a_percent() {
+    let mut power = PowerSignal::on(root("none"), Os::Macos);
+    let on_ac = power.sample(SignalId::OnAc);
+    assert!(shaped(&on_ac, |m| matches!(m, Measure::Flag(_))));
+    let battery = power.sample(SignalId::Battery);
+    assert!(shaped(&battery, |m| matches!(m, Measure::Percent(_))));
 }
