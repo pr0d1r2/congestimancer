@@ -7,6 +7,7 @@
 //! NVIDIA (NVML) and macOS (IOKit) readings come from `crate::sys`.
 
 mod amd;
+mod apple;
 mod device;
 mod error;
 mod nvidia;
