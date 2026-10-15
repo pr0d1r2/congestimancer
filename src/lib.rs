@@ -27,6 +27,8 @@ mod sys;
 mod units;
 mod wait;
 
+pub use cgroup::{Cgroup, CgroupError, parse_proc_cgroup};
+
 pub use profile::{
     Arity, At, Catalog, Origin, PROJECT_FILE, Places, Profile, ProfileError,
     ProfileFile, ReadText, Switch, SwitchFault, SwitchTable, discover,

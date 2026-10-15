@@ -1,0 +1,4 @@
+12:cpu,cpuacct:/user.slice
+11:memory:/user.slice
+1:name=systemd:/user.slice/session-1.scope
+0::/user.slice/session-1.scope
