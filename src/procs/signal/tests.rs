@@ -76,3 +76,14 @@ fn live_table_reads_a_count() {
     let sample = signal.sample(SignalId::MaxProcs);
     assert!(matches!(sample, Sample::Gauge(Measure::Count(_))));
 }
+
+#[test]
+fn live_table_knows_my_ancestors() {
+    // This test's own lineage; no count is asserted (src:V4).
+    let procs = super::LiveTable::default().processes();
+    let me = std::process::id();
+    assert!(
+        crate::procs::lineage(&procs, me).len() > 1,
+        "no parent of {me}"
+    );
+}
