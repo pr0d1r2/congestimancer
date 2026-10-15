@@ -8,7 +8,7 @@
 mod decide;
 mod fit;
 
-pub use decide::{Action, Advice, Limit, Request, decide};
+pub use decide::{Advice, AdviceAction, AdviceLimit, AdviseRequest, decide};
 pub use fit::{cpu_fit, mem_fit};
 
 use crate::cpu as _;

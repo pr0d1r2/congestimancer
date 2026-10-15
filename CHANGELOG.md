@@ -373,3 +373,7 @@ is a development series, not for production.
 - `cpu_fit` and `mem_fit`: how many jobs the CPUs hold now,
   `floor(N * L - load)`, and the memory, `floor((available - reserved) / M)`,
   neither below 0.
+- `decide`, `AdviseRequest`, `Advice`, `AdviceLimit`, `AdviceAction`: the
+  `advise` verdict, jobs as the least of the cpu fit, the memory fit and
+  `--jobs`, the resource that bounds it, and `run`, `reduce` or `wait`; any
+  other requested gate failing means 0 jobs, bounded by that gate.
