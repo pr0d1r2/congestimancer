@@ -7,6 +7,7 @@
 //! bytes from the OS are decoded by pure functions tested on captured
 //! fixtures under `tests/fixtures/sys/` (src/sys:V3).
 
+mod bus;
 mod disk;
 mod error;
 mod files;
@@ -27,6 +28,7 @@ mod raw;
 mod snapshot;
 mod sysctl;
 
+pub use bus::{SYSTEM_BUS_SOCKET, system_bus_connect};
 pub use disk::{
     BlockCounters, BlockDevice, BlockStats, MountSource, block_devices,
     mount_source, physical_disk_stats,
