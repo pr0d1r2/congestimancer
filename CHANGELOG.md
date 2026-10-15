@@ -151,9 +151,10 @@ is a development series, not for production.
   nominal.
 - `--temp` reads the hottest Linux thermal zone; on macOS it is unsupported,
   since there is no public temperature API.
-- `--on-ac` and `--battery` read macOS IOKit power state: a desktop counts as
-  on mains power and passes any `--battery` gate. On Linux both are
-  unsupported until the power supply directory can be listed.
+- `--on-ac` and `--battery` read macOS IOKit power state, or on Linux every
+  supply listed under `/sys/class/power_supply`: a desktop counts as on
+  mains power and passes any `--battery` gate. Linux without that
+  directory is unsupported.
 - `--no-low-power` passes while macOS Low Power Mode is off, or on Linux
   while the power-profiles-daemon profile is not `power-saver`; Linux
   without the daemon's state is unsupported (`parse_ppd_profile`,

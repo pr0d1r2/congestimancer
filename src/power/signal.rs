@@ -11,12 +11,16 @@ use super::{
 };
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
 use crate::sys::{
-    LOW_POWER_MODE, THERMAL_PRESSURE, notify_state, power_state, read_text,
+    LOW_POWER_MODE, THERMAL_PRESSURE, list_dir, notify_state, power_state,
+    read_text,
 };
 use crate::units::{Celsius, Percent};
 
 /// The highest sysfs index probed for zones and cooling devices.
 const MAX_INDEX: u32 = 1024;
+
+/// The Linux power supply directory, one entry per supply.
+const SUPPLY_DIR: &str = "/sys/class/power_supply";
 
 /// The per-CPU `thermal_throttle` counters summed for `--cool`.
 const THROTTLE_FILES: [&str; 2] =
@@ -49,9 +53,6 @@ pub struct PowerSignal {
     os: Os,
     /// The summed throttle counters at the previous `--cool` sample.
     throttles: Option<u64>,
-    /// The `/sys/class/power_supply` entries to read; `None` until
-    /// `crate::sys` can list a directory.
-    supply_names: Option<Vec<String>>,
 }
 
 impl PowerSignal {
@@ -72,7 +73,6 @@ impl PowerSignal {
             root,
             os,
             throttles: None,
-            supply_names: None,
         }
     }
 
@@ -178,13 +178,8 @@ impl PowerSignal {
         if self.os == Os::Macos {
             return power_state().map(|s| supplies_of(&s)).map_err(reason);
         }
-        let names = self.supply_names.as_ref().ok_or_else(|| {
-            Reason::from(
-                "listing /sys/class/power_supply needs a src/sys directory \
-                 listing",
-            )
-        })?;
-        Ok(self.uevents(names))
+        let names = list_dir(&self.root, SUPPLY_DIR).map_err(reason)?;
+        Ok(self.uevents(&names))
     }
 
     /// The supplies `names` whose `uevent` reads and parses.
@@ -192,7 +187,7 @@ impl PowerSignal {
         names
             .iter()
             .filter_map(|name| {
-                let path = format!("/sys/class/power_supply/{name}/uevent");
+                let path = format!("{SUPPLY_DIR}/{name}/uevent");
                 parse_supply_uevent(&self.text(&path).ok()?).ok()
             })
             .collect()
