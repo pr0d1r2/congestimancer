@@ -364,3 +364,6 @@ is a development series, not for production.
   command is let go; a failing or warming round starts the span again.
 - A gate with no source on this machine ends the wait at once with exit 69,
   even mid-wait, instead of waiting out the timeout.
+- `jitter_delay`: with `--jitter D`, a released command sleeps a pick in
+  `[0, D)` before it starts, drawn from a seed (pid and start time) so
+  waiters let go together spread out.

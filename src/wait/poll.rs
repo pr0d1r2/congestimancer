@@ -5,7 +5,7 @@ use std::convert::Infallible;
 use std::io::Write;
 use std::time::{Duration, Instant};
 
-use super::Pacing;
+use super::{Pacing, jitter_delay};
 use crate::gate::{Evaluation, Gates, Overall, evaluate};
 use crate::signal::{Clock, Source, Trends};
 
@@ -117,12 +117,29 @@ where
     loop {
         let now = rig.clock.now();
         if let Some(outcome) = run.round(&mut rig, now, admit)? {
+            scatter(&outcome, rig.clock, pacing);
             return Ok(outcome);
         }
         if run.expired(now) {
             return Ok(Outcome::TimedOut(run.last.take()));
         }
         rig.clock.sleep(run.pause(now));
+    }
+}
+
+/// After a release, sleeps the `--jitter` pick, the last step before
+/// launch (src/wait:V5, V9).
+fn scatter<H, C: Clock + ?Sized>(
+    outcome: &Outcome<H>,
+    clock: &mut C,
+    pacing: &Pacing,
+) {
+    let Outcome::Released(_) = outcome else {
+        return;
+    };
+    let delay = jitter_delay(pacing.seed, pacing.jitter.unwrap_or_default());
+    if !delay.is_zero() {
+        clock.sleep(delay);
     }
 }
 
