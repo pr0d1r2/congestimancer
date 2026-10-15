@@ -437,3 +437,5 @@ is a development series, not for production.
   own process group, pauses it while the gates fail, forwards SIGINT,
   SIGTERM and SIGHUP to it, and exits with its code; a paused command
   keeps its slot and memory reservation.
+- `inherit_in`: hands an open file's descriptor to the one child a
+  `Command` starts, leaving it close-on-exec in `cgmr` itself.

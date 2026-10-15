@@ -112,8 +112,28 @@ pub fn set_inheritable(file: &File) -> io::Result<()> {
 /// close-on-exec and no other child it starts ever holds the lock
 /// (src/sys:T24, src/launch:V9). `file` must stay open until `command`
 /// has spawned or exec'd.
+#[allow(unsafe_code, reason = "pre_exec fcntl in the child (src/sys:C)")]
 pub fn inherit_in(command: &mut Command, file: &File) {
-    let _ = (command, file);
+    use std::os::fd::AsRawFd as _;
+    use std::os::unix::process::CommandExt as _;
+    let fd = file.as_raw_fd();
+    // SAFETY: the hook runs in the forked child before exec, where only
+    // async-signal-safe calls are sound; it makes two `fcntl` calls
+    // (async-signal-safe) on a descriptor number it owns by copy, and
+    // allocates nothing. The caller keeps `file` open until the spawn or
+    // exec, so `fd` names the same open file in the child.
+    unsafe {
+        command.pre_exec(move || {
+            let flags = libc::fcntl(fd, libc::F_GETFD);
+            if flags == -1
+                || libc::fcntl(fd, libc::F_SETFD, flags & !libc::FD_CLOEXEC)
+                    == -1
+            {
+                return Err(io::Error::last_os_error());
+            }
+            Ok(())
+        })
+    };
 }
 
 /// The `(major, minor)` number of the device holding `path`, from its
