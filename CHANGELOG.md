@@ -69,3 +69,5 @@ is a development series, not for production.
   repeat error, and a single-value switch twice in one profile is refused.
 - `render_profiles`: the `cgmr profiles` listing, every profile with its
   file and switches, a name the project file shadows marked as such.
+- `read_text`: a kernel text file read under a `Root`; a file this machine
+  does not have is an `Unsupported` error naming the path.
