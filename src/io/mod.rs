@@ -1,12 +1,11 @@
-//! `src/io`: IO throughput, busy, latency, queue, pressure; path to device resolution.
+//! `src/io`: IO throughput, busy, latency, queue, pressure; path to device
+//! resolution.
 //!
-//! Scaffold: the node's code lands here (`src/io` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): the errors in `error`, the Linux
+//! `/proc/diskstats` parser in `diskstats`.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod diskstats;
+mod error;
 
-use crate::cgroup as _;
-use crate::signal as _;
-use crate::sys as _;
-use crate::units as _;
+pub use diskstats::{Direction, DiskStat, parse_diskstats};
+pub use error::IoError;

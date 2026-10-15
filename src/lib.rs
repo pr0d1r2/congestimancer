@@ -46,6 +46,8 @@ pub use gpu::{
     worst_busy, worst_free,
 };
 
+pub use io::{Direction, DiskStat, IoError, parse_diskstats};
+
 pub use limits::{
     FileNr, LimitsError, LimitsSignal, limit_share, parse_file_nr,
     parse_loadavg_tasks, parse_pid_max,
