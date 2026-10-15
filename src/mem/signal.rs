@@ -8,7 +8,8 @@ use super::{
     SwapPages, parse_meminfo, parse_page_size, parse_vmstat, pressure_level,
 };
 use crate::signal::{
-    Counter, Level, Measure, Reason, Root, Sample, Signal, SignalId, parse_psi,
+    Counter, Level, Measure, Reading, Reason, Root, Sample, Signal, SignalId,
+    parse_psi,
 };
 use crate::sys::{Snapshot, VmStats, read_text, sysctl_int, vm_stats};
 use crate::units::{Bytes, Percent};
@@ -141,6 +142,16 @@ impl MemSignal {
     }
 }
 
+impl MemSignal {
+    /// The share of memory macOS counts as available
+    /// (`kern.memorystatus_level`), shown by `status`; Linux has none
+    /// (src/mem:V8).
+    #[must_use]
+    pub fn status_level(&self) -> Reading {
+        status_from(Ok(0))
+    }
+}
+
 impl Signal for MemSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let sample = match id {
@@ -192,6 +203,13 @@ fn macos_swapped(
         pages_out: stats.swapouts,
     };
     swap_bytes(pages, page_size)
+}
+
+/// The percent a read of `kern.memorystatus_level` gives; a failed read
+/// or a number outside 0 to 100 is unsupported with its reason.
+fn status_from(raw: io::Result<i64>) -> Reading {
+    let _ = raw;
+    Reading::Warming
 }
 
 /// The level a read of `kern.memorystatus_vm_pressure_level` gives; a

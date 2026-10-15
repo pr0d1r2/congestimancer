@@ -1,8 +1,12 @@
 use std::path::Path;
 
-use super::{MemSignal, Os, level_from, macos_swapped, swap_bytes};
+use super::{
+    MemSignal, Os, level_from, macos_swapped, status_from, swap_bytes,
+};
 use crate::mem::parse_vmstat;
-use crate::signal::{Counter, Level, Measure, Root, Sample, Signal, SignalId};
+use crate::signal::{
+    Counter, Level, Measure, Reading, Root, Sample, Signal, SignalId,
+};
 use crate::sys::VmStats;
 use crate::units::{Bytes, Percent};
 
@@ -271,4 +275,43 @@ fn macos_dirty_is_unsupported() {
         reason(on("linux", Os::Macos).sample(SignalId::Dirty)),
         Some("no dirty page count on macOS".to_owned())
     );
+}
+
+#[test]
+fn linux_has_no_status_level() {
+    assert_eq!(
+        on("linux", Os::Linux).status_level(),
+        Reading::unsupported("no memory status level on Linux")
+    );
+}
+
+#[test]
+fn macos_status_level_is_a_percent() {
+    let reading = on("linux", Os::Macos).status_level();
+    let ok = match &reading {
+        Reading::Value(Measure::Percent(_)) => true,
+        Reading::Unsupported { .. } => !cfg!(target_os = "macos"),
+        _ => false,
+    };
+    assert!(ok, "{reading:?}");
+}
+
+#[test]
+fn a_status_read_is_a_percent() {
+    let want = Percent::from_hundredths(4600).map(Measure::Percent);
+    assert_eq!(status_from(Ok(46)).measure().copied(), want);
+}
+
+#[test]
+fn a_status_read_out_of_range_is_unsupported() {
+    assert_eq!(
+        status_from(Ok(101)),
+        Reading::unsupported("kern.memorystatus_level: 101 is not a percent")
+    );
+}
+
+#[test]
+fn a_failed_status_read_is_unsupported() {
+    let err = std::io::Error::other("no sysctl");
+    assert_eq!(status_from(Err(err)), Reading::unsupported("no sysctl"));
 }

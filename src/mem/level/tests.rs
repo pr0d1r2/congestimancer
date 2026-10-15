@@ -1,5 +1,6 @@
-use super::{level_within, pressure_level};
+use super::{available_level, level_within, pressure_level};
 use crate::signal::Level;
+use crate::units::Percent;
 
 #[test]
 fn the_kernel_levels_decode() {
@@ -27,4 +28,17 @@ fn mem_level_warning_passes_at_normal_or_warning() {
     assert!(level_within(Level::Normal, Level::Warning));
     assert!(level_within(Level::Warning, Level::Warning));
     assert!(!level_within(Level::Critical, Level::Warning));
+}
+
+#[test]
+fn the_available_level_is_a_percent() {
+    assert_eq!(available_level(46), Percent::from_hundredths(4600));
+    assert_eq!(available_level(0), Percent::from_hundredths(0));
+    assert_eq!(available_level(100), Some(Percent::FULL));
+}
+
+#[test]
+fn an_available_level_out_of_range_is_none() {
+    assert_eq!(available_level(-1), None);
+    assert_eq!(available_level(101), None);
 }
