@@ -1,0 +1,14 @@
+# A process table: pid ppid uid name; uid - when the OS does not tell.
+# cgmr is pid 200, under zsh (100) under launchd (1).
+1 0 0 launchd
+100 1 501 zsh
+200 100 501 cgmr
+300 1 501 cargo
+301 300 501 rustc
+302 300 501 rustc
+400 1 0 nix-daemon
+401 400 30001 bash
+402 400 30002 bash
+403 402 30002 rustc
+500 1 - ghost
+600 1 501 cgmr

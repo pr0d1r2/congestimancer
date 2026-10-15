@@ -1,11 +1,20 @@
 //! `src/procs`: process counts by name & by user.
 //!
-//! Scaffold: the node's code lands here (`src/procs` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): each part lives in its own submodule, and the
+//! public surface is re-exported here and again from the crate root
+//! (src:V3). The machine's process table comes from `crate::sys`
+//! ([`LiveTable`]); tests count over `tests/fixtures/procs/` tables.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod count;
+mod error;
+#[cfg(test)]
+mod fixture;
+mod glob;
+mod limit;
+mod signal;
 
-use crate::signal as _;
-use crate::sys as _;
-use crate::units as _;
+pub use count::{Proc, count_by_name, count_by_user, lineage};
+pub use error::ProcsError;
+pub use glob::Glob;
+pub use limit::{ProcLimit, parse_proc_limit};
+pub use signal::{LiveTable, ProcMatch, ProcessTable, ProcsSignal};

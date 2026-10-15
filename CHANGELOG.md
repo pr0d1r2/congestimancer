@@ -168,3 +168,14 @@ is a development series, not for production.
   maximum: on Linux the tasks in `/proc/loadavg` over
   `/proc/sys/kernel/pid_max` (`parse_loadavg_tasks`, `parse_pid_max`), on
   macOS the running processes over `kern.maxproc`.
+- `Glob`: process and user name patterns, `*` for any run of characters
+  and `?` for exactly one, matched against the whole name.
+- `ProcLimit` and `parse_proc_limit`: the `PATTERN=N` value of
+  `--max-procs` and `--max-user-procs`; a value with no `=`, an empty
+  pattern or a bad count is a `ProcsError` (exit 64).
+- `ProcsSignal` reads `--max-procs`: how many processes have a name
+  matching the pattern (`count_by_name`), leaving out cgmr and its
+  ancestors where the process table gives pids (`lineage`).
+- `--max-user-procs` reads how many processes are owned by a user whose
+  name matches the pattern, like `nixbld*` (`count_by_user`); a process
+  with no known owner never matches.
