@@ -78,7 +78,7 @@ T6|x|macOS `host_processor_info` & `host_statistics64`|V1,V3
 T7|x|macOS IOKit: block storage stats|V1,V3
 T8|x|macOS IOKit: power sources, `HIDIdleTime`, thermal state|V1,V3
 T9|x|macOS IOKit: GPU `PerformanceStatistics`|V1,V3,V4
-T10|.|macOS `setiopolicy_np`; Linux `ioprio_set`|V1,V2
+T10|x|macOS `setiopolicy_np`; Linux `ioprio_set`|V1,V2
 T11|.|Linux NVML via `dlopen`|V1,V4
 T12|.|`getifaddrs` interface counters (macOS)|V1,V3
 T13|.|TCP connect probe w/ timeout|V2

@@ -46,15 +46,20 @@ mod iopol {
 /// The macOS policy for `priority`.
 #[cfg(any(test, target_os = "macos"))]
 const fn policy_of(priority: IoPriority) -> i32 {
-    let _ = (priority, iopol::THROTTLE);
-    iopol::DEFAULT
+    match priority {
+        IoPriority::Default => iopol::DEFAULT,
+        IoPriority::Background => iopol::THROTTLE,
+    }
 }
 
 /// The priority a macOS policy stands for.
 #[cfg(any(test, target_os = "macos"))]
 const fn priority_of_policy(policy: i32) -> IoPriority {
-    let _ = policy;
-    IoPriority::Default
+    if policy == iopol::THROTTLE {
+        IoPriority::Background
+    } else {
+        IoPriority::Default
+    }
 }
 
 /// Linux `IOPRIO_CLASS_*` and the class shift (`linux/ioprio.h`).
@@ -71,15 +76,20 @@ mod ioprio {
 /// default) or the idle class.
 #[cfg(any(test, target_os = "linux"))]
 const fn ioprio_of(priority: IoPriority) -> i32 {
-    let _ = (priority, ioprio::CLASS_SHIFT, ioprio::CLASS_BE);
-    0
+    match priority {
+        IoPriority::Default => (ioprio::CLASS_BE << ioprio::CLASS_SHIFT) | 4,
+        IoPriority::Background => ioprio::CLASS_IDLE << ioprio::CLASS_SHIFT,
+    }
 }
 
 /// The priority a Linux ioprio value stands for.
 #[cfg(any(test, target_os = "linux"))]
 const fn priority_of_ioprio(value: i32) -> IoPriority {
-    let _ = (value, ioprio::CLASS_IDLE);
-    IoPriority::Default
+    if value >> ioprio::CLASS_SHIFT == ioprio::CLASS_IDLE {
+        IoPriority::Background
+    } else {
+        IoPriority::Default
+    }
 }
 
 #[cfg(target_os = "macos")]

@@ -93,3 +93,6 @@ is a development series, not for production.
 - `gpu_usage`: on macOS, every GPU's utilization and free VRAM (where it has
   dedicated memory) from IOKit `PerformanceStatistics`, with the whole table
   kept; no GPU table is `Unsupported`.
+- `set_io_priority` and `io_priority`: this process's disk IO priority,
+  `Background` (macOS `IOPOL_THROTTLE`, Linux idle class) or `Default`; it
+  carries across exec.
