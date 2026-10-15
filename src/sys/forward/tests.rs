@@ -2,7 +2,7 @@ use std::io;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::{Duration, Instant};
 
-use super::{ForwardSignal, Wake, block_forwarded};
+use super::{Blocked, ForwardSignal, Wake, block_forwarded};
 use crate::sys::GroupSignal;
 
 /// One signal test at a time: kqueue sees signals process-wide.
@@ -15,6 +15,24 @@ fn serial() -> MutexGuard<'static, ()> {
 /// Long enough for a signal already pending, short enough to keep the
 /// suite fast.
 const WAIT: Duration = Duration::from_secs(1);
+
+/// The first forwarded signal within `d`, past any `SIGCHLD` wake that
+/// other tests' children cause.
+fn forwarded(
+    blocked: &mut Blocked,
+    d: Duration,
+) -> io::Result<Option<ForwardSignal>> {
+    let end = Instant::now().checked_add(d);
+    loop {
+        let left =
+            end.map_or(d, |e| e.saturating_duration_since(Instant::now()));
+        match blocked.wait_timeout(left)? {
+            Some(Wake::Forward(sig)) => return Ok(Some(sig)),
+            Some(Wake::Child) if !left.is_zero() => {}
+            _ => return Ok(None),
+        }
+    }
+}
 
 #[allow(unsafe_code, reason = "test-only signal FFI (src/sys:C)")]
 mod ffi {
@@ -82,11 +100,14 @@ fn a_pending_signal_is_taken_as_what_to_forward() -> io::Result<()> {
         (libc::SIGHUP, ForwardSignal::Hup),
     ] {
         ffi::raise(sig)?;
-        assert_eq!(blocked.wait_timeout(WAIT)?, Some(Wake::Forward(want)));
+        assert_eq!(forwarded(&mut blocked, WAIT)?, Some(want));
     }
     Ok(())
 }
 
+/// Linux keeps a blocked `SIGCHLD` pending, even one sent to this
+/// thread alone.
+#[cfg(target_os = "linux")]
 #[test]
 fn a_child_signal_wakes_the_wait() -> io::Result<()> {
     let _serial = serial();
@@ -96,8 +117,27 @@ fn a_child_signal_wakes_the_wait() -> io::Result<()> {
     Ok(())
 }
 
+/// macOS drops a default-ignored `SIGCHLD` even when blocked, but the
+/// kqueue hears a child's exit, whichever thread it lands on.
+#[cfg(target_os = "macos")]
 #[test]
-fn a_signal_sent_during_the_wait_ends_it() -> io::Result<()> {
+fn a_child_exit_wakes_the_wait() -> io::Result<()> {
+    let _serial = serial();
+    let mut blocked = block_forwarded()?;
+    let mut child = std::process::Command::new("true").spawn()?;
+    let start = Instant::now();
+    let woke = blocked.wait_timeout(WAIT)?;
+    child.wait()?;
+    assert_eq!(woke, Some(Wake::Child));
+    assert!(start.elapsed() < WAIT);
+    Ok(())
+}
+
+#[test]
+fn a_signal_sent_during_the_wait_is_taken() -> io::Result<()> {
+    // Sent to this thread alone: Linux wakes at once; the macOS kqueue
+    // hears only process-wide signals (a kill, a terminal's ^C), so this
+    // one is taken when the wait runs out.
     let _serial = serial();
     let mut blocked = block_forwarded()?;
     let me = ffi::this_thread();
@@ -105,11 +145,11 @@ fn a_signal_sent_during_the_wait_ends_it() -> io::Result<()> {
         std::thread::sleep(Duration::from_millis(30));
         ffi::kill_thread(me, libc::SIGTERM)
     });
-    let woke = blocked.wait_timeout(WAIT);
+    let woke = forwarded(&mut blocked, Duration::from_millis(200));
     sender
         .join()
         .map_err(|_| io::Error::other("sender panicked"))??;
-    assert_eq!(woke?, Some(Wake::Forward(ForwardSignal::Term)));
+    assert_eq!(woke?, Some(ForwardSignal::Term));
     Ok(())
 }
 

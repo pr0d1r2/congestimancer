@@ -423,3 +423,7 @@ is a development series, not for production.
   end passes on as its own exit code or 128 + n for signal n.
 - `signal_group` and `GroupSignal`: stop, continue, interrupt, terminate
   or hang up a whole process group; group 0 (`cgmr`'s own) is refused.
+- `block_forwarded`, `Blocked`, `ForwardSignal` and `Wake`: block SIGINT,
+  SIGTERM, SIGHUP and SIGCHLD on this thread and take them one at a time
+  with a timeout (`sigtimedwait` on Linux, kqueue on macOS), no handler;
+  dropping it puts the old signal mask back.
