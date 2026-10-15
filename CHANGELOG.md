@@ -116,6 +116,8 @@ is a development series, not for production.
 - `user_id`, `user_name` and `current_uid`: a user's uid by name and name
   by uid from the password database, `None` for no such user, and the
   real uid of this process.
+- `local_time`: the hour and minute of now in local time, with the time
+  zone and any DST change applied by the C library.
 - `Cgroup` and `parse_proc_cgroup`: on Linux, the cgroup v2 this process
   sits in, from `/proc/self/cgroup`, with its files and ancestors under
   `/sys/fs/cgroup`; cgroup v1 (or a hybrid host) is unsupported.
