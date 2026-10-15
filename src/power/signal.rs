@@ -215,8 +215,14 @@ impl PowerSignal {
     /// `--no-low-power`: Low Power Mode or the power-saver profile is off
     /// (src/power:V5).
     fn no_low_power(&self) -> Result<bool, Reason> {
-        let _ = (LOW_POWER_MODE, PPD_STATE, parse_ppd_profile, self.os);
-        Err(Reason::from("stub"))
+        if self.os == Os::Macos {
+            return notify_state(LOW_POWER_MODE)
+                .map(|state| state == 0)
+                .map_err(reason);
+        }
+        let text = self.text(PPD_STATE).map_err(reason)?;
+        let profile = parse_ppd_profile(&text).map_err(reason)?;
+        Ok(profile != "power-saver")
     }
 }
 

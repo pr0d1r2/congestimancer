@@ -13,6 +13,17 @@ pub const PPD_STATE: &str = "/var/lib/power-profiles-daemon/state.ini";
 ///
 /// [`PowerError::Malformed`] when `[State]` has no non-empty `Profile`.
 pub fn parse_ppd_profile(text: &str) -> Result<String, PowerError> {
+    let mut in_state = false;
+    for line in text.lines().map(str::trim) {
+        if line.starts_with('[') {
+            in_state = line == "[State]";
+        } else if let Some(profile) = line.strip_prefix("Profile=")
+            && in_state
+            && !profile.trim().is_empty()
+        {
+            return Ok(profile.trim().to_owned());
+        }
+    }
     Err(PowerError::malformed("state.ini", text))
 }
 

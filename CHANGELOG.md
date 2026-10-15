@@ -149,3 +149,7 @@ is a development series, not for production.
 - `--on-ac` and `--battery` read macOS IOKit power state: a desktop counts as
   on mains power and passes any `--battery` gate. On Linux both are
   unsupported until the power supply directory can be listed.
+- `--no-low-power` passes while macOS Low Power Mode is off, or on Linux
+  while the power-profiles-daemon profile is not `power-saver`; Linux
+  without the daemon's state is unsupported (`parse_ppd_profile`,
+  `PPD_STATE`).

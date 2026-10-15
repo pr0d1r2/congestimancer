@@ -66,7 +66,7 @@ T3|x|`--cool` both OS|V1
 T4|x|`--temp`|V2
 T5|x|power supply parser Linux + IOKit macOS|V3,V4
 T6|~|`--on-ac` `--battery`|V3,V4
-T7|.|`--no-low-power` both OS|V5
+T7|x|`--no-low-power` both OS|V5
 T8|x|SPIKE: settle R1–R3 on M4, Intel Mac & Linux hosts|-
 
 ## §B BUGS
