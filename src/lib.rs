@@ -77,7 +77,8 @@ pub use signal::{
 };
 
 pub use slot::{
-    DirFacts, LockDir, SlotError, lock_dir_path, slot_key, unsafe_reason,
+    DirFacts, LockDir, SlotError, SlotGuard, Ticket, claim_slot, live_holders,
+    lock_dir_path, slot_key, unsafe_reason,
 };
 
 pub use sys::{

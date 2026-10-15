@@ -8,13 +8,17 @@
 
 mod dir;
 mod error;
+mod fifo;
 mod key;
 #[cfg(test)]
 mod scratch;
+mod slots;
 
 pub use dir::{DirFacts, LockDir, lock_dir_path, unsafe_reason};
 pub use error::SlotError;
+pub use fifo::Ticket;
 pub use key::slot_key;
+pub use slots::{SlotGuard, claim_slot, live_holders};
 
 use crate::signal as _;
 use crate::sys as _;

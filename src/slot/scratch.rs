@@ -7,6 +7,9 @@ use std::os::unix::fs::DirBuilderExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use super::LockDir;
+use crate::sys::current_uid;
+
 /// Tells apart the scratch dirs of one test process.
 static NEXT: AtomicU64 = AtomicU64::new(0);
 
@@ -28,6 +31,11 @@ impl Scratch {
     /// Where it is.
     pub(crate) fn path(&self) -> &Path {
         &self.0
+    }
+
+    /// It, opened as a lock dir.
+    pub(crate) fn lock_dir(&self) -> io::Result<LockDir> {
+        LockDir::open(self.0.clone(), current_uid()).map_err(io::Error::other)
     }
 }
 
