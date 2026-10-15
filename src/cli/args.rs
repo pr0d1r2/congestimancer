@@ -128,8 +128,11 @@ impl Given {
 
     /// The switches in `matches`.
     fn from_matches(matches: &ArgMatches) -> Self {
-        let _ = (matches, given);
-        Self::default()
+        let found = SWITCHES.iter().filter_map(|spec| {
+            let values = given(matches, spec)?;
+            Some((spec.name(), values))
+        });
+        Self(found.collect())
     }
 
     /// `Given` holding `pairs`, for tests.
@@ -245,7 +248,10 @@ const LEADERS: [&str; 12] = [
 
 /// `args` with `run` put in front of the switches when no verb leads.
 pub(crate) fn with_default_verb(mut args: Vec<OsString>) -> Vec<OsString> {
-    let _ = (LEADERS, &mut args);
+    let first = args.get(1).and_then(|a| a.to_str());
+    if !first.is_some_and(|a| LEADERS.contains(&a)) {
+        args.insert(1.min(args.len()), OsString::from("run"));
+    }
     args
 }
 

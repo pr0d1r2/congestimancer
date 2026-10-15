@@ -437,6 +437,13 @@ is a development series, not for production.
   keeps its slot and memory reservation.
 - `inherit_in`: hands an open file's descriptor to the one child a
   `Command` starts, leaving it close-on-exec in `cgmr` itself.
+- `cgmr` verbs through clap: `run` (the default when no verb leads),
+  `check`, `status`, `advise`, `profiles`, `completions`, `man`; the
+  command comes only after `--`.
+- `SWITCHES`, `SwitchSpec` and `env_name`: one table of every switch in
+  `docs/CONGESTION.md`, with its `CGMR_` environment name (none for
+  `--when`); a single-value switch given twice is a usage error, only
+  `--max-procs` and `--max-user-procs` repeat.
 
 ### Fixed
 

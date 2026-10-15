@@ -26,7 +26,11 @@ const LEVELS: &str = "--mem-level takes normal or warning";
 ///
 /// The words the switch takes, for anything else.
 pub(crate) fn parse_level(s: &str) -> Result<Level, String> {
-    Err(format!("{s:?}: {LEVELS}"))
+    match s {
+        "normal" => Ok(Level::Normal),
+        "warning" => Ok(Level::Warning),
+        _ => Err(format!("{s:?}: {LEVELS}")),
+    }
 }
 
 /// `Ok(())`, or the parser's error in words.

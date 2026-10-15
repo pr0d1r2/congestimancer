@@ -140,7 +140,7 @@ pub(crate) const WHEN: &str = "when";
 /// snake case (src/cli:I).
 #[must_use]
 pub fn env_name(name: &str) -> String {
-    name.to_owned()
+    format!("CGMR_{}", name.replace('-', "_").to_ascii_uppercase())
 }
 
 /// The switch called `name` (without `--`).
