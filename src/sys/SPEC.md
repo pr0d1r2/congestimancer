@@ -42,9 +42,9 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §I INTERFACES
 
 - files: `read_text`, `list_dir` under `Root` (procfs, sysfs, cgroupfs).
-- users: `user_id`, `user_name`, `current_uid`.
+- users: `user_id`, `user_name`, `current_uid`, `local_time`.
 - sysinfo: lazy `System` snapshot: load avg, memory, processes w/ ppid; disk IO: `/proc/diskstats`, IOKit (T1).
-- rustix: `statvfs(path)`, `flock(fd)`, `setpriority`.
+- rustix: `statvfs`, `flock`, `setpriority`.
 - macOS FFI: `sysctlbyname` (`kern.memorystatus_*`, `kern.num_*`, `kern.max*`, `vm.swapusage`), `host_processor_info`, `host_statistics64`, IOKit (block stats, power, `HIDIdleTime`, GPU stats), `notify_get_state`, `setiopolicy_np`.
 - Linux FFI: `ioprio_set`; NVML `dlopen` (R3).
 - net: `NET_RT_IFLIST2` (macOS, R5); TCP connect w/ timeout (std); Linux system bus `UnixStream`, ⊥ codec.
@@ -88,7 +88,7 @@ T14|x|SPIKE: settle R1–R4|-
 T15|x|fixture capture of ∀ sources|V7
 T16|x|Linux system bus `UnixStream`|V2,V4
 T17|x|`list_dir`: sorted names|V4
-T18|x|users via `getpw*_r`|V1,V2
+T18|~|`getpw*_r`, localtime_r|V1,V2
 
 ## §B BUGS
 
