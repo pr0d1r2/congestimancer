@@ -44,9 +44,8 @@ pub struct ProcessInfo {
 impl ProcessInfo {
     /// A process named `name` (lossily UTF-8), owned by `uid`.
     fn new(name: &OsStr, uid: Option<u32>) -> Self {
-        let _ = name;
         Self {
-            name: String::new(),
+            name: name.to_string_lossy().into_owned(),
             uid,
         }
     }

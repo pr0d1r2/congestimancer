@@ -71,7 +71,7 @@ V7: `capture(root, out)` copies every raw source this node reads (procfs, sysfs,
 id|status|task|cites
 T1|x|SPIKE: prove `sysinfo` per-disk IO stats on Linux & macOS; record outcome in `src/io` §C|V5
 T2|x|`read_text` w/ `Root`|V4
-T3|.|`sysinfo` snapshot w/ selective refresh|V5
+T3|x|`sysinfo` snapshot w/ selective refresh|V5
 T4|.|`statvfs`, `flock`, `setpriority` via rustix|V2
 T5|.|macOS `sysctlbyname` wrapper + typed reads|V1,V2,V3
 T6|.|macOS `host_processor_info` & `host_statistics64`|V1,V3
