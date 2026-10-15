@@ -1,8 +1,8 @@
 //! [`CpuSignal`]: the CPU signals, from Linux `/proc` under a [`Root`]
 //! or macOS `sysinfo` and mach calls (src/cpu:T2-T8).
 
-use super::parse::LOADAVG;
-use super::{LoadWindow, Loads, parse_loadavg};
+use super::parse::{LOADAVG, STAT};
+use super::{LoadWindow, Loads, ProcStat, parse_loadavg, parse_stat};
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
 use crate::sys::{LoadAverage, Snapshot, read_text};
 use crate::units::{Decimal, parse_decimal};
@@ -77,6 +77,21 @@ impl CpuSignal {
             Os::Macos => loads_from(Snapshot::load_average()),
         }
     }
+
+    /// Linux `/proc/stat` under the root (src/cpu:T4).
+    fn stat(&self) -> Result<ProcStat, Reason> {
+        let text = read_text(&self.root, STAT).map_err(reason)?;
+        parse_stat(&text).map_err(reason)
+    }
+
+    /// Tasks running or runnable now (`--run-queue`, src/cpu:V3).
+    fn run_queue(&self) -> Result<Decimal, Reason> {
+        let running = self.stat()?.procs_running;
+        running
+            .checked_mul(1000)
+            .map(Decimal::from_thousandths)
+            .ok_or_else(|| Reason::from("procs_running past 64 bits"))
+    }
 }
 
 impl Signal for CpuSignal {
@@ -94,6 +109,7 @@ impl CpuSignal {
             SignalId::Load => {
                 self.loads().map(|l| Measure::Number(l.pick(self.window)))
             }
+            SignalId::RunQueue => self.run_queue().map(Measure::Number),
             _ => Err(Reason::from(format!("{id} is not a cpu signal"))),
         }
     }

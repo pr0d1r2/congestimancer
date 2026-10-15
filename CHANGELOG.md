@@ -285,3 +285,6 @@ is a development series, not for production.
   `sysinfo`; a cgroup scope still reads the host load.
 - `--load-window 1m|5m|15m` picks the load average `--load` reads,
   `1m` by default (`LoadWindow`, `parse_load_window`).
+- `parse_stat` reads `/proc/stat` (`ProcStat`, `CpuTimes`); on Linux
+  `--run-queue X` (per CPU) and `--all-run-queue X` gate on
+  `procs_running`.

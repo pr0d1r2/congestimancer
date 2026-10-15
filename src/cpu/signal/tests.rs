@@ -127,3 +127,11 @@ fn linux_run_queue_from_garbled_stat_is_unsupported() {
         Some("malformed /proc/stat line: `cpu 1 2 3`".to_owned())
     );
 }
+
+#[test]
+fn linux_run_queue_past_64_bits_is_unsupported() {
+    assert_eq!(
+        reason(on("huge", Os::Linux).sample(SignalId::RunQueue)),
+        Some("procs_running past 64 bits".to_owned())
+    );
+}

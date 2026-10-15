@@ -1,5 +1,7 @@
 //! Pure parsers for Linux CPU files (src/cpu:T2, T4).
 
+use std::str::SplitWhitespace;
+
 use super::CpuError;
 use crate::units::{Decimal, parse_decimal};
 
@@ -67,16 +69,25 @@ impl CpuTimes {
     /// already in `user`); `None` past 64 bits.
     #[must_use]
     pub fn total(self) -> Option<u64> {
-        let _ = self;
-        None
+        [
+            self.user,
+            self.nice,
+            self.system,
+            self.idle,
+            self.iowait,
+            self.irq,
+            self.softirq,
+            self.steal,
+        ]
+        .into_iter()
+        .try_fold(0_u64, u64::checked_add)
     }
 
     /// Ticks with nothing to run: `idle` plus `iowait`; `None` past 64
     /// bits.
     #[must_use]
-    pub fn idle_total(self) -> Option<u64> {
-        let _ = self;
-        None
+    pub const fn idle_total(self) -> Option<u64> {
+        self.idle.checked_add(self.iowait)
     }
 }
 
@@ -98,7 +109,65 @@ pub struct ProcStat {
 /// line needs at least user, nice, system and idle);
 /// [`CpuError::Missing`] when either is absent.
 pub fn parse_stat(text: &str) -> Result<ProcStat, CpuError> {
-    Err(CpuError::malformed(STAT, text))
+    Ok(ProcStat {
+        times: field(text, "cpu", cpu_times)?,
+        procs_running: field(text, "procs_running", alone)?,
+    })
+}
+
+/// The first `/proc/stat` line whose first word is `key`, its other
+/// words read by `read`.
+fn field<T>(
+    text: &str,
+    key: &'static str,
+    read: fn(SplitWhitespace<'_>) -> Option<T>,
+) -> Result<T, CpuError> {
+    let mut lines = text.lines().map(|line| (line, line.split_whitespace()));
+    let (line, mut words) = lines
+        .find(|(_, words)| words.clone().next() == Some(key))
+        .ok_or_else(|| missing(key))?;
+    words.next();
+    read(words).ok_or_else(|| CpuError::malformed(STAT, line))
+}
+
+/// A [`CpuError::Missing`] for `key` of `/proc/stat`.
+const fn missing(key: &'static str) -> CpuError {
+    CpuError::Missing { file: STAT, key }
+}
+
+/// The times after `cpu`: at least the first four, past the eighth
+/// ignored, absent ones zero.
+fn cpu_times(words: SplitWhitespace<'_>) -> Option<CpuTimes> {
+    let mut ticks = [0_u64; 8];
+    let mut seen = 0_usize;
+    for (slot, word) in ticks.iter_mut().zip(words) {
+        *slot = word.parse().ok()?;
+        seen = seen.saturating_add(1);
+    }
+    (seen >= 4).then_some(CpuTimes::from(ticks))
+}
+
+impl From<[u64; 8]> for CpuTimes {
+    /// The `cpu` line's eight columns, in `/proc/stat` order.
+    fn from(ticks: [u64; 8]) -> Self {
+        let [user, nice, system, idle, iowait, irq, softirq, steal] = ticks;
+        Self {
+            user,
+            nice,
+            system,
+            idle,
+            iowait,
+            irq,
+            softirq,
+            steal,
+        }
+    }
+}
+
+/// A bare count, alone on the rest of its line.
+fn alone(mut words: SplitWhitespace<'_>) -> Option<u64> {
+    let n = words.next()?.parse().ok()?;
+    words.next().is_none().then_some(n)
 }
 
 #[cfg(test)]
