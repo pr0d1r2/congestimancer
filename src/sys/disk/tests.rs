@@ -112,8 +112,7 @@ fn other_oses_are_unsupported() {
 
 #[cfg(target_os = "macos")]
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_root_volume_reaches_its_physical_disk() {
+fn host_root_volume_reaches_its_physical_disk() {
     let source = mount_source(Path::new("/")).ok();
     let device = source
         .as_ref()

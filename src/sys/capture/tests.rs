@@ -66,8 +66,7 @@ fn files_off_the_list_are_left_behind() {
 }
 
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_capture_writes_under_os_and_arch() {
+fn host_capture_writes_under_os_and_arch() {
     let out = Out::new("live");
     let written = capture(&Root::system(), &out.0).unwrap_or_default();
     let host = format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH);

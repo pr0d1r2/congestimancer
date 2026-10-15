@@ -108,8 +108,7 @@ fn other_oses_are_unsupported() {
 
 #[cfg(target_os = "macos")]
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_loopback_is_listed() {
+fn host_loopback_is_listed() {
     let all = interface_counters().unwrap_or_default();
     assert!(all.iter().any(|i| i.name == "lo0" && i.loopback));
 }

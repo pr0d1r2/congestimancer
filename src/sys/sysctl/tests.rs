@@ -67,9 +67,9 @@ fn a_name_with_a_nul_is_invalid_input() {
     assert_eq!(err.map(|e| e.kind()), Some(io::ErrorKind::InvalidInput));
 }
 
+#[cfg(target_os = "macos")]
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_sysctls_read() {
+fn host_sysctls_read() {
     assert!(sysctl_int("kern.maxfiles").is_ok_and(|n| n > 0));
     assert!(swap_usage().is_ok());
 }

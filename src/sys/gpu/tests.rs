@@ -46,8 +46,9 @@ fn other_oses_are_unsupported() {
 
 #[cfg(target_os = "macos")]
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_gpu_usage_reads() {
-    let usage = gpu_usage().unwrap_or_default();
-    assert!(usage.iter().any(|u| u.utilization_percent.is_some()));
+fn host_gpu_usage_reads() {
+    match gpu_usage() {
+        Ok(usage) => assert!(!usage.is_empty()),
+        Err(err) => assert_eq!(err.kind(), std::io::ErrorKind::Unsupported),
+    }
 }

@@ -91,8 +91,7 @@ fn other_oses_are_unsupported() {
 
 #[cfg(target_os = "macos")]
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_mach_calls_read() {
+fn host_mach_calls_read() {
     let cpus = std::thread::available_parallelism().map_or(0, usize::from);
     assert_eq!(cpu_ticks().map(|t| t.len()).ok(), Some(cpus));
     assert!(vm_stats().is_ok_and(|v| v.wired > 0));

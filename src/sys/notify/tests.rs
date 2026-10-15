@@ -35,8 +35,7 @@ fn other_oses_are_unsupported() {
 
 #[cfg(target_os = "macos")]
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_thermal_and_low_power_read() {
+fn host_thermal_and_low_power_read() {
     assert!(notify_state(THERMAL_PRESSURE).is_ok());
     assert!(notify_state(LOW_POWER_MODE).is_ok());
 }

@@ -70,8 +70,7 @@ fn an_unknown_bsd_name_is_unsupported() {
 }
 
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_block_storage_walks_the_plane() {
+fn host_block_storage_walks_the_plane() {
     let drivers = services(c"IOBlockStorageDriver").unwrap_or_default();
     let first = drivers.first();
     assert!(first.is_some_and(|d| d.conforms_to(c"IOBlockStorageDriver")));

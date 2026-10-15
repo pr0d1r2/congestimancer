@@ -26,8 +26,7 @@ fn nothing_is_read_before_a_refresh_asks() {
 }
 
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_memory_refresh_reads_memory_only() {
+fn host_memory_refresh_reads_memory_only() {
     let mut snapshot = Snapshot::new();
     snapshot.refresh_memory();
     let memory = snapshot.memory();
@@ -37,8 +36,7 @@ fn live_memory_refresh_reads_memory_only() {
 }
 
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_process_refresh_finds_this_test() {
+fn host_process_refresh_finds_this_test() {
     let mut snapshot = Snapshot::new();
     snapshot.refresh_processes();
     assert!(snapshot.processes().len() > 1);
@@ -46,8 +44,7 @@ fn live_process_refresh_finds_this_test() {
 }
 
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored"]
-fn live_load_average_is_not_negative() {
+fn host_load_average_is_not_negative() {
     let load = Snapshot::load_average();
     assert!(load.one >= 0.0 && load.five >= 0.0 && load.fifteen >= 0.0);
 }

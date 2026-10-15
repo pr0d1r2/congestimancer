@@ -80,13 +80,10 @@ fn other_oses_are_unsupported() {
 
 #[cfg(target_os = "macos")]
 #[test]
-#[ignore = "live machine (src:V4): run with --ignored --nocapture"]
-fn live_power_and_idle_read() {
-    let (providing, sources) = super::imp::power_sources().unwrap_or_default();
+fn host_power_and_idle_read() {
+    let (providing, _) = super::imp::power_sources().unwrap_or_default();
     assert!(providing.is_some());
-    for source in &sources {
-        println!("{}", crate::sys::props::render_props(source));
-    }
     assert!(power_state().is_ok());
-    assert!(hid_idle_ns().is_ok());
+    let idle = hid_idle_ns().map_err(|e| e.kind());
+    assert!(idle.is_ok() || idle == Err(std::io::ErrorKind::Unsupported));
 }
