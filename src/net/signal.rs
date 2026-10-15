@@ -3,9 +3,10 @@
 
 use std::time::Instant;
 
+use super::dev::linux_interfaces;
 use super::rates::Rates;
-use crate::signal::{Reading, Root, SignalId, Source};
-use crate::sys::InterfaceCounters;
+use crate::signal::{Reading, Reason, Root, SignalId, Source};
+use crate::sys::{InterfaceCounters, interface_counters};
 
 /// Which OS's sources a [`NetSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -56,14 +57,32 @@ impl NetSignal {
 /// (src/net:V1).
 #[must_use]
 pub fn up_interfaces(all: &[InterfaceCounters]) -> Vec<&InterfaceCounters> {
-    all.iter().collect()
+    all.iter().filter(|i| i.up && !i.loopback).collect()
+}
+
+impl NetSignal {
+    /// Every interface and its totals, or why there are none.
+    fn interfaces(&self) -> Result<Vec<InterfaceCounters>, Reason> {
+        let found = match self.os {
+            Os::Linux => linux_interfaces(&self.root),
+            Os::Macos => interface_counters(),
+        };
+        found.map_err(|err| Reason::from(err.to_string()))
+    }
 }
 
 impl Source for NetSignal {
     fn read(&mut self, id: SignalId, now: Instant) -> Reading {
-        let _ = (&self.root, self.os);
-        self.rates.forget(id);
-        self.rates.read(id, &[], now)
+        if !matches!(id, SignalId::NetRx | SignalId::NetTx | SignalId::Net) {
+            return Reading::unsupported(format!("{id} is not a net rate"));
+        }
+        match self.interfaces() {
+            Ok(all) => self.rates.read(id, &up_interfaces(&all), now),
+            Err(reason) => {
+                self.rates.forget(id);
+                Reading::Unsupported { reason }
+            }
+        }
     }
 }
 

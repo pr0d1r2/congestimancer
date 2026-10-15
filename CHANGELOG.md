@@ -195,3 +195,7 @@ is a development series, not for production.
 - `parse_net_dev`, `parse_if_flags` and `linux_interfaces`: Linux
   interface totals from `/proc/net/dev`, up and loopback from
   `/sys/class/net/<iface>/flags`; a torn line is a `NetDevError` naming it.
+- `NetSignal` reads `--net-rx`, `--net-tx` and `--net`: bytes per second
+  over every up, non-loopback interface (`up_interfaces`), from
+  `/proc/net/dev` on Linux and 64-bit `NET_RT_IFLIST2` counters on macOS;
+  an interface that wrapped, came or went warms up, never a huge rate.
