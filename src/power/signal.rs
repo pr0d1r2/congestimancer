@@ -152,8 +152,15 @@ impl PowerSignal {
 
     /// `--temp`: the hottest thermal zone (src/power:V2).
     fn temp(&self) -> Result<Celsius, Reason> {
-        let _ = parse_millicelsius;
-        Err(Reason::from(format!("{:?}", self.os)))
+        if self.os == Os::Macos {
+            return Err(Reason::from("no public temperature API on macOS"));
+        }
+        self.indexed("/sys/class/thermal/thermal_zone", "temp")
+            .filter_map(|(_, text)| parse_millicelsius(&text).ok())
+            .max()
+            .ok_or_else(|| {
+                Reason::from("no thermal zones under /sys/class/thermal")
+            })
     }
 }
 

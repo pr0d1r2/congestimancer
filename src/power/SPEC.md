@@ -63,7 +63,7 @@ id|status|task|cites
 T1|x|Linux throttle counters + thermal zones parser|V1,V2
 T2|x|macOS thermal state|V1
 T3|x|`--cool` both OS|V1
-T4|.|`--temp`|V2
+T4|x|`--temp`|V2
 T5|x|power supply parser Linux + IOKit macOS|V3,V4
 T6|.|`--on-ac` `--battery`|V3,V4
 T7|.|`--no-low-power` both OS|V5

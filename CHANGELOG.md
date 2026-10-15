@@ -144,3 +144,5 @@ is a development series, not for production.
   on Linux the `thermal_throttle` counters did not grow since the last
   sample, else no CPU cooling device is active; on macOS thermal pressure is
   nominal.
+- `--temp` reads the hottest Linux thermal zone; on macOS it is unsupported,
+  since there is no public temperature API.
