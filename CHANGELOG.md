@@ -414,3 +414,5 @@ is a development series, not for production.
   `CGMR_HELD_SLOTS` passes on, naming the slot keys now held.
 - `--background`: the command runs at nice 19 and the background disk IO
   class (macOS throttle, Linux idle); a refused call is a warning.
+- `--or-background`: when `--timeout` runs out the command starts anyway,
+  at background priority, instead of exiting 124.

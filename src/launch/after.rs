@@ -31,8 +31,17 @@ pub fn after_wait(
     outcome: Outcome<Option<Release>>,
     priority: Priority,
 ) -> Result<Start, u8> {
-    let _ = (outcome, priority);
-    Err(0)
+    match outcome {
+        Outcome::Released(release) => {
+            let background = priority == Priority::Background;
+            Ok(Start::new(release, background))
+        }
+        Outcome::TimedOut(_) if priority == Priority::OrBackground => {
+            Ok(Start::new(None, true))
+        }
+        Outcome::TimedOut(_) => Err(124),
+        Outcome::Unsupported(_) => Err(69),
+    }
 }
 
 #[cfg(test)]
