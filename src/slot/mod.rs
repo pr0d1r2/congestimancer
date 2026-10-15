@@ -10,16 +10,24 @@ mod dir;
 mod error;
 mod fifo;
 mod file;
+mod held;
 mod key;
+mod reserve;
 #[cfg(test)]
 mod scratch;
 mod slots;
+mod starts;
 
 pub use dir::{DirFacts, LockDir, lock_dir_path, unsafe_reason};
 pub use error::SlotError;
 pub use fifo::Ticket;
+pub use held::{HELD_SLOTS_ENV, is_held, mark_held};
 pub use key::slot_key;
+pub use reserve::{Reservation, reserved_total};
 pub use slots::{SlotGuard, claim_slot, live_holders};
+pub use starts::{
+    StartLimits, StartRate, admit_start, parse_start_rate, record_start,
+};
 
 use crate::signal as _;
 use crate::sys as _;

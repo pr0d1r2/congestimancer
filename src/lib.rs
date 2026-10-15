@@ -77,8 +77,10 @@ pub use signal::{
 };
 
 pub use slot::{
-    DirFacts, LockDir, SlotError, SlotGuard, Ticket, claim_slot, live_holders,
-    lock_dir_path, slot_key, unsafe_reason,
+    DirFacts, HELD_SLOTS_ENV, LockDir, Reservation, SlotError, SlotGuard,
+    StartLimits, StartRate, Ticket, admit_start, claim_slot, is_held,
+    live_holders, lock_dir_path, mark_held, parse_start_rate, record_start,
+    reserved_total, slot_key, unsafe_reason,
 };
 
 pub use sys::{
