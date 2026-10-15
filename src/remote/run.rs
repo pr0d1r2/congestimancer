@@ -4,7 +4,7 @@
 use std::io;
 use std::process::{Command, Stdio};
 
-use super::{Host, RemoteError, RemoteReport};
+use super::{Host, RemoteError, RemoteReport, SSH, parse_reply, ssh_argv};
 use crate::signal::Reason;
 
 /// What a finished `ssh` run left behind.
@@ -84,10 +84,15 @@ pub fn check_remote<T: Transport + ?Sized>(
     host: &Host,
     gate_args: &[String],
 ) -> Result<Round, RemoteError> {
-    let _ = (transport, host, gate_args);
-    Err(RemoteError::Spawn {
-        reason: String::new(),
-    })
+    let argv = ssh_argv(host, gate_args);
+    let reply =
+        transport
+            .run(SSH, &argv)
+            .map_err(|err| RemoteError::Spawn {
+                reason: err.to_string(),
+            })?;
+    let stdout = String::from_utf8_lossy(&reply.stdout);
+    parse_reply(&stdout).map(Round::Report)
 }
 
 #[cfg(test)]

@@ -391,3 +391,9 @@ is a development series, not for production.
 - `Host` and `parse_host`: `--host` takes any host form ssh does, but
   refuses an empty host, one starting with `-` or holding whitespace (exit
   64), and the host always follows `--` in ssh's argv.
+- `check_remote`, `Transport`, `SystemSsh`, `SshReply` and `Round`: one
+  `--host` round runs `cgmr check --json` on the remote host over the
+  system `ssh` and reads its reply back.
+- `parse_reply`, `RemoteReport`, `RemoteGate`, `RemoteSignal` and
+  `RemoteVerdict`: the remote JSON read back, its gates joined as the local
+  gate joins them; another `schema_version` exits 69 naming both.

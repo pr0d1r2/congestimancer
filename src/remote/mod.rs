@@ -12,7 +12,6 @@
 
 mod argv;
 mod error;
-#[cfg_attr(not(test), expect(dead_code, reason = "RED: wired in GREEN"))]
 mod json;
 mod reply;
 mod run;
