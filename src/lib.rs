@@ -28,7 +28,8 @@ mod units;
 mod wait;
 
 pub use advise::{
-    Advice, AdviceAction, AdviceLimit, AdviseRequest, cpu_fit, decide, mem_fit,
+    Advice, AdviceAction, AdviceLimit, AdviseRequest, AdviseUnsupported,
+    advise, advise_exit_code, advise_readings, cpu_fit, decide, mem_fit,
 };
 
 pub use cgroup::{

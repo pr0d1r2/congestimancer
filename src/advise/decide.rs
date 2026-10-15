@@ -2,6 +2,7 @@
 //! (src/advise:T2, V3, V4, V5).
 
 use std::fmt;
+use std::time::Duration;
 
 use super::{cpu_fit, mem_fit};
 use crate::gate::Checked;
@@ -13,6 +14,9 @@ const GIB: u64 = 1 << 30;
 
 /// The default `--load` per CPU, 1.0 (src/advise:V1).
 const LOAD_ONE: Decimal = Decimal::from_thousandths(1_000);
+
+/// The default `--interval`, as `run` polls.
+const INTERVAL: Duration = Duration::from_secs(2);
 
 /// What `advise` sizes a batch with: the machine's facts and the
 /// switches that set the job's size.
@@ -30,11 +34,14 @@ pub struct AdviseRequest {
     /// Memory running cgmr jobs already reserved, from
     /// [`reserved_total`](crate::slot::reserved_total).
     pub reserved: Bytes,
+    /// `--interval`: the one wait between the two samples a rate gate
+    /// needs (default 2s, src/gate:V8).
+    pub interval: Duration,
 }
 
 impl AdviseRequest {
     /// A request on `cpus` CPUs with every default: `--load 1`,
-    /// `--needs-mem 1GiB`, no `--jobs`, nothing reserved.
+    /// `--needs-mem 1GiB`, no `--jobs`, nothing reserved, `--interval 2s`.
     #[must_use]
     pub const fn new(cpus: u64) -> Self {
         Self {
@@ -43,7 +50,15 @@ impl AdviseRequest {
             needs_mem: Bytes(GIB),
             jobs: None,
             reserved: Bytes(0),
+            interval: INTERVAL,
         }
+    }
+
+    /// The same request with `--interval D`.
+    #[must_use]
+    pub const fn with_interval(mut self, interval: Duration) -> Self {
+        self.interval = interval;
+        self
     }
 
     /// The same request with `--load L`.
