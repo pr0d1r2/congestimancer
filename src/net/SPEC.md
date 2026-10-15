@@ -64,3 +64,4 @@ T6|x|iface name validation|V6
 ## §B BUGS
 
 id|date|cause|fix
+B1|2026-10-15|rtt closed-port test dropped listener then connected; concurrent `bind(:0)` reused port ∴ connect ok|closed port = local port of live client socket

@@ -1,4 +1,4 @@
-use std::net::{Ipv4Addr, TcpListener};
+use std::net::{Ipv4Addr, TcpListener, TcpStream};
 use std::time::Duration;
 
 use super::{RTT_PORT, RttSignal};
@@ -13,6 +13,20 @@ fn listening() -> Option<(String, TcpListener)> {
     let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).ok()?;
     let port = listener.local_addr().ok()?.port();
     Some((format!("127.0.0.1:{port}"), listener))
+}
+
+/// A listener and a live connection to it.
+type Taken = (TcpListener, TcpStream);
+
+/// A loopback `127.0.0.1:PORT` nothing listens on, and the sockets that
+/// keep `PORT` taken: the local end of a live connection, which no other
+/// test's `bind(:0)` can be given, as a dropped listener's port can
+/// (src/net:B1).
+fn closed() -> Option<(String, Taken)> {
+    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).ok()?;
+    let client = TcpStream::connect(listener.local_addr().ok()?).ok()?;
+    let port = client.local_addr().ok()?.port();
+    Some((format!("127.0.0.1:{port}"), (listener, client)))
 }
 
 /// The duration of a gauge sample, if it is one.
@@ -34,11 +48,7 @@ fn rtt_is_the_connect_time_to_the_host() {
 
 #[test]
 fn a_failed_connect_reads_the_timeout_so_the_gate_fails() {
-    let closed = listening().map(|(host, listener)| {
-        drop(listener);
-        host
-    });
-    let probed = closed.and_then(|host| {
+    let probed = closed().and_then(|(host, _taken)| {
         let mut rtt = RttSignal::new(Some(&host), TIMEOUT).ok()?;
         duration(&rtt.sample(SignalId::Rtt))
     });
