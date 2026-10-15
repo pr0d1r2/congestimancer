@@ -40,9 +40,11 @@ pub use signal::{
 };
 
 pub use sys::{
-    CpuTicks, FsStats, LoadAverage, Memory, ProcessInfo, PsetLoad, Snapshot,
-    SwapUsage, VmStats, cpu_ticks, nice, pset_load, read_text, set_nice,
-    statvfs, swap_usage, sysctl_int, try_lock_exclusive, unlock, vm_stats,
+    BlockCounters, BlockDevice, BlockStats, CpuTicks, FsStats, LoadAverage,
+    Memory, MountSource, ProcessInfo, PropValue, Props, PsetLoad, Snapshot,
+    SwapUsage, VmStats, block_devices, cpu_ticks, mount_source, nice,
+    physical_disk_stats, pset_load, read_text, set_nice, statvfs, swap_usage,
+    sysctl_int, try_lock_exclusive, unlock, vm_stats,
 };
 
 pub use units::{

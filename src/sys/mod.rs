@@ -7,16 +7,26 @@
 //! bytes from the OS are decoded by pure functions tested on captured
 //! fixtures under `tests/fixtures/sys/` (src/sys:V3).
 
+mod disk;
 mod error;
 mod files;
 mod fs;
+#[cfg(target_os = "macos")]
+#[allow(unsafe_code, reason = "IOKit FFI (src/sys:C)")]
+mod iokit;
 mod mach;
+mod props;
 mod raw;
 mod snapshot;
 mod sysctl;
 
+pub use disk::{
+    BlockCounters, BlockDevice, BlockStats, MountSource, block_devices,
+    mount_source, physical_disk_stats,
+};
 pub use files::read_text;
 pub use fs::{FsStats, nice, set_nice, statvfs, try_lock_exclusive, unlock};
 pub use mach::{CpuTicks, PsetLoad, VmStats, cpu_ticks, pset_load, vm_stats};
+pub use props::{PropValue, Props};
 pub use snapshot::{LoadAverage, Memory, ProcessInfo, Snapshot};
 pub use sysctl::{SwapUsage, swap_usage, sysctl_int};
