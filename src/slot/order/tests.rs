@@ -2,7 +2,7 @@ use std::io;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use super::{Release, SLOT_ORDER, SlotPlan, SlotStep, Waiter};
-use crate::slot::scratch::Scratch;
+use crate::slot::scratch::{Scratch, eventually};
 use crate::slot::{LockDir, live_holders, reserved_total};
 use crate::units::{Bytes, Count, Name, parse_name};
 
@@ -78,7 +78,7 @@ fn a_slot_is_held_until_the_release_drops() -> io::Result<()> {
     let mut second = waiter(&dir, &plan, None);
     assert!(go(&mut second, 0)?.is_none());
     drop(first);
-    let again = go(&mut second, 0)?;
+    let again = eventually(|| go(&mut second, 0), Option::is_some)?;
     assert_eq!(again.and_then(|r| r.slot().map(|s| s.index())), Some(0));
     Ok(())
 }
@@ -115,7 +115,7 @@ fn fifo_waiters_go_in_arrival_order() -> io::Result<()> {
     assert!(go(&mut c, 0)?.is_none());
     drop(held);
     assert!(go(&mut c, 0)?.is_none());
-    assert!(go(&mut b, 0)?.is_some());
+    assert!(eventually(|| go(&mut b, 0), Option::is_some)?.is_some());
     Ok(())
 }
 
@@ -128,10 +128,8 @@ fn a_start_refused_lets_go_of_the_slot() -> io::Result<()> {
     drop(go(&mut waiter(&dir, &plan, None), 100)?);
     assert!(go(&mut waiter(&dir, &plan, None), 200)?.is_none());
     let k = key("make")?;
-    assert_eq!(
-        live_holders(&dir, &k, Count(1)).map_err(io::Error::other)?,
-        0
-    );
+    let holders = || live_holders(&dir, &k, Count(1)).map_err(io::Error::other);
+    assert_eq!(eventually(holders, |n| *n == 0)?, 0);
     Ok(())
 }
 

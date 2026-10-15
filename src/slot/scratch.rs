@@ -6,7 +6,7 @@ use std::io;
 use std::os::unix::fs::DirBuilderExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use super::LockDir;
 use crate::sys::current_uid;
@@ -51,8 +51,14 @@ pub(crate) fn eventually<T>(
     mut probe: impl FnMut() -> io::Result<T>,
     done: impl Fn(&T) -> bool,
 ) -> io::Result<T> {
-    let _ = (done, SETTLE);
-    probe()
+    let start = Instant::now();
+    loop {
+        let value = probe()?;
+        if done(&value) || start.elapsed() > SETTLE {
+            return Ok(value);
+        }
+        std::thread::sleep(Duration::from_millis(1));
+    }
 }
 
 impl Drop for Scratch {

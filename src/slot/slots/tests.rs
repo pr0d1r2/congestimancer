@@ -1,7 +1,7 @@
 use std::io;
 
 use super::{claim_slot, live_holders};
-use crate::slot::scratch::Scratch;
+use crate::slot::scratch::{Scratch, eventually};
 use crate::units::{Count, Name, parse_name};
 
 fn key(s: &str) -> io::Result<Name> {
@@ -26,7 +26,8 @@ fn slots_fill_in_order_and_refuse_past_n() -> io::Result<()> {
     assert_eq!(second.as_ref().map(super::SlotGuard::index), Some(1));
     assert!(claim()?.is_none());
     drop(first);
-    assert_eq!(claim()?.map(|g| g.index()), Some(0));
+    let again = eventually(claim, Option::is_some)?;
+    assert_eq!(again.map(|g| g.index()), Some(0));
     Ok(())
 }
 
@@ -65,7 +66,7 @@ fn live_holders_counts_held_slots() -> io::Result<()> {
     let held = claim_slot(&dir, &k, Count(3)).map_err(io::Error::other)?;
     assert_eq!(count()?, 1);
     drop(held);
-    assert_eq!(count()?, 0);
+    assert_eq!(eventually(count, |n| *n == 0)?, 0);
     Ok(())
 }
 

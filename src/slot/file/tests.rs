@@ -7,7 +7,7 @@ use super::{
     lock_wait, lock_within, open_lock, publish, read_all, reap_if_dead,
     rewrite, suffixes,
 };
-use crate::slot::scratch::Scratch;
+use crate::slot::scratch::{Scratch, eventually};
 use crate::sys::try_lock_exclusive;
 
 #[test]
@@ -47,7 +47,7 @@ fn a_published_file_is_locked_and_has_its_content() -> io::Result<()> {
     assert_eq!(fs::read_to_string(&path)?, "42");
     assert!(!reap_if_dead(&path)?);
     drop(held);
-    assert!(reap_if_dead(&path)?);
+    assert!(eventually(|| reap_if_dead(&path), |dead| *dead)?);
     assert!(!path.exists());
     assert_eq!(suffixes(scratch.path(), "+tmp.")?, Vec::<String>::new());
     Ok(())

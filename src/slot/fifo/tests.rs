@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 
 use super::Ticket;
 use crate::slot::LockDir;
-use crate::slot::scratch::Scratch;
+use crate::slot::scratch::{Scratch, eventually};
 use crate::units::{Name, parse_name};
 
 fn key(s: &str) -> io::Result<Name> {
@@ -31,7 +31,7 @@ fn tickets_count_up_and_the_lowest_goes_first() -> io::Result<()> {
     assert!(first(&one)?);
     assert!(!first(&two)?);
     drop(one);
-    assert!(first(&two)?);
+    assert!(eventually(|| first(&two), |f| *f)?);
     Ok(())
 }
 

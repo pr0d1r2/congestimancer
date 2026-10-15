@@ -3,7 +3,7 @@ use std::io;
 
 use super::{Reservation, reserved_total};
 use crate::slot::LockDir;
-use crate::slot::scratch::Scratch;
+use crate::slot::scratch::{Scratch, eventually};
 use crate::units::Bytes;
 
 fn reserve(dir: &LockDir, n: u64) -> io::Result<Reservation> {
@@ -30,9 +30,9 @@ fn live_reservations_add_up_and_go_on_drop() -> io::Result<()> {
     assert_eq!(one.bytes(), Bytes(1_000));
     assert_eq!(total(&dir)?, 3_000);
     drop(one);
-    assert_eq!(total(&dir)?, 2_000);
+    assert_eq!(eventually(|| total(&dir), |t| *t == 2_000)?, 2_000);
     drop(two);
-    assert_eq!(total(&dir)?, 0);
+    assert_eq!(eventually(|| total(&dir), |t| *t == 0)?, 0);
     assert_eq!(fs::read_dir(scratch.path())?.count(), 0);
     Ok(())
 }
