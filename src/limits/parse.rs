@@ -21,8 +21,7 @@ impl FileNr {
     /// File handles open: allocated less unused.
     #[must_use]
     pub const fn open(self) -> u64 {
-        let _ = self;
-        0
+        self.allocated.saturating_sub(self.unused)
     }
 }
 
@@ -34,15 +33,31 @@ impl FileNr {
 /// [`LimitsError::Malformed`] unless the text is exactly three whole
 /// numbers.
 pub fn parse_file_nr(text: &str) -> Result<FileNr, LimitsError> {
-    Err(LimitsError::malformed("file-nr", text))
+    let bad = || LimitsError::malformed("file-nr", text);
+    let mut fields = text.split_whitespace().map(str::parse::<u64>);
+    let mut next = || fields.next().and_then(Result::ok).ok_or_else(bad);
+    let nr = FileNr {
+        allocated: next()?,
+        unused: next()?,
+        max: next()?,
+    };
+    match fields.next() {
+        None => Ok(nr),
+        Some(_) => Err(bad()),
+    }
 }
 
 /// `used` as a share of `max`, rounded down to a hundredth of a percent
 /// and capped at 100%; `None` when `max` is 0 (src/limits:V3).
 #[must_use]
 pub fn limit_share(used: u64, max: u64) -> Option<Percent> {
-    let _ = (used, max);
-    None
+    let hundredths = u128::from(used)
+        .saturating_mul(u128::from(Percent::FULL.hundredths()))
+        .checked_div(u128::from(max))?;
+    let capped = hundredths.min(u128::from(Percent::FULL.hundredths()));
+    u16::try_from(capped)
+        .ok()
+        .and_then(Percent::from_hundredths)
 }
 
 #[cfg(test)]

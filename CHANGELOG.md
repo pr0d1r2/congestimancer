@@ -158,3 +158,7 @@ is a development series, not for production.
   while the power-profiles-daemon profile is not `power-saver`; Linux
   without the daemon's state is unsupported (`parse_ppd_profile`,
   `PPD_STATE`).
+- `LimitsSignal`: `--fds X` passes while open files are under X percent of
+  the system maximum; on Linux from `/proc/sys/fs/file-nr` (`parse_file_nr`,
+  `FileNr`). A maximum of 0 or an unreadable source is unsupported, never
+  a division (`limit_share`).
