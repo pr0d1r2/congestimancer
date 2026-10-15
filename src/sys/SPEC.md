@@ -89,7 +89,7 @@ T15|x|fixture capture of ∀ sources|V7
 T16|x|Linux system bus `UnixStream`|V2,V4
 T17|x|`list_dir`: sorted names|V4
 T18|x|`getpw*_r`, localtime_r|V1,V2
-T19|.|`set_inheritable(&File)`: clear `FD_CLOEXEC` via rustix ⊥ `unsafe` ∵ `src/slot`, `src/launch` lock fd across exec|V2
+T19|x|`set_inheritable(&File)`: clear `FD_CLOEXEC` via rustix ⊥ `unsafe` ∵ `src/slot`, `src/launch` lock fd across exec|V2
 T20|.|`device_of(&Path)` → (major, minor) of `st_dev` via rustix `stat` ∵ `src/io` T2|V2
 
 ## §B BUGS

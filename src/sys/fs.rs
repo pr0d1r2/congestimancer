@@ -7,6 +7,7 @@ use std::io;
 use std::path::Path;
 
 use rustix::fs::{FlockOperation, StatVfs};
+use rustix::io::FdFlags;
 
 /// Space and inodes of the filesystem holding a path.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -96,9 +97,12 @@ pub fn unlock(file: &File) -> io::Result<()> {
 /// # Errors
 ///
 /// The OS error.
-pub const fn set_inheritable(file: &File) -> io::Result<()> {
-    let _ = file;
-    Ok(())
+pub fn set_inheritable(file: &File) -> io::Result<()> {
+    let flags = rustix::io::fcntl_getfd(file)?;
+    Ok(rustix::io::fcntl_setfd(
+        file,
+        flags.difference(FdFlags::CLOEXEC),
+    )?)
 }
 
 /// This process's nice value.
