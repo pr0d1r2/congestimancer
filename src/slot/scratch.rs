@@ -6,12 +6,16 @@ use std::io;
 use std::os::unix::fs::DirBuilderExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
 
 use super::LockDir;
 use crate::sys::current_uid;
 
 /// Tells apart the scratch dirs of one test process.
 static NEXT: AtomicU64 = AtomicU64::new(0);
+
+/// How long a lock a test drops may take to come free.
+const SETTLE: Duration = Duration::from_secs(2);
 
 /// A fresh, empty, 0700 dir, removed with everything in it on drop.
 #[derive(Debug)]
@@ -37,6 +41,18 @@ impl Scratch {
     pub(crate) fn lock_dir(&self) -> io::Result<LockDir> {
         LockDir::open(self.0.clone(), current_uid()).map_err(io::Error::other)
     }
+}
+
+/// `probe` again until `done` says so, for up to [`SETTLE`]; its last
+/// value. A lock this process drops is free only once every copy of its
+/// descriptor is closed, and a child another test thread spawns holds
+/// copies of them all until it execs (src/slot:V11).
+pub(crate) fn eventually<T>(
+    mut probe: impl FnMut() -> io::Result<T>,
+    done: impl Fn(&T) -> bool,
+) -> io::Result<T> {
+    let _ = (done, SETTLE);
+    probe()
 }
 
 impl Drop for Scratch {

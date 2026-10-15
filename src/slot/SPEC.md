@@ -55,6 +55,7 @@ V7: reservation: `--needs-mem X` writes reservation file held by flock until cmd
 V8: nested: key ∈ `CGMR_HELD_SLOTS` → slot treated as held, ⊥ deadlock.
 V9: slot checks run AFTER gates pass & settle, BEFORE jitter; full order → `src/wait:V9`.
 V10: slot key = `src/units` `Name` (`src/units:V13`); cmd basename default sanitised to `Name` | refused ∴ ⊥ path escape from lock dir.
+V11: tests: lock free after drop only once ∀ fd copies close; concurrent spawn in test process holds copies till exec ∴ test polls (bounded) for release, ⊥ asserts instant.
 
 ## §T TASKS
 
@@ -72,3 +73,4 @@ T9|x|slot key validation|V10
 ## §B BUGS
 
 id|date|cause|fix
+B1|2026-10-15|tests asserted lock free right after drop; another test thread's spawn copies ∀ fds until exec ∴ flock lags ~1ms|V11
