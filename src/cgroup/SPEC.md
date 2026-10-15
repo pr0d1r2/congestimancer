@@ -60,7 +60,7 @@ T3|x|`cpu.stat` parser + `--cpu-throttle`|V4
 T4|x|pressure source override ∀ PSI gates|V2
 T5|x|`--load` warning in cgroup|V3
 T6|x|`--cgroup` modes|V1
-T7|.|status dual values|V6
+T7|x|status dual values|V6
 
 ## §B BUGS
 

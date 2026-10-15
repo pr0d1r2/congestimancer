@@ -130,3 +130,6 @@ is a development series, not for production.
 - `load_warning`: inside a cgroup, a `--load` gate gets a warning that the
   host's load does not match the container's CPUs, suggesting
   `--cpu-pressure`.
+- `Dual` and `Scoped::dual`: `status` can show each cgroup signal as the
+  cgroup reads it beside the host's value, and why the cgroup column is
+  empty on the host.
