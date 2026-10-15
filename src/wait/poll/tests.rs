@@ -1,8 +1,10 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use super::{Admit, Open, Outcome, Rig, poll};
-use crate::gate::{Gate, Gates};
-use crate::signal::{FakeSource, ManualClock, Measure, Reading, SignalId};
+use crate::gate::{Gate, Gates, Overall};
+use crate::signal::{
+    Clock, FakeSource, ManualClock, Measure, Reading, SignalId,
+};
 use crate::units::Decimal;
 use crate::wait::{MIN_INTERVAL, Pacing};
 
@@ -27,11 +29,26 @@ fn load_gate() -> Gates {
     gates
 }
 
+/// A [`ManualClock`] that fails the test instead of letting a wait that
+/// never ends hang it.
+struct Bounded(ManualClock);
+
+impl Clock for Bounded {
+    fn now(&self) -> Instant {
+        self.0.now()
+    }
+
+    fn sleep(&mut self, d: Duration) {
+        assert!(self.0.sleeps().len() < 1_000, "the wait never ended");
+        self.0.sleep(d);
+    }
+}
+
 /// One wait's parts, and what it wrote and slept.
 struct Bench {
     gates: Gates,
     source: FakeSource,
-    clock: ManualClock,
+    clock: Bounded,
     log: Vec<u8>,
 }
 
@@ -43,7 +60,7 @@ impl Bench {
         Self {
             gates: load_gate(),
             source,
-            clock: ManualClock::new(),
+            clock: Bounded(ManualClock::new()),
             log: Vec::new(),
         }
     }
@@ -70,7 +87,7 @@ impl Bench {
     }
 
     fn sleeps(&self) -> Vec<Duration> {
-        self.clock.sleeps().to_vec()
+        self.clock.0.sleeps().to_vec()
     }
 
     fn rounds(&self) -> usize {
@@ -206,4 +223,48 @@ fn without_backoff_the_interval_stays_put() {
     let mut bench = Bench::new(&[FAIL, FAIL, FAIL, PASS]);
     assert!(released(&bench.open(&Pacing::new(SEC))));
     assert_eq!(bench.sleeps(), [SEC, SEC, SEC]);
+}
+
+fn timeout(interval: u64, limit: u64) -> Pacing {
+    let mut pacing = Pacing::new(secs(interval));
+    pacing.timeout = Some(secs(limit));
+    pacing
+}
+
+fn timed_out_failing(outcome: &Outcome<()>) -> bool {
+    matches!(
+        outcome,
+        Outcome::TimedOut(Some(last)) if last.overall == Overall::Fail
+    )
+}
+
+#[test]
+fn timeout_gives_up_after_a_last_round_at_the_deadline() {
+    let mut bench = Bench::new(&[FAIL]);
+    let outcome = bench.open(&timeout(2, 5));
+    assert!(timed_out_failing(&outcome));
+    assert_eq!(outcome.exit_code(), Some(124));
+    assert_eq!(bench.sleeps(), [secs(2), secs(2), secs(1)]);
+    assert_eq!(bench.rounds(), 4);
+}
+
+#[test]
+fn a_zero_timeout_checks_once() {
+    let mut bench = Bench::new(&[FAIL]);
+    assert!(timed_out_failing(&bench.open(&timeout(2, 0))));
+    assert!(bench.sleeps().is_empty());
+    assert_eq!(bench.rounds(), 1);
+}
+
+#[test]
+fn a_pass_before_the_deadline_releases() {
+    let mut bench = Bench::new(&[FAIL, FAIL, PASS]);
+    assert!(released(&bench.open(&timeout(2, 5))));
+}
+
+#[test]
+fn a_pass_on_the_deadline_still_releases() {
+    let mut bench = Bench::new(&[FAIL, FAIL, FAIL, PASS]);
+    assert!(released(&bench.open(&timeout(2, 5))));
+    assert_eq!(bench.rounds(), 4);
 }
