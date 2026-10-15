@@ -1,9 +1,14 @@
-//! `src/profile`: named switch sets from project & user files, lookup & trust rule.
+//! `src/profile`: named switch sets from project & user files, lookup &
+//! trust rule.
 //!
-//! Scaffold: the node's code lands here (`src/profile` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C): each part lives in its own submodule, and the
+//! public surface is re-exported here and again from the crate root
+//! (src:V3).
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod error;
+mod file;
+mod switch;
 
-use crate::units as _;
+pub use error::{At, ProfileError};
+pub use file::{Origin, Profile, ProfileFile, parse_profiles};
+pub use switch::{Arity, Switch, SwitchFault, SwitchTable};

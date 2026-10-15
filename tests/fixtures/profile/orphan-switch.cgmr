@@ -1,0 +1,3 @@
+# a switch before any header
+--load 2
+[build]

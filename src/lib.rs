@@ -27,6 +27,11 @@ mod sys;
 mod units;
 mod wait;
 
+pub use profile::{
+    Arity, At, Origin, Profile, ProfileError, ProfileFile, Switch, SwitchFault,
+    SwitchTable, parse_profiles,
+};
+
 pub use signal::{
     Clock, Counter, Level, Measure, Psi, PsiError, PsiLine, Reading, Reason,
     Root, Sample, Sampled, Sampler, Signal, SignalId, SignalSet, Source,

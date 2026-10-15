@@ -1,0 +1,11 @@
+# Profiles for this repository.
+
+[build]
+--load 2
+--mem=4GB
+
+  # an indented comment
+[ci]
+--path "target dir"
+--path 'cache'
+--quiet
