@@ -268,3 +268,38 @@ fn a_pass_on_the_deadline_still_releases() {
     assert!(released(&bench.open(&timeout(2, 5))));
     assert_eq!(bench.rounds(), 4);
 }
+
+fn settle(interval: u64, hold: u64) -> Pacing {
+    let mut pacing = Pacing::new(secs(interval));
+    pacing.settle = Some(secs(hold));
+    pacing
+}
+
+#[test]
+fn settle_holds_a_pass_for_its_whole_span_before_release() {
+    let mut bench = Bench::new(&[PASS]);
+    let mut turns = Turns::default();
+    assert!(bench.run(&settle(2, 3), &mut turns).is_ok());
+    assert_eq!(bench.sleeps(), [secs(2), secs(1)]);
+    assert_eq!(bench.rounds(), 3);
+    assert_eq!(turns.tries, 1);
+}
+
+#[test]
+fn a_break_in_the_pass_restarts_settle() {
+    let mut bench = Bench::new(&[PASS, FAIL, PASS]);
+    assert!(released(&bench.open(&settle(2, 3))));
+    assert_eq!(bench.sleeps(), [secs(2), secs(2), secs(2), secs(1)]);
+    assert_eq!(bench.rounds(), 5);
+}
+
+#[test]
+fn warming_breaks_settle_too() {
+    let mut source = FakeSource::new();
+    let script = [load(PASS), Reading::Warming, load(PASS)];
+    source.script(SignalId::Load, script);
+    let mut bench = Bench::new(&[]);
+    bench.source = source;
+    assert!(released(&bench.open(&settle(2, 3))));
+    assert_eq!(bench.rounds(), 5);
+}
