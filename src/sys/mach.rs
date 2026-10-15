@@ -34,16 +34,8 @@ pub struct VmStats {
     pub inactive: u64,
     /// Wired pages.
     pub wired: u64,
-    /// Purgeable pages.
-    pub purgeable: u64,
-    /// Speculative pages.
-    pub speculative: u64,
     /// Pages held by the compressor.
     pub compressor: u64,
-    /// File-backed pages.
-    pub external: u64,
-    /// Anonymous pages.
-    pub internal: u64,
     /// Pages read in, since boot.
     pub pageins: u64,
     /// Pages written out, since boot.
@@ -108,20 +100,42 @@ fn short(call: &str, len: usize) -> io::Error {
 /// `CPU_STATE_MAX` (4) `u32` ticks a CPU: user, system, idle, nice. A
 /// trailing partial CPU is dropped.
 fn decode_cpu_ticks(raw: &[u8]) -> Vec<CpuTicks> {
-    let _ = ne_u32(raw, 0);
-    Vec::new()
+    let state = |cpu: &[u8], at| ne_u32(cpu, at).map_or(0, u64::from);
+    raw.chunks_exact(16)
+        .map(|cpu| CpuTicks {
+            user: state(cpu, 0),
+            system: state(cpu, 4),
+            idle: state(cpu, 8),
+            nice: state(cpu, 12),
+        })
+        .collect()
 }
 
 /// `struct vm_statistics64`, by its stable leading field offsets.
 fn decode_vm_stats(raw: &[u8]) -> Option<VmStats> {
-    let _ = ne_u64(raw, 0);
-    None
+    let page = |at| ne_u32(raw, at).map(u64::from);
+    let count = |at| ne_u64(raw, at);
+    Some(VmStats {
+        free: page(0)?,
+        active: page(4)?,
+        inactive: page(8)?,
+        wired: page(12)?,
+        compressor: page(128)?,
+        pageins: count(32)?,
+        pageouts: count(40)?,
+        swapins: count(112)?,
+        swapouts: count(120)?,
+    })
 }
 
 /// `struct processor_set_load_info`: four `i32`.
 fn decode_pset_load(raw: &[u8]) -> Option<PsetLoad> {
-    let _ = ne_i32(raw, 0);
-    None
+    Some(PsetLoad {
+        task_count: ne_i32(raw, 0)?,
+        thread_count: ne_i32(raw, 4)?,
+        load_average: ne_i32(raw, 8)?,
+        mach_factor: ne_i32(raw, 12)?,
+    })
 }
 
 #[cfg(target_os = "macos")]

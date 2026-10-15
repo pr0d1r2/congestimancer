@@ -44,10 +44,8 @@ fn a_partial_cpu_is_dropped() {
 fn vm_stats_decode_page_gauges_by_field_offset() {
     let v = decode_vm_stats(&captured("host_statistics64.vm_info64"));
     let v = v.unwrap_or_default();
-    let gauges = [v.free, v.active, v.inactive, v.wired, v.purgeable];
-    assert_eq!(gauges, [4238, 165_436, 163_181, 476_275, 1]);
-    let more = [v.speculative, v.compressor, v.external, v.internal];
-    assert_eq!(more, [754, 199_317, 93_200, 236_171]);
+    let gauges = [v.free, v.active, v.inactive, v.wired, v.compressor];
+    assert_eq!(gauges, [4238, 165_436, 163_181, 476_275, 199_317]);
 }
 
 #[test]
@@ -61,7 +59,7 @@ fn vm_stats_decode_page_counters_by_field_offset() {
 #[test]
 fn a_short_vm_reply_is_none() {
     let mut raw = captured("host_statistics64.vm_info64");
-    raw.truncate(143);
+    raw.truncate(131);
     assert_eq!(decode_vm_stats(&raw), None);
 }
 

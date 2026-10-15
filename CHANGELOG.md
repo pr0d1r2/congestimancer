@@ -79,3 +79,6 @@ is a development series, not for production.
 - `sysctl_int` and `swap_usage`: macOS integer sysctls (such as
   `kern.maxfiles` or `kern.memorystatus_vm_pressure_level`) and
   `vm.swapusage`; an unknown sysctl, or any other OS, is `Unsupported`.
+- `cpu_ticks`, `vm_stats` and `pset_load`: macOS per-CPU ticks, VM page
+  counts and swap and page events, and the default processor set load (the
+  run queue); `Unsupported` on other OSes.
