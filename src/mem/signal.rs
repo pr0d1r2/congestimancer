@@ -1,7 +1,9 @@
 //! [`MemSignal`]: the memory signals, from Linux `/proc` under a
 //! [`Root`] or macOS sysctls and mach counters (src/mem:T1).
 
-use crate::signal::{Reason, Root, Sample, Signal, SignalId};
+use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
+use crate::sys::Snapshot;
+use crate::units::Bytes;
 
 /// Which OS's sources a [`MemSignal`] reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,6 +26,8 @@ pub struct MemSignal {
     root: Root,
     /// The OS whose sources are read.
     os: Os,
+    /// The `sysinfo` view available memory is read from.
+    snapshot: Snapshot,
 }
 
 impl MemSignal {
@@ -39,15 +43,34 @@ impl MemSignal {
     }
 
     /// Reads `os`'s sources.
-    const fn on(root: Root, os: Os) -> Self {
-        Self { root, os }
+    fn on(root: Root, os: Os) -> Self {
+        Self {
+            root,
+            os,
+            snapshot: Snapshot::new(),
+        }
+    }
+}
+
+impl MemSignal {
+    /// Available memory: what new work can take without swapping, never
+    /// "free", from `sysinfo` on both OSes (Linux `MemAvailable`, the
+    /// macOS native estimate; src/mem:V1).
+    fn available(&mut self) -> Bytes {
+        self.snapshot.refresh_memory();
+        Bytes(self.snapshot.memory().available)
     }
 }
 
 impl Signal for MemSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
         let _ = (&self.root, self.os);
-        Sample::Unsupported(Reason::from(format!("{id} is not a mem signal")))
+        match id {
+            SignalId::Mem => Sample::Gauge(Measure::Bytes(self.available())),
+            _ => Sample::Unsupported(Reason::from(format!(
+                "{id} is not a mem signal"
+            ))),
+        }
     }
 }
 

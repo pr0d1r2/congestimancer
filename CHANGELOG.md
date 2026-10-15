@@ -253,3 +253,6 @@ is a development series, not for production.
   steps run in `SLOT_ORDER` (FIFO, slot, rate and spacing, reservation);
   a step that says wait lets go of anything claimed that round but the
   FIFO ticket.
+- `MemSignal`: `--all-mem X` passes while available memory, never "free",
+  is over X, from `sysinfo` on Linux and macOS; `--mem X` compares
+  available memory per CPU (`mem_per_cpu`), never divided by zero.
