@@ -113,3 +113,17 @@ fn linux_load_reads_the_window_asked_for() {
     let mut cpu = on("linux", Os::Linux).with_window(LoadWindow::Fifteen);
     assert_eq!(cpu.sample(SignalId::Load), number(750));
 }
+
+#[test]
+fn linux_run_queue_is_procs_running() {
+    let sample = on("linux", Os::Linux).sample(SignalId::RunQueue);
+    assert_eq!(sample, number(3_000));
+}
+
+#[test]
+fn linux_run_queue_from_garbled_stat_is_unsupported() {
+    assert_eq!(
+        reason(on("garbled", Os::Linux).sample(SignalId::RunQueue)),
+        Some("malformed /proc/stat line: `cpu 1 2 3`".to_owned())
+    );
+}

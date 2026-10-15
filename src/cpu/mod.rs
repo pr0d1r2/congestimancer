@@ -19,7 +19,7 @@ mod window;
 
 pub use count::{cpu_count, load_per_cpu};
 pub use error::CpuError;
-pub use parse::{Loads, parse_loadavg};
+pub use parse::{CpuTimes, Loads, ProcStat, parse_loadavg, parse_stat};
 pub use signal::CpuSignal;
 pub use window::{LoadWindow, parse_load_window};
 

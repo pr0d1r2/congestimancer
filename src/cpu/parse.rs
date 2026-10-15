@@ -6,6 +6,9 @@ use crate::units::{Decimal, parse_decimal};
 /// `/proc/loadavg`: the 1, 5 and 15 minute load averages, then tasks.
 pub(super) const LOADAVG: &str = "/proc/loadavg";
 
+/// `/proc/stat`: CPU times since boot and scheduler counts.
+pub(super) const STAT: &str = "/proc/stat";
+
 /// The 1, 5 and 15 minute load averages, exact to thousandths.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
@@ -34,6 +37,68 @@ pub fn parse_loadavg(text: &str) -> Result<Loads, CpuError> {
         }
         _ => Err(CpuError::malformed(LOADAVG, line)),
     }
+}
+
+/// All CPUs' cumulative time per state since boot, in clock ticks: the
+/// `cpu` line of `/proc/stat`. Columns an older kernel lacks are zero.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct CpuTimes {
+    /// In user mode, guests included.
+    pub user: u64,
+    /// In user mode at raised nice.
+    pub nice: u64,
+    /// In the kernel.
+    pub system: u64,
+    /// Idle.
+    pub idle: u64,
+    /// Idle while IO was outstanding.
+    pub iowait: u64,
+    /// Serving interrupts.
+    pub irq: u64,
+    /// Serving softirqs.
+    pub softirq: u64,
+    /// Stolen by the hypervisor for other guests.
+    pub steal: u64,
+}
+
+impl CpuTimes {
+    /// Every tick counted once: the eight states summed (guest time is
+    /// already in `user`); `None` past 64 bits.
+    #[must_use]
+    pub fn total(self) -> Option<u64> {
+        let _ = self;
+        None
+    }
+
+    /// Ticks with nothing to run: `idle` plus `iowait`; `None` past 64
+    /// bits.
+    #[must_use]
+    pub fn idle_total(self) -> Option<u64> {
+        let _ = self;
+        None
+    }
+}
+
+/// What `/proc/stat` says about the CPUs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct ProcStat {
+    /// All CPUs' times since boot.
+    pub times: CpuTimes,
+    /// Tasks running or runnable now (`procs_running`).
+    pub procs_running: u64,
+}
+
+/// Parses `/proc/stat` for the `cpu` line and `procs_running`.
+///
+/// # Errors
+///
+/// [`CpuError::Malformed`] for either line not in its form (the `cpu`
+/// line needs at least user, nice, system and idle);
+/// [`CpuError::Missing`] when either is absent.
+pub fn parse_stat(text: &str) -> Result<ProcStat, CpuError> {
+    Err(CpuError::malformed(STAT, text))
 }
 
 #[cfg(test)]
