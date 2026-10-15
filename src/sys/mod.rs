@@ -1,10 +1,13 @@
-//! `src/sys`: OS facade: all syscalls, FFI, `sysinfo`, `rustix`, `libc`; only node allowed `unsafe`.
+//! `src/sys`: OS facade: all syscalls, FFI, `sysinfo`, `rustix`, `libc`;
+//! the only node allowed `unsafe` (src:C, nix:V11).
 //!
-//! Scaffold: the node's code lands here (`src/sys` tasks). Each `use`
-//! line below is one build-order edge for `sherd wave` (src:C); the
-//! `expect` turns into a warning once the node uses them, and goes.
+//! Composes only (src:C). Every function here is safe (src/sys:V2): a
+//! failure is an [`std::io::Error`], and a source this machine lacks is
+//! [`std::io::ErrorKind::Unsupported`] with a reason (src/sys:V4). Raw
+//! bytes from the OS are decoded by pure functions tested on captured
+//! fixtures under `tests/fixtures/sys/` (src/sys:V3).
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
+mod error;
+mod files;
 
-use crate::signal as _;
-use crate::units as _;
+pub use files::read_text;
