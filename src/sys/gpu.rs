@@ -5,7 +5,7 @@
 
 use std::io;
 
-use super::props::Props;
+use super::props::{PropValue, Props};
 
 /// One GPU's load.
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -37,9 +37,11 @@ pub fn gpu_usage() -> io::Result<Vec<GpuUsage>> {
 
 /// One `PerformanceStatistics` table.
 fn decode_usage(stats: Props) -> GpuUsage {
+    let get = |key: &str| stats.get(key).and_then(PropValue::as_u64);
     GpuUsage {
+        utilization_percent: get("Device Utilization %"),
+        vram_free_bytes: get("vramFreeBytes"),
         stats,
-        ..GpuUsage::default()
     }
 }
 

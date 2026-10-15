@@ -90,3 +90,6 @@ is a development series, not for production.
   machine is on wall power with its battery charge, the time since the last
   input, and notify state such as thermal pressure (`THERMAL_PRESSURE`) and
   Low Power Mode (`LOW_POWER_MODE`).
+- `gpu_usage`: on macOS, every GPU's utilization and free VRAM (where it has
+  dedicated memory) from IOKit `PerformanceStatistics`, with the whole table
+  kept; no GPU table is `Unsupported`.
