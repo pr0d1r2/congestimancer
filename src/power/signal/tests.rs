@@ -147,14 +147,6 @@ fn macos_temp_is_unsupported() {
     );
 }
 
-/// A Linux power signal over fixture `case` that reads supplies `names`.
-fn listed(case: &str, names: &[&str]) -> PowerSignal {
-    let mut power = linux(case);
-    let names = names.iter().map(|&name| name.to_owned()).collect();
-    power.supply_names = Some(names);
-    power
-}
-
 /// A charge gauge of `whole` percent.
 fn charge(whole: u16) -> Sample {
     let percent = Percent::from_hundredths(whole.saturating_mul(100));
@@ -166,34 +158,29 @@ fn charge(whole: u16) -> Sample {
 
 #[test]
 fn a_laptop_on_its_adapter_is_on_ac_with_its_charge() {
-    let mut power = listed("intel", &["AC", "BAT0", "hidpp_battery_0"]);
+    let mut power = linux("intel");
     assert_eq!(power.sample(SignalId::OnAc), flag(true));
     assert_eq!(power.sample(SignalId::Battery), charge(80));
 }
 
 #[test]
 fn a_laptop_on_battery_is_not_on_ac() {
-    let mut power = listed("arm", &["ADP1", "BAT0", "BAT1"]);
+    let mut power = linux("arm");
     assert_eq!(power.sample(SignalId::OnAc), flag(false));
     assert_eq!(power.sample(SignalId::Battery), charge(75));
 }
 
 #[test]
 fn a_desktop_is_on_ac_and_passes_any_battery_gate() {
-    let mut power = listed("intel", &[]);
+    // Only a mouse battery and a supply without a `uevent` are listed.
+    let mut power = linux("desktop");
     assert_eq!(power.sample(SignalId::OnAc), flag(true));
     assert_eq!(power.sample(SignalId::Battery), charge(100));
 }
 
 #[test]
-fn a_supply_without_a_uevent_is_skipped() {
-    let mut power = listed("intel", &["gone", "AC"]);
-    assert_eq!(power.sample(SignalId::OnAc), flag(true));
-}
-
-#[test]
 fn a_battery_without_a_charge_is_unsupported() {
-    let mut power = listed("arm", &["nocharge"]);
+    let mut power = linux("nocharge");
     assert_eq!(power.sample(SignalId::OnAc), flag(false));
     assert_eq!(
         reason(power.sample(SignalId::Battery)),
@@ -202,15 +189,15 @@ fn a_battery_without_a_charge_is_unsupported() {
 }
 
 #[test]
-fn linux_supplies_wait_for_a_directory_listing() {
-    assert_eq!(
-        reason(linux("intel").sample(SignalId::OnAc)),
-        Some(
-            "listing /sys/class/power_supply needs a src/sys directory \
-             listing"
-                .to_owned()
-        )
-    );
+fn linux_without_a_supply_directory_is_unsupported() {
+    let mut power = linux("amd");
+    for id in [SignalId::OnAc, SignalId::Battery] {
+        assert_eq!(
+            reason(power.sample(id)),
+            Some("/sys/class/power_supply: not present".to_owned()),
+            "{id}"
+        );
+    }
 }
 
 #[test]
