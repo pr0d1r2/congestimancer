@@ -34,7 +34,9 @@ pub use cgroup::{
     parse_memory_max, parse_proc_cgroup,
 };
 
-pub use cpu::{cpu_count, load_per_cpu};
+pub use cpu::{
+    CpuError, CpuSignal, Loads, cpu_count, load_per_cpu, parse_loadavg,
+};
 
 pub use disk::{DiskError, DiskSignal, free_inodes, free_space};
 
