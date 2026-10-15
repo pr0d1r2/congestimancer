@@ -10,11 +10,13 @@
 mod colour;
 mod json;
 mod model;
+mod reasons;
 mod route;
 mod table;
 
 pub use colour::{Paint, Style};
 pub use json::{SCHEMA_VERSION, json_string, write_json};
 pub use model::{StatusReport, StatusRow, switch_name};
+pub use reasons::{block_reasons, heartbeat_line, write_verbose};
 pub use route::{Output, Stream, Streams};
 pub use table::write_status;
