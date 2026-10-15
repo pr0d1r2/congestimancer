@@ -207,3 +207,62 @@ mod queue {
         assert_eq!(reason(sample), want);
     }
 }
+
+/// `--io-pressure` and `--io-pressure-full` (src/io:T8).
+mod pressure {
+    use std::time::Instant;
+
+    use super::{
+        Os, Sample, Sampled, Signal, SignalId, Source, linux, on, reason, root,
+    };
+    use crate::cgroup::{Cgroup, Scope, Scoped};
+    use crate::signal::Measure;
+    use crate::units::Percent;
+
+    /// A percent gauge of `hundredths`.
+    fn percent(hundredths: u16) -> Option<Sample> {
+        let p = Percent::from_hundredths(hundredths)?;
+        Some(Sample::Gauge(Measure::Percent(p)))
+    }
+
+    #[test]
+    fn linux_pressure_is_psi_avg10() {
+        assert_eq!(Some(linux(SignalId::IoPressure)), percent(325));
+        assert_eq!(Some(linux(SignalId::IoPressureFull)), percent(175));
+    }
+
+    #[test]
+    fn pressure_needs_no_block_device() {
+        let sample = on("tmp", Os::Linux, "/x").sample(SignalId::IoPressure);
+        assert_eq!(Some(sample), percent(50));
+    }
+
+    #[test]
+    fn pressure_without_a_full_line_is_unsupported() {
+        let mut io = on("tmp", Os::Linux, "/x");
+        let want = Some("/proc/pressure/io has no `full` line".to_owned());
+        assert_eq!(reason(io.sample(SignalId::IoPressureFull)), want);
+    }
+
+    #[test]
+    fn garbled_pressure_is_unsupported() {
+        let sample = on("garbled", Os::Linux, "/").sample(SignalId::IoPressure);
+        assert!(reason(sample).is_some());
+    }
+
+    #[test]
+    fn macos_pressure_is_unsupported() {
+        let sample = on("linux", Os::Macos, "/").sample(SignalId::IoPressure);
+        assert_eq!(reason(sample), Some("no PSI on macOS".to_owned()));
+    }
+
+    #[test]
+    fn in_a_cgroup_io_pressure_is_the_cgroups_own() {
+        let scope = Scope::Cgroup(Cgroup::new("/job"));
+        let host = Sampled::new(on("linux", Os::Linux, "/work"));
+        let mut scoped = Scoped::new(root("linux"), scope, host);
+        let read = scoped.read(SignalId::IoPressure, Instant::now());
+        let want = Percent::from_hundredths(4_200).map(Measure::Percent);
+        assert_eq!(read.measure().copied(), want);
+    }
+}
