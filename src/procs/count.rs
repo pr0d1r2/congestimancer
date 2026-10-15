@@ -76,10 +76,16 @@ pub fn count_by_user(
     procs: &[Proc],
     pattern: &Glob,
     me: u32,
-    user_name: impl FnMut(u32) -> Option<String>,
+    mut user_name: impl FnMut(u32) -> Option<String>,
 ) -> Count {
-    let _ = (procs, pattern, me, user_name);
-    Count(0)
+    let mut matched: HashMap<u32, bool> = HashMap::new();
+    count_where(procs, me, |p| {
+        p.uid.is_some_and(|uid| {
+            *matched.entry(uid).or_insert_with(|| {
+                user_name(uid).is_some_and(|name| pattern.matches(&name))
+            })
+        })
+    })
 }
 
 /// How many of `procs` outside `me`'s lineage pass `keep`.

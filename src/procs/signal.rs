@@ -1,7 +1,7 @@
 //! [`ProcsSignal`]: `--max-procs` as a [`Signal`] over a process table
 //! (src/procs:T3, T4).
 
-use super::{Glob, Proc, count_by_name};
+use super::{Glob, Proc, count_by_name, count_by_user};
 use crate::signal::{Measure, Reason, Sample, Signal, SignalId};
 use crate::sys::{Snapshot, user_name};
 
@@ -79,6 +79,11 @@ impl<T: ProcessTable> Signal for ProcsSignal<T> {
         let count = match (id, &self.by) {
             (SignalId::MaxProcs, ProcMatch::Name(glob)) => {
                 count_by_name(&self.table.processes(), glob, self.me)
+            }
+            (SignalId::MaxUserProcs, ProcMatch::User(glob)) => {
+                let procs = self.table.processes();
+                let names = |uid| self.table.user_name(uid);
+                count_by_user(&procs, glob, self.me, names)
             }
             _ => {
                 let why = format!("{id} is not this process gate's signal");

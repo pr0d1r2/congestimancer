@@ -166,3 +166,6 @@ is a development series, not for production.
 - `ProcsSignal` reads `--max-procs`: how many processes have a name
   matching the pattern (`count_by_name`), leaving out cgmr and its
   ancestors where the process table gives pids (`lineage`).
+- `--max-user-procs` reads how many processes are owned by a user whose
+  name matches the pattern, like `nixbld*` (`count_by_user`); a process
+  with no known owner never matches.

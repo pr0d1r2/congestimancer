@@ -54,7 +54,7 @@ id|status|task|cites
 T1|x|glob matcher|V1,V2
 T2|x|`NAME=N` parser|V4
 T3|~|`--max-procs`|V1,V3
-T4|.|`--max-user-procs` (e.g. `nixbld*`)|V2,V3
+T4|~|`--max-user-procs` (e.g. `nixbld*`)|V2,V3
 
 ## §B BUGS
 
