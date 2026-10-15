@@ -111,6 +111,8 @@ is a development series, not for production.
   as a fixture tree, and on macOS writes the sysctl, mach, network, IOKit
   and notify values as text, without serial numbers, link addresses or
   anything that names a person.
+- `list_dir`: the sorted entry names of a kernel directory under a `Root`;
+  a directory this machine lacks is `Unsupported`.
 - `Cgroup` and `parse_proc_cgroup`: on Linux, the cgroup v2 this process
   sits in, from `/proc/self/cgroup`, with its files and ancestors under
   `/sys/fs/cgroup`; cgroup v1 (or a hybrid host) is unsupported.

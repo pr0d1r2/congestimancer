@@ -87,7 +87,7 @@ T13|x|TCP connect probe w/ timeout|V2
 T14|x|SPIKE: settle R1–R4|-
 T15|x|fixture capture of ∀ sources|V7
 T16|x|Linux system bus `UnixStream`|V2,V4
-T17|.|`list_dir`: sorted names|V4
+T17|x|`list_dir`: sorted names|V4
 T18|.|users via `getpw*_r`|V1,V2
 
 ## §B BUGS

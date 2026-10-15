@@ -1,7 +1,7 @@
 use std::io;
 use std::path::Path;
 
-use super::{list_dir, read_text};
+use super::{list_dir, read_text, utf8_name};
 use crate::signal::Root;
 
 /// This node's fixture tree, laid out like `/`.
@@ -68,4 +68,19 @@ fn listing_a_file_keeps_its_own_error_kind() {
     let kind = err.map(|e| e.kind());
     assert!(kind.is_some());
     assert_ne!(kind, Some(io::ErrorKind::Unsupported));
+}
+
+#[test]
+fn a_name_not_utf8_is_invalid_data_naming_the_directory() {
+    use std::os::unix::ffi::OsStringExt as _;
+    let name = std::ffi::OsString::from_vec(vec![b'a', 0xff]);
+    let err = utf8_name("/proc", name).err();
+    let err = err.map(|e| (e.kind(), e.to_string()));
+    assert_eq!(
+        err,
+        Some((
+            io::ErrorKind::InvalidData,
+            "/proc: entry a\u{FFFD} is not UTF-8".to_owned()
+        ))
+    );
 }
