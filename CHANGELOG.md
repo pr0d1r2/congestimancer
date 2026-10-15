@@ -216,3 +216,7 @@ is a development series, not for production.
 - `WallClock` and `SystemWallClock`: `--between` samples the local time of
   day from an injected wall clock; the machine clock does not read local
   time yet, so there it is unsupported with that reason.
+- `amd_gpus`, `parse_busy_percent` and `parse_vram`: AMD GPUs on Linux from
+  each DRM card's `gpu_busy_percent` and `mem_info_vram_total|used`, as a
+  `Gpu` with its busy percent and free VRAM; an unparsed file leaves its
+  field empty, never a fake number.
