@@ -309,3 +309,10 @@ is a development series, not for production.
   `/proc/diskstats`, on macOS the volume's disk, which IOKit walks up to
   the physical disk under an APFS container. tmpfs, NFS, FUSE and devfs
   have no block device, and say to name one with `--io-device`.
+- `IoSignal`: `--io-read X/s`, `--io-write X/s` and `--io X/s` pass
+  while the device's read, write or summed bytes per second over the
+  last interval are under X; `--io-busy X` while it was busy under X%
+  of the interval (Linux `io_ticks`; macOS total request time, an upper
+  bound capped at 100%); `--io-latency D` while the mean time per
+  completed request is under D, passing when none completed. The first
+  reading warms up.

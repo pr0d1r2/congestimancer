@@ -12,7 +12,6 @@
 mod diskstats;
 mod error;
 mod mount;
-#[expect(dead_code, reason = "RED: the GREEN commit routes the signals")]
 mod signal;
 
 pub use diskstats::{Direction, DiskStat, parse_diskstats};

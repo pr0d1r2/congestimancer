@@ -69,7 +69,18 @@ impl IoSignal {
 
 impl Signal for IoSignal {
     fn sample(&mut self, id: SignalId) -> Sample {
-        Sample::Unsupported(Reason::from(format!("{id} is not an io signal")))
+        let sample = match id {
+            SignalId::IoRead
+            | SignalId::IoWrite
+            | SignalId::Io
+            | SignalId::IoBusy
+            | SignalId::IoLatency => self
+                .totals()
+                .and_then(|t| counter(id, &t))
+                .map(Sample::Counter),
+            _ => Err(Reason::from(format!("{id} is not an io signal"))),
+        };
+        sample.unwrap_or_else(Sample::Unsupported)
     }
 }
 

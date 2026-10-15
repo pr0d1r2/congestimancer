@@ -68,9 +68,9 @@ id|status|task|cites
 T1|x|`/proc/diskstats` parser|V5,V6,V7,V8
 T2|x|path → device: Linux (mountinfo → diskstats)|V1,V3
 T3|x|path → physical disk: macOS APFS|V1,V2,V3
-T4|.|`--io-read` `--io-write` `--io` both OS|V4,V5
-T5|.|`--io-busy` both OS|V6
-T6|.|`--io-latency` both OS|V7
+T4|x|`--io-read` `--io-write` `--io` both OS|V4,V5
+T5|x|`--io-busy` both OS|V6
+T6|x|`--io-latency` both OS|V7
 T7|.|`--io-queue`|V8
 T8|.|`--io-pressure` & `-full`|V9
 T9|.|`--io-device` override|V1,V10
