@@ -2,7 +2,7 @@
 
 ## §G GOAL
 
-`src/io` — disk IO congestion signals & their gates.
+`src/io` — disk IO signals & gates.
 
 ## §N NAV
 
@@ -66,15 +66,15 @@ V10: `--io-device D`: D = `Name` (`src/units:V13`) ∴ ⊥ sysfs path escape.
 
 id|status|task|cites
 T1|x|`/proc/diskstats` parser|V5,V6,V7,V8
-T2|.|path → device: Linux (`st_dev` → sysfs)|V1,V3
+T2|.|path → device: Linux (mountinfo → diskstats)|V1,V3
 T3|.|path → physical disk: macOS APFS|V1,V2,V3
 T4|.|`--io-read` `--io-write` `--io` both OS|V4,V5
 T5|.|`--io-busy` both OS|V6
 T6|.|`--io-latency` both OS|V7
 T7|.|`--io-queue`|V8
 T8|.|`--io-pressure` & `-full`|V9
-T9|.|`--io-device` override & validation|V1,V10
-T10|x|SPIKE: settle R1–R2 on M4 & Intel Mac|-
+T9|.|`--io-device` override|V1,V10
+T10|x|SPIKE: settle R1–R2|-
 
 ## §B BUGS
 
