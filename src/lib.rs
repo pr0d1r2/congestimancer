@@ -30,7 +30,7 @@ mod wait;
 pub use profile::{
     Arity, At, Catalog, Origin, PROJECT_FILE, Places, Profile, ProfileError,
     ProfileFile, ReadText, Switch, SwitchFault, SwitchTable, discover,
-    parse_profiles,
+    parse_profiles, render_profiles,
 };
 
 pub use signal::{
