@@ -21,7 +21,7 @@ impl CpuMax {
     /// Whether the quota limits the cgroup (`cpu.max` is not `max`).
     #[must_use]
     pub const fn is_limited(&self) -> bool {
-        false
+        self.quota.is_some()
     }
 }
 
@@ -32,7 +32,17 @@ impl CpuMax {
 /// [`CgroupError::Malformed`] for anything but a quota (a number or
 /// `max`) and a period above zero.
 pub fn parse_cpu_max(text: &str) -> Result<CpuMax, CgroupError> {
-    Err(CgroupError::malformed("cpu.max", text))
+    let mut words = text.split_whitespace();
+    let quota = words.next().and_then(|w| limit(w).ok());
+    let period = words.next().and_then(|w| w.parse().ok());
+    quota
+        .zip(period.filter(|&p| p > 0))
+        .filter(|_| words.next().is_none())
+        .map(|(quota, period)| CpuMax {
+            quota: quota.map(Duration::from_micros),
+            period: Duration::from_micros(period),
+        })
+        .ok_or_else(|| CgroupError::malformed("cpu.max", text.trim()))
 }
 
 /// Parses `memory.max`: a size in bytes, or `max` (`None`, no limit).
@@ -41,7 +51,9 @@ pub fn parse_cpu_max(text: &str) -> Result<CpuMax, CgroupError> {
 ///
 /// [`CgroupError::Malformed`] for anything but a number or `max`.
 pub fn parse_memory_max(text: &str) -> Result<Option<Bytes>, CgroupError> {
-    Err(CgroupError::malformed("memory.max", text))
+    limit(text.trim())
+        .map(|max| max.map(Bytes))
+        .map_err(|()| CgroupError::malformed("memory.max", text.trim()))
 }
 
 /// Parses `memory.current`: the bytes the cgroup uses now.
@@ -50,7 +62,10 @@ pub fn parse_memory_max(text: &str) -> Result<Option<Bytes>, CgroupError> {
 ///
 /// [`CgroupError::Malformed`] for anything but a number.
 pub fn parse_memory_current(text: &str) -> Result<Bytes, CgroupError> {
-    Err(CgroupError::malformed("memory.current", text))
+    text.trim()
+        .parse()
+        .map(Bytes)
+        .map_err(|_| CgroupError::malformed("memory.current", text.trim()))
 }
 
 /// Memory left to the cgroup: `max` less `current`, never below zero, and
@@ -61,8 +76,16 @@ pub fn memory_available(
     current: Bytes,
     host: Option<Bytes>,
 ) -> Bytes {
-    let _ = (max, current, host);
-    Bytes(1)
+    let left = Bytes(max.0.saturating_sub(current.0));
+    host.map_or(left, |host| left.min(host))
+}
+
+/// A number, or `max` for none.
+fn limit(word: &str) -> Result<Option<u64>, ()> {
+    match word {
+        "max" => Ok(None),
+        _ => word.parse().map(Some).map_err(|_| ()),
+    }
 }
 
 #[cfg(test)]
