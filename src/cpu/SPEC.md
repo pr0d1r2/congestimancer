@@ -45,7 +45,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|macOS run queue|settled: `processor_set_statistics(processor_set_default, PROCESSOR_SET_LOAD_INFO).load_average` / 1000 = runnable threads, ~5s EWMA (xnu `compute_averages`); unprivileged, ~us. Rejected: `HOST_LOAD_INFO`/`vm.loadavg` (1m+ avg), no `kern.*` runq sysctl, `proc_pidinfo` `pti_numrunning` scan misses root pids. M4 26.5: base 5-8, +20 spinners 30-45 in 2s, back in 2s. Intel unverified (same xnu)|spike M4
+R1|macOS run queue|settled: `processor_set_statistics(processor_set_default, PROCESSOR_SET_LOAD_INFO).load_average` / 1000 = runnable threads, ~5s EWMA (xnu `compute_averages`); unprivileged, ~us. Rejected: `HOST_LOAD_INFO`/`vm.loadavg` (1m+ avg), `kern.*` (no runq), `proc_pidinfo` scan (misses root pids). M4 26.5: 5-8, 20 spinners 30-45 in 2s. Intel unverified|spike M4
 
 ## §V INVARIANTS
 
@@ -60,7 +60,7 @@ V7: N ≥ 1 always; division checked.
 ## §T TASKS
 
 id|status|task|cites
-T1|.|N from `available_parallelism`, ≥ 1|V7
+T1|x|N from `available_parallelism`, ≥ 1|V7
 T2|.|load avg reader both OS + `--load` `--all-load`|V1
 T3|.|`--load-window`|V2
 T4|.|`/proc/stat` parser: `procs_running`, cpu times, steal|V3,V4,V6
