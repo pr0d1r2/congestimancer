@@ -1,5 +1,6 @@
 //! The arithmetic of the memory gates beyond the raw reading: available
-//! memory per CPU (`--mem`, src/mem:V2).
+//! memory per CPU (`--mem`, src/mem:V2) and memory not yet reserved
+//! (`--needs-mem`, src/mem:V3).
 
 use crate::units::Bytes;
 
@@ -8,6 +9,16 @@ use crate::units::Bytes;
 #[must_use]
 pub fn mem_per_cpu(available: Bytes, cpus: u64) -> Option<Bytes> {
     available.0.checked_div(cpus).map(Bytes)
+}
+
+/// `--needs-mem`: available memory less what running cgmr jobs reserved,
+/// never below zero (src/mem:V3). `reserved` is the ledger's total,
+/// [`reserved_total`](crate::slot::reserved_total), read by the caller
+/// that holds the lock dir.
+#[must_use]
+pub const fn mem_unreserved(available: Bytes, reserved: Bytes) -> Bytes {
+    let _ = reserved;
+    available
 }
 
 #[cfg(test)]

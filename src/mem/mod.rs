@@ -10,5 +10,5 @@
 mod fit;
 mod signal;
 
-pub use fit::mem_per_cpu;
+pub use fit::{mem_per_cpu, mem_unreserved};
 pub use signal::MemSignal;
