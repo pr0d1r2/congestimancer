@@ -35,7 +35,8 @@ pub use cgroup::{
 };
 
 pub use cpu::{
-    CpuError, CpuSignal, Loads, cpu_count, load_per_cpu, parse_loadavg,
+    CpuError, CpuSignal, LoadWindow, Loads, cpu_count, load_per_cpu,
+    parse_load_window, parse_loadavg,
 };
 
 pub use disk::{DiskError, DiskSignal, free_inodes, free_space};

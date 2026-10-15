@@ -2,7 +2,7 @@
 //! or macOS `sysinfo` and mach calls (src/cpu:T2-T8).
 
 use super::parse::LOADAVG;
-use super::{Loads, parse_loadavg};
+use super::{LoadWindow, Loads, parse_loadavg};
 use crate::signal::{Measure, Reason, Root, Sample, Signal, SignalId};
 use crate::sys::{LoadAverage, Snapshot, read_text};
 use crate::units::{Decimal, parse_decimal};
@@ -31,6 +31,8 @@ pub struct CpuSignal {
     root: Root,
     /// The OS whose sources are read.
     os: Os,
+    /// The load average `SignalId::Load` reads.
+    window: LoadWindow,
 }
 
 impl CpuSignal {
@@ -47,7 +49,19 @@ impl CpuSignal {
 
     /// Reads `os`'s sources.
     const fn on(root: Root, os: Os) -> Self {
-        Self { root, os }
+        Self {
+            root,
+            os,
+            window: LoadWindow::One,
+        }
+    }
+
+    /// Reads the load average over `window` (`--load-window`,
+    /// src/cpu:V2).
+    #[must_use]
+    pub const fn with_window(self, window: LoadWindow) -> Self {
+        let _ = window;
+        self
     }
 }
 
@@ -78,6 +92,7 @@ impl CpuSignal {
     fn gauge(&self, id: SignalId) -> Result<Measure, Reason> {
         match id {
             SignalId::Load => self.loads().map(|l| Measure::Number(l.one)),
+            SignalId::Mem => Err(Reason::from(format!("{:?}", self.window))),
             _ => Err(Reason::from(format!("{id} is not a cpu signal"))),
         }
     }

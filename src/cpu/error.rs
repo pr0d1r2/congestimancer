@@ -20,6 +20,8 @@ pub enum CpuError {
         /// The field, such as `procs_running`.
         key: &'static str,
     },
+    /// A `--load-window` other than `1m`, `5m` or `15m`, as given.
+    Window(String),
 }
 
 impl CpuError {
@@ -39,6 +41,7 @@ impl fmt::Display for CpuError {
                 write!(f, "malformed {file} line: `{line}`")
             }
             Self::Missing { file, key } => write!(f, "{file} has no `{key}`"),
+            Self::Window(input) => write!(f, "{input}"),
         }
     }
 }

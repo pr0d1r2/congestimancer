@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use super::{CpuSignal, Os, loads_from};
-use crate::cpu::Loads;
+use crate::cpu::{LoadWindow, Loads};
 use crate::signal::{Measure, Root, Sample, Signal, SignalId};
 use crate::sys::LoadAverage;
 use crate::units::Decimal;
@@ -106,4 +106,10 @@ fn a_negative_sysinfo_load_is_unsupported() {
 fn a_non_finite_sysinfo_load_is_unsupported() {
     let loads = loads_from(load(0.0, f64::NAN, 0.0)).map_err(|r| r.to_string());
     assert_eq!(loads, Err("load average NaN is not a load".to_owned()));
+}
+
+#[test]
+fn linux_load_reads_the_window_asked_for() {
+    let mut cpu = on("linux", Os::Linux).with_window(LoadWindow::Fifteen);
+    assert_eq!(cpu.sample(SignalId::Load), number(750));
 }
