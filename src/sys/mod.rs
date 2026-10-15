@@ -8,6 +8,7 @@
 //! fixtures under `tests/fixtures/sys/` (src/sys:V3).
 
 mod bus;
+mod capture;
 mod disk;
 mod error;
 mod files;
@@ -29,6 +30,7 @@ mod snapshot;
 mod sysctl;
 
 pub use bus::{SYSTEM_BUS_SOCKET, system_bus_connect};
+pub use capture::capture;
 pub use disk::{
     BlockCounters, BlockDevice, BlockStats, MountSource, block_devices,
     mount_source, physical_disk_stats,

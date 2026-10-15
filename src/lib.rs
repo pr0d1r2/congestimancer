@@ -44,7 +44,7 @@ pub use sys::{
     InterfaceCounters, IoPriority, LOW_POWER_MODE, LinkCounters, LoadAverage,
     Memory, MountSource, NvmlGpu, PowerState, ProcessInfo, PropValue, Props,
     PsetLoad, SYSTEM_BUS_SOCKET, Snapshot, SwapUsage, THERMAL_PRESSURE,
-    VmStats, block_devices, cpu_ticks, gpu_usage, hid_idle_ns,
+    VmStats, block_devices, capture, cpu_ticks, gpu_usage, hid_idle_ns,
     interface_counters, io_priority, mount_source, nice, notify_state,
     nvml_gpus, physical_disk_stats, power_state, pset_load, read_text,
     set_io_priority, set_nice, statvfs, swap_usage, sysctl_int,
