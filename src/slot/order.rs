@@ -4,7 +4,10 @@
 
 use std::time::SystemTime;
 
-use super::{LockDir, Reservation, SlotError, SlotGuard, StartLimits, Ticket};
+use super::{
+    LockDir, Reservation, SlotError, SlotGuard, StartLimits, Ticket,
+    claim_slot, is_held, mark_held, record_start,
+};
 use crate::units::{Bytes, Count, Name};
 
 /// One slot step of the release order (src/wait:V9).
@@ -123,7 +126,18 @@ impl Waiter {
     /// holds skips FIFO and slot (src/slot:V8).
     #[must_use]
     pub fn steps(&self) -> Vec<SlotStep> {
-        Vec::new()
+        SLOT_ORDER.into_iter().filter(|&s| self.asks(s)).collect()
+    }
+
+    /// Whether this waiter runs `step`.
+    fn asks(&self, step: SlotStep) -> bool {
+        let held = is_held(self.marker.as_deref(), &self.plan.key);
+        match step {
+            SlotStep::Fifo => self.plan.fifo && !held,
+            SlotStep::Slot => self.plan.slots.is_some() && !held,
+            SlotStep::Starts => !self.plan.limits.is_none(),
+            SlotStep::Reserve => self.plan.needs_mem.is_some(),
+        }
     }
 
     /// Runs the steps in order at `now`: the release when all pass, or
@@ -137,8 +151,63 @@ impl Waiter {
         &mut self,
         now: SystemTime,
     ) -> Result<Option<Release>, SlotError> {
-        let _ = (now, &self.dir, &self.marker, &self.ticket, &self.plan);
-        Ok(None)
+        if !self.fifo_turn()? {
+            return Ok(None);
+        }
+        let Some(slot) = self.claim()? else {
+            return Ok(None);
+        };
+        if self.asks(SlotStep::Starts) {
+            let plan = &self.plan;
+            if !record_start(&self.dir, &plan.key, &plan.limits, now)? {
+                return Ok(None);
+            }
+        }
+        self.release(slot)
+    }
+
+    /// Whether FIFO lets this waiter go on, taking its ticket on the
+    /// first round.
+    fn fifo_turn(&mut self) -> Result<bool, SlotError> {
+        if !self.asks(SlotStep::Fifo) {
+            return Ok(true);
+        }
+        if self.ticket.is_none() {
+            self.ticket = Some(Ticket::take(&self.dir, &self.plan.key)?);
+        }
+        self.ticket.as_ref().map_or(Ok(true), Ticket::is_first)
+    }
+
+    /// `Some` slot step outcome (a slot, or none needed), or `None` when
+    /// every slot is held.
+    fn claim(&self) -> Result<Option<Option<SlotGuard>>, SlotError> {
+        match self.plan.slots {
+            Some(n) if self.asks(SlotStep::Slot) => {
+                Ok(claim_slot(&self.dir, &self.plan.key, n)?.map(Some))
+            }
+            _ => Ok(Some(None)),
+        }
+    }
+
+    /// The release: the reservation written, the ticket given up.
+    fn release(
+        &mut self,
+        slot: Option<SlotGuard>,
+    ) -> Result<Option<Release>, SlotError> {
+        let reservation = self
+            .plan
+            .needs_mem
+            .map(|bytes| Reservation::write(&self.dir, bytes))
+            .transpose()?;
+        self.ticket = None;
+        let held_marker = slot
+            .as_ref()
+            .map(|_| mark_held(self.marker.as_deref(), &self.plan.key));
+        Ok(Some(Release {
+            slot,
+            reservation,
+            held_marker,
+        }))
     }
 }
 

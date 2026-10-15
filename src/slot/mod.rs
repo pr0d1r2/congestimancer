@@ -4,8 +4,6 @@
 //! lock dir, never a daemon (src/slot:C): a holder that dies drops its
 //! locks with its open files, so nothing is left to clean but names.
 
-#![expect(unused_imports, reason = "scaffold: build-order edges")]
-
 mod dir;
 mod error;
 mod fifo;
@@ -30,7 +28,3 @@ pub use slots::{SlotGuard, claim_slot, live_holders};
 pub use starts::{
     StartLimits, StartRate, admit_start, parse_start_rate, record_start,
 };
-
-use crate::signal as _;
-use crate::sys as _;
-use crate::units as _;

@@ -66,7 +66,7 @@ T4|x|token bucket rate|V5
 T5|x|spacing|V6
 T6|~|memory reservation ledger|V7
 T7|x|nested held marker|V8
-T8|.|ordering w/ gates, settle, jitter|V9
+T8|x|ordering w/ gates, settle, jitter|V9
 T9|x|slot key validation|V10
 
 ## §B BUGS

@@ -247,3 +247,7 @@ is a development series, not for production.
   their waiter; the ledger is the sum of the live ones.
 - `is_held` and `mark_held`: `CGMR_HELD_SLOTS` names the slot keys an
   ancestor `cgmr` holds, so a nested `cgmr` on one does not deadlock.
+- `Waiter`, `SlotPlan` and `Release`: once gates pass and settle, the slot
+  steps run in `SLOT_ORDER` (FIFO, slot, rate and spacing, reservation);
+  a step that says wait lets go of anything claimed that round but the
+  FIFO ticket.
