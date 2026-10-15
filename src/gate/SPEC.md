@@ -59,8 +59,8 @@ V8: `check` & `status`: any requested rate|percent signal → take 2nd sample af
 id|status|task|cites
 T1|x|`Gate`, `Verdict`, strict compare|V1
 T2|x|AND evaluation w/ warming & unsupported|V2,V3,V6
-T3|.|`--when`|V4
-T4|.|`--when-file`|V5
+T3|x|`--when`|V4
+T4|x|`--when-file`|V5
 T5|x|one read per signal per round|V7
 T6|.|one-shot two-sample evaluation for `check` & `status`|V8
 

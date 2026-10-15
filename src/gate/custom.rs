@@ -2,10 +2,12 @@
 //! (src/gate:T3, T4, V4, V5).
 
 use std::fmt;
+use std::io;
 use std::path::PathBuf;
+use std::process::{Command, Stdio};
 
 use super::{Threshold, Verdict};
-use crate::signal::Measure;
+use crate::signal::{Measure, Reason};
 
 /// The shell `--when` runs its command with.
 const SHELL: &str = "sh";
@@ -27,15 +29,27 @@ impl Custom {
     pub fn check(&self) -> Verdict {
         match self {
             Self::When(cmd) => run(SHELL, cmd),
-            Self::WhenFile(_) => held(false),
+            Self::WhenFile(path) => held(path.exists()),
         }
     }
 }
 
-/// Runs `shell -c cmd`, its output on cgmr's stderr.
+/// Runs `shell -c cmd` with no stdin and both its outputs on cgmr's
+/// stderr, so cgmr's stdout stays the gated command's (src/gate:V4).
 fn run(shell: &str, cmd: &str) -> Verdict {
-    let _ = (shell, cmd);
-    held(false)
+    let status = Command::new(shell)
+        .arg("-c")
+        .arg(cmd)
+        .stdin(Stdio::null())
+        .stdout(io::stderr())
+        .stderr(io::stderr())
+        .status();
+    match status {
+        Ok(status) => held(status.success()),
+        Err(err) => Verdict::Unsupported {
+            reason: Reason::from(format!("--when cannot start {shell}: {err}")),
+        },
+    }
 }
 
 /// The verdict on a custom gate that held or did not: a failure reads as

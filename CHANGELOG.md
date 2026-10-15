@@ -334,3 +334,6 @@ is a development series, not for production.
   whole `Overall::Unsupported` (exit 69), never a silent pass. Several
   gates on one signal read it once per round, and a failure carries
   which way its signal moves.
+- `Custom` gates: `--when CMD` passes while `sh -c CMD` exits 0, with
+  the command's output on cgmr's stderr; `--when-file P` passes while P
+  exists. Both join the AND with the signal gates.
