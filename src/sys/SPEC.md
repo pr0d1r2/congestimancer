@@ -68,6 +68,7 @@ V4: missing lib|sysctl|file → `Unsupported` w/ reason, ⊥ error exit.
 V5: `sysinfo` refresh only parts requested (`src/signal:V3`).
 V6: ⊥ shelling out to `sysctl`, `vm_stat`, `iostat`, `pmset` ∵ cost (`docs/CONGESTION.md` cheapness).
 V7: `capture(root, out)` copies every raw source this node reads (procfs, sysfs, cgroupfs files) & writes decoded sysctl|mach|IOKit values as text into `out/<os>-<arch>/`; read-only on host; ⊥ secrets (cmdlines, environ, usernames beyond counts).
+V8: FFI guard (`dlopen` handle, fd, CF ref) built only from a checked-valid resource; ⊥ guard around null ∵ its Drop releases it (`dlclose(NULL)` → SIGSEGV on glibc).
 
 ## §T TASKS
 
@@ -96,8 +97,10 @@ T21|x|`signal_group(pgid, GroupSignal)` STOP CONT INT TERM HUP via rustix ⊥ `u
 T22|x|`block_forwarded()` → `Blocked`; `wait_timeout(d)` → forwarded sig, child exit or none; drop restores mask ∵ `src/launch` V4|V1,V2
 T23|x|`Blocked::unblock_in(&mut Command)`: child starts w/ mask from before block (`pre_exec` `sigprocmask`) ∵ `std` spawn inherits mask|V1,V2
 T24|x|`inherit_in(&mut Command, &File)`: clear `FD_CLOEXEC` in that child only (`pre_exec` `fcntl`); own fd stays close-on-exec ∵ `src/launch:V9`|V1,V2
+T25|~|NVML `Library` only from non-null `dlopen` handle (B2)|V8
 
 ## §B BUGS
 
 id|date|cause|fix
 B1|2026-10-15|probe closed-port test dropped listener then connected; concurrent `bind(:0)` reused port ∴ connect ok|closed port = local port of live client socket
+B2|2026-10-16|`Library::open` built `Self(handle)` eagerly in `then_some` before null check ∴ failed `dlopen` dropped guard → `dlclose(NULL)` → SIGSEGV on Linux w/o libnvidia-ml on loader path (CI, NixOS hosts); macOS tolerates ∴ found only on real Linux host|V8
