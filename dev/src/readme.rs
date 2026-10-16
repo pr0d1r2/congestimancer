@@ -15,17 +15,12 @@ const NO_BLOCK: &str = "README.md has no <!-- BEGIN badges --> block";
 ///
 /// Drift (1), an unreadable or empty source (2).
 pub(crate) fn run_verb(repo: &Path, check: bool) -> Result<(), Failed> {
-    let _ = (
-        repo,
-        check,
-        gather,
-        NO_BLOCK,
-        update,
-        crate::block::splice,
-        Facts::checked,
-        badges::render,
-    );
-    Ok(())
+    let facts = gather(repo)?.checked().map_err(|e| (2, e))?;
+    let readme = read(repo, "README.md")?;
+    let block = badges::render(&facts);
+    let wanted = crate::block::splice(&readme, "badges", &block)
+        .ok_or((2, NO_BLOCK.to_owned()))?;
+    update(repo, "README.md", &wanted, check.then_some("readme"))
 }
 
 /// Every fact, each from the file that owns it.

@@ -81,8 +81,8 @@ pub(crate) fn message(
 ///
 /// (2, why) when it cannot be read.
 pub(crate) fn read(repo: &Path, path: &str) -> Result<String, Failed> {
-    let _ = (repo, path);
-    Err((2, String::new()))
+    std::fs::read_to_string(repo.join(path))
+        .map_err(|e| (2, format!("cannot read {path}: {e}")))
 }
 
 /// Make `path` hold `wanted`: written, or with `check` (the verb that
@@ -98,8 +98,18 @@ pub(crate) fn update(
     wanted: &str,
     check: Option<&str>,
 ) -> Result<(), Failed> {
-    let _ = (repo, path, wanted, check);
-    Ok(())
+    if read(repo, path)? == wanted {
+        return Ok(());
+    }
+    if let Some(verb) = check {
+        let fix = "run `cargo run -p congestimancer-dev --";
+        return Err((
+            1,
+            format!("{path} drifted from its sources; {fix} {verb}`"),
+        ));
+    }
+    std::fs::write(repo.join(path), wanted)
+        .map_err(|e| (2, format!("cannot write {path}: {e}")))
 }
 
 /// Steps in one hook of `repo`'s hk.pkl, as `pkl` evaluates it.
@@ -108,8 +118,11 @@ pub(crate) fn update(
 ///
 /// (2, why) when `pkl` fails or prints something other than a number.
 pub(crate) fn steps(repo: &Path, hook: &str) -> Result<usize, Failed> {
-    let _ = (repo, hook);
-    Ok(0)
+    let expr = format!("hooks[\"{hook}\"].steps.length");
+    let text = run(repo, "pkl", &["eval", "-x", &expr, "hk.pkl"])?;
+    let text = text.trim();
+    text.parse()
+        .map_err(|_| (2, format!("pkl printed `{text}` for {expr}")))
 }
 
 /// Steps on commit and on push.

@@ -178,6 +178,11 @@ steps: Mapping<String, Config.Step> = new {
     glob = List(".context-limits", "nix/ceiling-cap.awk")
     check = "command -v awk >/dev/null 2>&1 || { echo 'ceiling-cap: awk is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; awk -f nix/ceiling-cap.awk .context-limits || { echo 'ceiling-cap: a .context-limits ceiling is over its cap (SPEC.md file 3500, chain 5500); split the node with sherd split instead of raising (nix:V3)' >&2; exit 1; }"
   }
+  ["readme-badges"] {
+    glob = List("README.md", "Cargo.toml", ".coverage", "hk.pkl", "hk.pklith.pkl", "flake.lock", "**/SPEC.md", ".github/workflows/ci.yml", "dev/**")
+    check = "command -v cargo >/dev/null 2>&1 || { echo 'readme-badges: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo run -q -p congestimancer-dev -- readme --check || { echo 'readme-badges: the README badges drifted from the files that own their facts; run cargo run -p congestimancer-dev -- readme (dev:V1)' >&2; exit 1; }"
+    fix = "cargo run -q -p congestimancer-dev -- readme"
+  }
   ["gen-check"] {
     glob = List(".pklith", "hk.pklith.pkl", "nix/pklith.nix")
     check = "command -v pklith >/dev/null 2>&1 || { echo 'gen-check: pklith is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; pklith gen --check || { echo 'gen-check: hk.pklith.pkl or nix/pklith.nix no longer matches .pklith; run pklith gen' >&2; exit 1; }"
