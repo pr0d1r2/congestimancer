@@ -71,7 +71,7 @@ T13|.|real-machine test run on ∀ hosts; Intel Mac by hand|V20
 T16|x|hk `all`: rustdoc, package, semver-checks, no-default-features steps|V24
 T17|x|benchmark step in hk `all`|V25
 T18|x|flake `packages.default`, `apps.default`, `overlays.default`; `nix flake check` covers them|V26
-T19|~|harness: `nix/guard/workers.sh` worker budget, round runner instructions in AGENTS.md, `.cgmr` `build` profile once `cgmr advise` works|V27,`.:V1`
+T19|x|harness: `nix/guard/workers.sh` worker budget, round runner instructions in AGENTS.md, `.cgmr` `build` profile once `cgmr advise` works|V27,`.:V1`
 
 ## §B BUGS
 

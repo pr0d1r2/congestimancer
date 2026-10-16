@@ -10,3 +10,10 @@
 --timeout 10m
 --or-background
 --heartbeat 30s
+
+# Wave build workers (nix:V27): nix/guard/workers.sh asks
+# `cgmr advise --profile build --jobs N` how many fit. Two logical CPUs and
+# 2 GiB of available memory per worker.
+[build]
+--load 0.5
+--needs-mem 2GiB
