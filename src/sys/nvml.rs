@@ -62,9 +62,14 @@ mod imp {
     type Utilization = unsafe extern "C" fn(Device, *mut [c_uint; 2]) -> c_int;
     type Memory = unsafe extern "C" fn(Device, *mut [u64; 3]) -> c_int;
 
-    /// Where the library may be; the unversioned name is the dev symlink.
-    pub(super) const NAMES: [&CStr; 2] =
-        [c"libnvidia-ml.so.1", c"libnvidia-ml.so"];
+    /// Where the library may be: on the loader path (the unversioned name
+    /// is the dev symlink), then NixOS's driver directory, which is never
+    /// on the loader path there (src/sys:V9).
+    pub(super) const NAMES: [&CStr; 3] = [
+        c"libnvidia-ml.so.1",
+        c"libnvidia-ml.so",
+        c"/run/opengl-driver/lib/libnvidia-ml.so.1",
+    ];
 
     /// An open `dlopen` handle, closed when dropped.
     struct Library(*mut c_void);

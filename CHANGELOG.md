@@ -472,6 +472,8 @@ is a development series, not for production.
 
 ### Fixed
 
+- `--gpu` and `--gpu-mem` read NVIDIA cards on NixOS, which keeps
+  `libnvidia-ml` in `/run/opengl-driver/lib`, off the loader path.
 - `--gpu`, `--gpu-mem` and `--gpu-device` no longer crash cgmr with a
   segmentation fault on Linux machines where `libnvidia-ml` is not on the
   loader path; the gate now reports unsupported (or reads AMD) as it should.
