@@ -1,4 +1,4 @@
-use super::{message, run, show};
+use super::{hooks, message, read, run, show, update};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -60,4 +60,48 @@ fn message_reads_a_file_or_commit_editmsg() {
     let (code, why) = message(&repo, Some("gone")).err().unwrap_or_default();
     assert_eq!(code, 2);
     assert!(why.starts_with("no message file at"), "{why}");
+}
+
+#[test]
+fn read_names_a_file_it_cannot_read() {
+    let repo = scratch("read");
+    let _ = std::fs::write(repo.join("f"), "x\n");
+    assert_eq!(read(&repo, "f"), Ok("x\n".to_owned()));
+    let (code, why) = read(&repo, "gone").err().unwrap_or_default();
+    assert_eq!(code, 2);
+    assert!(why.starts_with("cannot read gone"), "{why}");
+}
+
+#[test]
+fn update_writes_or_reports_drift() {
+    let repo = scratch("update");
+    let _ = std::fs::write(repo.join("f"), "old\n");
+    let drift = update(&repo, "f", "new\n", Some("readme")).err();
+    let (code, why) = drift.unwrap_or_default();
+    assert_eq!(code, 1);
+    assert!(why.contains("-- readme`"), "{why}");
+    assert_eq!(update(&repo, "f", "new\n", None), Ok(()));
+    assert_eq!(read(&repo, "f"), Ok("new\n".to_owned()));
+    assert_eq!(update(&repo, "f", "new\n", Some("readme")), Ok(()));
+}
+
+/// A hk.pkl with one step on commit and two on push.
+const HK: &str = "hooks = new Mapping {
+  [\"pre-commit\"] = new Dynamic { steps = new Mapping { [\"a\"] = 1 } }
+  [\"pre-push\"] = new Dynamic {
+    steps = new Mapping {
+      [\"a\"] = 1
+      [\"b\"] = 2
+    }
+  }
+}
+";
+
+#[test]
+fn hooks_counts_steps_with_pkl() {
+    let repo = scratch("hooks");
+    let _ = std::fs::write(repo.join("hk.pkl"), HK);
+    assert_eq!(hooks(&repo), Ok((1, 2)));
+    let _ = std::fs::write(repo.join("hk.pkl"), "hooks = 1\n");
+    assert_eq!(hooks(&repo).err().map(|e| e.0), Some(2));
 }
