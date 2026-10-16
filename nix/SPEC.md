@@ -78,3 +78,4 @@ T19|x|harness: `nix/guard/workers.sh` worker budget, round runner instructions i
 id|date|cause|fix
 B1|2026-10-14|`nix:T6` added `src/lib.rs`, `src/main.rs` & `dev/src/*.rs` w/ ⊥ `test:` commit before them ∵ scaffold had ⊥ behaviour to pin (empty `fn main`, ⊥ re-exports)|exempted in `nix/guard/tdd-order.exempt` by full id; V7 unchanged
 B2|2026-10-15|`build(src)` scaffold added 23 `src/*/mod.rs` w/ ⊥ `test:` commit before ∵ files hold only `use crate::X as _;` edges for `sherd wave`, ⊥ behaviour|exempted in `nix/guard/tdd-order.exempt` by full id; V7 unchanged
+B3|2026-10-16|`packages.default` src fileset ⊥ `docs/CONGESTION.md` & `tests/fixtures` that unit tests `include_str!` & read ∴ `nix build` failed; ⊥ seen ∵ hk ⊥ runs `nix build`, CI ⊥ run yet; found building on `nix-builder.local`|fileset adds both; nix check = `--lib` only (integration suites need live machine); V23 CI step catches recurrence

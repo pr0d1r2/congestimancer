@@ -140,6 +140,10 @@
               # is never built (see the flags).
               ./dev/Cargo.toml
               ./dev/src
+              # Unit tests read these with include_str! and as fixture
+              # roots (nix:B3).
+              ./docs/CONGESTION.md
+              ./tests/fixtures
             ];
           };
           cargoLock.lockFile = ./Cargo.lock;
@@ -147,9 +151,13 @@
             "-p"
             "congestimancer"
           ];
+          # Unit tests only: the integration suites run the binary against
+          # the live machine and spawn helpers, which the build sandbox
+          # does not offer; hk's gate runs them.
           cargoTestFlags = [
             "-p"
             "congestimancer"
+            "--lib"
           ];
           meta = {
             description = "gate commands on machine congestion";
