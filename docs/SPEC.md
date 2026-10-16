@@ -35,7 +35,7 @@ T2|x|`CLI.md`|V2
 T3|x|`THIRD-PARTY-NOTICES.md`|V3
 T4|x|`INTEGRATION.md`|V4
 T5|x|`SECURITY.md`|V5
-T6|.|`LLM-DISCLAIMER.md` as fleet|-
+T6|x|`LLM-DISCLAIMER.md` as fleet|-
 
 ## §B BUGS
 
