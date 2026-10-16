@@ -53,6 +53,7 @@ fn plausible(row: &Row) -> bool {
         "number" | "bytes" | "bytes/s" | "count" | "seconds" => {
             within(v, 0.0, f64::MAX)
         }
+        "celsius" => within(v, -40.0, 150.0),
         "flag" => matches!(v, "true" | "false"),
         "level" => matches!(v, "normal" | "warning" | "critical"),
         "clock" => v.len() == 5 && v.as_bytes().get(2) == Some(&b':'),
