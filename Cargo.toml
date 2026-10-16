@@ -104,13 +104,14 @@ objc2-io-kit = { version = "0.3.2", default-features = false, features = [
 ] }
 
 # Test only (tests:C): proptest drives the no-panic and round-trip
-# properties of src/units (src/units:V10, V11). Default features off: no
-# fork or timeout machinery, so no tempfile or rustix in the test graph.
-# assert_cmd and predicates run the built `cgmr` in tests/ (tests:V1).
+# properties of src/units (src/units:V10, V11); default features off: no
+# fork or timeout machinery. assert_cmd and predicates run the built `cgmr`
+# in tests/ (tests:V1); tempfile holds its scratch dirs and fake `ssh`.
 [dev-dependencies]
 assert_cmd = "2.2.2"
 predicates = "3.1.4"
 proptest = { version = "1.11", default-features = false, features = ["std"] }
+tempfile = "3.27.0"
 
 # NVIDIA GPU stats load NVML at runtime; on by default, and the build without
 # it is gated (src/gpu:C, nix:V24).

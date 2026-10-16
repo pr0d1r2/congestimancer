@@ -138,3 +138,6 @@ fn sigint_and_sigterm_while_waiting_keep_the_default_disposition() -> Outcome {
     assert_eq!(killed_while_waiting("-TERM")?, Some(15));
     Ok(())
 }
+
+#[path = "cli/parity.rs"]
+mod parity;
