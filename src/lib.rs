@@ -1,7 +1,46 @@
 //! congestimancer: gate commands on machine congestion.
 //!
+//! The crate behind the `cgmr` command. `cgmr` holds a command until the
+//! machine has room for it: every requested gate (load, available memory,
+//! pressure stall, disk, IO, network, thermal and more) must pass, then the
+//! command is `exec`ed. See the README and `docs/CONGESTION.md` for the
+//! command line; this page is for code that wants the same readings
+//! without spawning `cgmr`.
+//!
+//! The library is the parsers, signal readers, gate model and evaluation
+//! loop the binary is built from:
+//!
+//! - values: [`parse_bytes`], [`parse_rate`], [`parse_percent`],
+//!   [`parse_duration`], [`parse_clock_window`] and friends, each
+//!   rendering back to the text that parses to it;
+//! - kernel text: [`parse_loadavg`], [`parse_meminfo`], [`parse_psi`],
+//!   [`parse_diskstats`], [`parse_net_dev`] and the other domain parsers;
+//! - signals: one reader per domain ([`CpuSignal`], [`MemSignal`],
+//!   [`IoSignal`], ...) reading under a [`Root`], so a fixture tree can
+//!   stand in for `/`;
+//! - gates: [`Gate`], [`Gates`] and [`evaluate_once`], the same strict
+//!   compare and AND the `check` verb uses.
+//!
+//! ```
+//! use congestimancer::{parse_bytes, parse_loadavg, parse_psi};
+//!
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! assert_eq!(parse_bytes("1.5KiB")?.0, 1536);
+//!
+//! let loads = parse_loadavg("2.52 1.58 0.75 3/1234 5678")?;
+//! assert_eq!(loads.one.to_string(), "2.52");
+//!
+//! let psi = parse_psi(
+//!     "some avg10=1.50 avg60=0.80 avg300=0.20 total=12345\n\
+//!      full avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+//! )?;
+//! assert!(psi.full.is_some());
+//! # Ok(())
+//! # }
+//! ```
+//!
 //! This file only re-exports node modules (src:V1, src:V3); every node is a
-//! private module whose public surface is re-exported here as it is built.
+//! private module whose public surface is re-exported here.
 
 mod advise;
 mod cgroup;
