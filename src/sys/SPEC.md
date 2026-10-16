@@ -69,6 +69,7 @@ V5: `sysinfo` refresh only parts requested (`src/signal:V3`).
 V6: ⊥ shelling out to `sysctl`, `vm_stat`, `iostat`, `pmset` ∵ cost (`docs/CONGESTION.md` cheapness).
 V7: `capture(root, out)` copies every raw source this node reads (procfs, sysfs, cgroupfs files) & writes decoded sysctl|mach|IOKit values as text into `out/<os>-<arch>/`; read-only on host; ⊥ secrets (cmdlines, environ, usernames beyond counts).
 V8: FFI guard (`dlopen` handle, fd, CF ref) built only from a checked-valid resource; ⊥ guard around null ∵ its Drop releases it (`dlclose(NULL)` → SIGSEGV on glibc).
+V9: NVML lookup: `libnvidia-ml.so.1`, `libnvidia-ml.so` on loader path, then `/run/opengl-driver/lib/libnvidia-ml.so.1` ∵ NixOS keeps driver libs off loader path.
 
 ## §T TASKS
 
@@ -98,6 +99,7 @@ T22|x|`block_forwarded()` → `Blocked`; `wait_timeout(d)` → forwarded sig, ch
 T23|x|`Blocked::unblock_in(&mut Command)`: child starts w/ mask from before block (`pre_exec` `sigprocmask`) ∵ `std` spawn inherits mask|V1,V2
 T24|x|`inherit_in(&mut Command, &File)`: clear `FD_CLOEXEC` in that child only (`pre_exec` `fcntl`); own fd stays close-on-exec ∵ `src/launch:V9`|V1,V2
 T25|x|NVML `Library` only from non-null `dlopen` handle (B2)|V8
+T26|~|NVML fallback to NixOS `/run/opengl-driver/lib`|V9
 
 ## §B BUGS
 
