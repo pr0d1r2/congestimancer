@@ -26,6 +26,7 @@ no-default-features|coverage|-|**/*.rs, Cargo.toml|cargo check --workspace --all
 semver|coverage|-|**/*.rs, Cargo.toml, nix/guard/semver.sh|bash nix/guard/semver.sh|-|-|the public API breaks semver against the latest release tag (nix:V24)
 tdd-order|coverage|-|**/*.rs, nix/guard/tdd-order.sh, nix/guard/tdd-order.exempt|bash nix/guard/tdd-order.sh|-|-|a commit adds Rust code with no test: commit before it in the push range (nix:V7)
 coverage|coverage|-|**/*.rs, .coverage, nix/guard/coverage.sh|bash nix/guard/coverage.sh|bash nix/guard/coverage.sh --fix|-|line coverage is below the floor, or .coverage overstates or lags the measurement (nix:V5)
+bench|coverage|-|**/*.rs, Cargo.toml, Cargo.lock, nix/guard/bench.sh|bash nix/guard/bench.sh|-|-|cgmr's own cost is over budget: CPU per round, peak RSS or cold start (src/wait:V10, nix:V25)
 cargo-deny|lint|-|Cargo.toml, Cargo.lock, deny.toml, dev/Cargo.toml|cargo deny --all-features check bans licenses sources advisories|-|-|a dependency breaks deny.toml: banned or duplicate version, licence outside the allow list, unknown source, or advisory (nix:V10)
 pklith-check|coverage|-|**/*|pklith check|-|-|a tracked file type has no row in .pklith, a row matches nothing, or a claimed check never reaches its files
 
@@ -60,7 +61,7 @@ path:rekall.toml|rekall, taplo|-|-
 path:AGENTS.md|markdownlint, rekall|-|-
 toml|taplo|-|-
 awk|gawk-lint|-|-
-rs|rustfmt, clippy, cargo-test, rust-mirror, module-size, unsafe-scope, rustdoc, package, no-default-features, semver, tdd-order, coverage|-|-
+rs|rustfmt, clippy, cargo-test, rust-mirror, module-size, unsafe-scope, rustdoc, package, no-default-features, semver, tdd-order, coverage, bench|-|-
 path:Cargo.lock|cargo-deny|-|-
 path:Cargo.toml|taplo, cargo-deny|-|-
 path:dev/Cargo.toml|taplo, cargo-deny|-|-
