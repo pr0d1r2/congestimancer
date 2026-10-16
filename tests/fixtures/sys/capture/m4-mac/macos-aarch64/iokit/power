@@ -1,0 +1,22 @@
+providing = Some("AC Power")
+Battery Provides Time Remaining = true
+BatteryHealth = "Good"
+BatteryHealthCondition = ""
+Current = 0
+Current Capacity = 80
+DesignCycleCount = 1000
+Is Charged = false
+Is Charging = false
+Is Present = true
+LPM Active = false
+Max Capacity = 100
+Name = "InternalBattery-0"
+Power Source ID = 23593059
+Power Source State = "AC Power"
+Time to Empty = 0
+Time to Full Charge = 0
+Transport Type = "Internal"
+Type = "InternalBattery"
+com.apple.system.thermalpressurelevel = 2
+com.apple.system.lowpowermode = 0
+9742294083

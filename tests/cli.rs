@@ -141,3 +141,25 @@ fn sigint_and_sigterm_while_waiting_keep_the_default_disposition() -> Outcome {
 
 #[path = "cli/parity.rs"]
 mod parity;
+
+/// A tree `cgmr debug capture` took on a real Linux host (tests:V6).
+#[cfg(target_os = "linux")]
+const CAPTURED: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/tests/fixtures/sys/capture/nix-builder/linux-x86_64"
+);
+
+#[cfg(target_os = "linux")]
+#[test]
+fn a_captured_host_reads_back_through_the_fixture_root() -> Outcome {
+    let out = cgmr()?
+        .env("CGMR_FIXTURE_ROOT", CAPTURED)
+        .args(["status", "--json", "--interval", "10ms"])
+        .output()?;
+    let json = String::from_utf8(out.stdout)?;
+    let pressure = "{\"id\":\"cpu-pressure\",\"value\":0.12,";
+    assert!(json.contains(pressure), "{json}");
+    let load = "{\"id\":\"load\",\"value\":5.22,";
+    assert!(json.contains(load), "{json}");
+    Ok(())
+}

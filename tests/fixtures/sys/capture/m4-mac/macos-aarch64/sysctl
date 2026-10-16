@@ -1,0 +1,12 @@
+kern.memorystatus_vm_pressure_level = 1
+kern.memorystatus_level = 78
+kern.num_files = 5526
+kern.maxfiles = 122880
+kern.num_tasks = 4096
+kern.maxproc = 4000
+hw.pagesize = 16384
+SwapUsage {
+    total: 0,
+    available: 0,
+    used: 0,
+}

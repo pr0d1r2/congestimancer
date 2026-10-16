@@ -1,0 +1,347 @@
+[
+    InterfaceCounters {
+        name: "lo0",
+        up: true,
+        loopback: true,
+        rx: LinkCounters {
+            bytes: 18076672,
+            packets: 10855,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 18076672,
+            packets: 10855,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "gif0",
+        up: false,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "stf0",
+        up: false,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "anpi1",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "anpi0",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "en3",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "en4",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "en1",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "en2",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "bridge0",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "en5",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 393609216,
+            packets: 395468,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 64231424,
+            packets: 193525,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "utun0",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 2,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "utun1",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 1,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "ap1",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "en0",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "awdl0",
+        up: false,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "llw0",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "utun2",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 2,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "utun3",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 2,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "utun4",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 10240,
+            packets: 54,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 4096,
+            packets: 32,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "utun5",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 9216,
+            packets: 52,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 4096,
+            packets: 31,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "utun6",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 3,
+            errors: 0,
+        },
+    },
+    InterfaceCounters {
+        name: "utun7",
+        up: true,
+        loopback: false,
+        rx: LinkCounters {
+            bytes: 0,
+            packets: 0,
+            errors: 0,
+        },
+        tx: LinkCounters {
+            bytes: 0,
+            packets: 4,
+            errors: 0,
+        },
+    },
+]

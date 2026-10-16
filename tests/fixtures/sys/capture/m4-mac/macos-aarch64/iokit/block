@@ -1,0 +1,23 @@
+[
+    BlockDevice {
+        name: "disk0",
+        stats: BlockStats {
+            read: BlockCounters {
+                bytes: 24350687232,
+                operations: 1612239,
+                total_time_ns: 455651145652,
+                latency_time_ns: 0,
+                errors: 0,
+                retries: 0,
+            },
+            write: BlockCounters {
+                bytes: 14522531840,
+                operations: 1575540,
+                total_time_ns: 37346543427,
+                latency_time_ns: 0,
+                errors: 0,
+                retries: 0,
+            },
+        },
+    },
+]

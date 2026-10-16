@@ -1,0 +1,79 @@
+[
+    CpuTicks {
+        user: 77658,
+        system: 65809,
+        idle: 134705,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 71912,
+        system: 57473,
+        idle: 149327,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 63944,
+        system: 50687,
+        idle: 164774,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 58525,
+        system: 45840,
+        idle: 175534,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 54760,
+        system: 42870,
+        idle: 182555,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 52144,
+        system: 40735,
+        idle: 187474,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 101625,
+        system: 56215,
+        idle: 122270,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 98614,
+        system: 55765,
+        idle: 125737,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 95922,
+        system: 55464,
+        idle: 128755,
+        nice: 0,
+    },
+    CpuTicks {
+        user: 95009,
+        system: 54782,
+        idle: 130374,
+        nice: 0,
+    },
+]
+VmStats {
+    free: 35641,
+    active: 387749,
+    inactive: 373717,
+    wired: 135297,
+    compressor: 76321,
+    pageins: 3212027,
+    pageouts: 9434,
+    swapins: 0,
+    swapouts: 0,
+}
+PsetLoad {
+    task_count: 767,
+    thread_count: 2850,
+    load_average: 4139,
+    mach_factor: 5857,
+}

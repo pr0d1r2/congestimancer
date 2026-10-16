@@ -31,7 +31,7 @@ V6: fixtures captured from real hosts named by OS & arch in path (e.g. `cpu/linu
 ## §T TASKS
 
 id|status|task|cites
-T1|.|fixture tree filled by `cgmr debug capture` on ∀ test hosts|V6
+T1|~|fixture tree filled by `cgmr debug capture` on ∀ test hosts|V6
 T2|x|`tests/cli.rs` exit codes|V1,V2
 T3|x|switch parity test from switch table|V3
 T4|x|`tests/real.rs` ignored real-machine suite|V4
