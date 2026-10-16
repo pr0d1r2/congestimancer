@@ -31,7 +31,7 @@ V5: `SECURITY.md`: `--when` runs shell & is refused in project `.cgmr` files; lo
 
 id|status|task|cites
 T1|x|`CONGESTION.md` catalogue|V1
-T2|.|`CLI.md`|V2
+T2|x|`CLI.md`|V2
 T3|x|`THIRD-PARTY-NOTICES.md`|V3
 T4|.|`INTEGRATION.md`|V4
 T5|.|`SECURITY.md`|V5
