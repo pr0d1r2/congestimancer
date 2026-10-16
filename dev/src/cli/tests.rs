@@ -39,3 +39,11 @@ fn verbs_route_to_their_rules() {
     assert_eq!(run(&args(&["commit-msg", "bad"]), &repo), 1);
     assert_eq!(run(&args(&["changelog", "good"]), &repo), 0);
 }
+
+#[test]
+fn a_generator_takes_only_check() {
+    let repo = scratch("generate");
+    assert_eq!(run(&args(&["readme", "--bogus"]), &repo), 2);
+    assert_eq!(run(&args(&["agents", "--check", "x"]), &repo), 2);
+    assert_eq!(run(&args(&["notices", "--check"]), &repo), 2);
+}

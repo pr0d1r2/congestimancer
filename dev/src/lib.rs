@@ -1,7 +1,9 @@
 //! congestimancer-dev: repository tooling: the commit-message and
-//! changelog rules, the generated README badges and notices table. Never published
+//! changelog rules, and the generated README badges, notices table and
+//! AGENTS.md step table. Never published
 //! (dev:C). Re-exports only.
 
+mod agents;
 mod badges;
 mod block;
 mod changelog;
