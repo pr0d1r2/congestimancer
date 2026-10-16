@@ -10,6 +10,7 @@ format 1
 id|category|nix|glob|check|fix|env|msg
 lychee|lint|lychee|**/*.md|lychee --offline --no-progress {{files}}|-|-|a markdown link points at a file or anchor that does not exist; fix the link (offline: external URLs are not fetched)
 readme-badges|gate|-|README.md, Cargo.toml, .coverage, hk.pkl, hk.pklith.pkl, flake.lock, **/SPEC.md, .github/workflows/ci.yml, dev/**|cargo run -q -p congestimancer-dev -- readme --check|cargo run -q -p congestimancer-dev -- readme|-|the README badges drifted from the files that own their facts; run cargo run -p congestimancer-dev -- readme (dev:V1)
+notices|gate|-|Cargo.toml, Cargo.lock, docs/THIRD-PARTY-NOTICES.md, dev/**|cargo run -q -p congestimancer-dev -- notices --check|cargo run -q -p congestimancer-dev -- notices|-|docs/THIRD-PARTY-NOTICES.md drifted from Cargo.lock, or its prose counts are stale; run cargo run -p congestimancer-dev -- notices (dev:V2)
 gen-check|gate|-|.pklith, hk.pklith.pkl, nix/pklith.nix|pklith gen --check|pklith gen|-|hk.pklith.pkl or nix/pklith.nix no longer matches .pklith; run pklith gen
 spec-records|spec|microlith|SPEC.md, .spec-records|mth check --records .spec-records SPEC.md|-|-|a rejected option recorded in .spec-records was edited out of SPEC.md; restore the record or remove it from .spec-records in its own reviewed commit
 ceiling-cap|spec|gawk|.context-limits, nix/ceiling-cap.awk|awk -f nix/ceiling-cap.awk .context-limits|-|-|a .context-limits ceiling is over its cap (SPEC.md file 3500, chain 5500); split the node with sherd split instead of raising (nix:V3)
@@ -63,6 +64,7 @@ path:.ctrm-sets|-|-|ctrm set declarations, read and validated by the ctrm step
 path:rekall.toml|rekall, taplo|-|-
 path:AGENTS.md|markdownlint, rekall|-|-
 path:README.md|markdownlint, lychee, readme-badges|-|-
+path:docs/THIRD-PARTY-NOTICES.md|markdownlint, lychee, notices|-|-
 toml|taplo|-|-
 awk|gawk-lint|-|-
 rs|rustfmt, clippy, cargo-test, rust-mirror, module-size, unsafe-scope, rustdoc, package, no-default-features, semver, tdd-order, coverage, bench|-|-

@@ -5,11 +5,11 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![edition 2024](https://img.shields.io/badge/edition-2024-000000?logo=rust&logoColor=white)](Cargo.toml)
 [![MSRV 1.95](https://img.shields.io/badge/MSRV-1.95-000000?logo=rust&logoColor=white)](Cargo.toml)
-[![direct dependencies 8](https://img.shields.io/badge/direct_dependencies-8-brightgreen)](Cargo.toml)
+[![direct dependencies 8](https://img.shields.io/badge/direct_dependencies-8-brightgreen)](docs/THIRD-PARTY-NOTICES.md)
 [![unsafe src/sys only](https://img.shields.io/badge/unsafe-src%2Fsys_only-brightgreen)](Cargo.toml)
 
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
-[![gate steps 43 commit / 52 push](https://img.shields.io/badge/gate_steps-43_commit_%2F_52_push-6E4AFF)](hk.pkl)
+[![gate steps 44 commit / 53 push](https://img.shields.io/badge/gate_steps-44_commit_%2F_53_push-6E4AFF)](hk.pkl)
 [![line coverage 97.3%](https://img.shields.io/badge/line_coverage-97.3%25-brightgreen)](.coverage)
 [![invariants 217](https://img.shields.io/badge/invariants-217-6E4AFF)](SPEC.md)
 [![bugs logged 9](https://img.shields.io/badge/bugs_logged-9-6E4AFF)](SPEC.md)

@@ -62,7 +62,7 @@ const TEMPLATE: &str = "\
 [![License: {license}](https://img.shields.io/badge/license-{license|url}-blue.svg)](LICENSE)
 [![edition {edition}](https://img.shields.io/badge/edition-{edition|url}-000000?logo=rust&logoColor=white)](Cargo.toml)
 [![MSRV {msrv}](https://img.shields.io/badge/MSRV-{msrv|url}-000000?logo=rust&logoColor=white)](Cargo.toml)
-[![direct dependencies {deps}](https://img.shields.io/badge/direct_dependencies-{deps|url}-brightgreen)](Cargo.toml)
+[![direct dependencies {deps}](https://img.shields.io/badge/direct_dependencies-{deps|url}-brightgreen)](docs/THIRD-PARTY-NOTICES.md)
 [![unsafe src/sys only](https://img.shields.io/badge/unsafe-src%2Fsys_only-brightgreen)](Cargo.toml)
 
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
