@@ -97,7 +97,7 @@ T21|x|`signal_group(pgid, GroupSignal)` STOP CONT INT TERM HUP via rustix ⊥ `u
 T22|x|`block_forwarded()` → `Blocked`; `wait_timeout(d)` → forwarded sig, child exit or none; drop restores mask ∵ `src/launch` V4|V1,V2
 T23|x|`Blocked::unblock_in(&mut Command)`: child starts w/ mask from before block (`pre_exec` `sigprocmask`) ∵ `std` spawn inherits mask|V1,V2
 T24|x|`inherit_in(&mut Command, &File)`: clear `FD_CLOEXEC` in that child only (`pre_exec` `fcntl`); own fd stays close-on-exec ∵ `src/launch:V9`|V1,V2
-T25|~|NVML `Library` only from non-null `dlopen` handle (B2)|V8
+T25|x|NVML `Library` only from non-null `dlopen` handle (B2)|V8
 
 ## §B BUGS
 

@@ -472,6 +472,9 @@ is a development series, not for production.
 
 ### Fixed
 
+- `--gpu`, `--gpu-mem` and `--gpu-device` no longer crash cgmr with a
+  segmentation fault on Linux machines where `libnvidia-ml` is not on the
+  loader path; the gate now reports unsupported (or reads AMD) as it should.
 - `--govern` no longer lets every child `cgmr` starts (a custom gate's
   shell, ssh for `--host`) inherit the slot and memory reservation; only
   the command does, so nothing else can keep the slot after it ends.

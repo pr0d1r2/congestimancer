@@ -88,7 +88,10 @@ mod imp {
                             libc::RTLD_NOW | libc::RTLD_LOCAL,
                         )
                     };
-                    (!handle.is_null()).then_some(Self(handle))
+                    // Lazily: a guard around a null handle would
+                    // `dlclose(NULL)` on drop, which glibc crashes on
+                    // (src/sys:B2, V8).
+                    (!handle.is_null()).then(|| Self(handle))
                 })
                 .ok_or_else(|| {
                     unsupported("NVML: no libnvidia-ml on this machine")
