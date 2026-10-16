@@ -66,7 +66,7 @@ T8|x|commit-msg lint & changelog-touched; CHANGELOG, README (badges block), LICE
 T9|x|unsafe gate: hk step FAILS on `allow(unsafe_code)` outside `src/sys`|V11
 T10|x|`ci.yml` 3-runner matrix|V23
 T11|x|`release.toml` + cargo-release pre-release hook|V20
-T12|.|dogfood wiring: shim + `CGMR_DOGFOOD`; heavy pre-push steps under `cgmr`|`.:V1`
+T12|x|dogfood wiring: shim + `CGMR_DOGFOOD`; heavy pre-push steps under `cgmr`|`.:V1`
 T13|.|real-machine test run on ∀ hosts; Intel Mac by hand|V20
 T16|x|hk `all`: rustdoc, package, semver-checks, no-default-features steps|V24
 T17|x|benchmark step in hk `all`|V25

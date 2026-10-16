@@ -1,0 +1,12 @@
+# cgmr profiles for this repository's own gate (.:V1). Read by
+# nix/guard/cgmr.sh through the nearest-.cgmr lookup; `cgmr profiles`
+# lists them. Never `--when`: a project file may not run commands.
+
+# Heavy pre-push steps (coverage, package): wait for room, and after ten
+# minutes run anyway at background priority rather than block the push.
+[heavy]
+--load 1
+--needs-mem 2GiB
+--timeout 10m
+--or-background
+--heartbeat 30s

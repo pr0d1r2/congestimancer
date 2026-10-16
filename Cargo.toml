@@ -18,6 +18,7 @@ keywords = ["load", "congestion", "scheduler", "cli", "agents"]
 categories = ["command-line-utilities", "development-tools"]
 # Dev environment and gate machinery: meaningful only inside the repository.
 exclude = [
+  ".cgmr",
   ".envrc",
   ".github/",
   ".gitignore",
