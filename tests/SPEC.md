@@ -35,7 +35,7 @@ T1|.|fixture tree filled by `cgmr debug capture` on ∀ test hosts|V6
 T2|x|`tests/cli.rs` exit codes|V1,V2
 T3|x|switch parity test from switch table|V3
 T4|.|`tests/real.rs` ignored real-machine suite|V4
-T5|.|`tests/dogfood.rs`|V5
+T5|x|`tests/dogfood.rs`|V5
 
 ## §B BUGS
 
