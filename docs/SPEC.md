@@ -34,7 +34,7 @@ T1|x|`CONGESTION.md` catalogue|V1
 T2|x|`CLI.md`|V2
 T3|x|`THIRD-PARTY-NOTICES.md`|V3
 T4|.|`INTEGRATION.md`|V4
-T5|.|`SECURITY.md`|V5
+T5|x|`SECURITY.md`|V5
 T6|.|`LLM-DISCLAIMER.md` as fleet|-
 
 ## §B BUGS
