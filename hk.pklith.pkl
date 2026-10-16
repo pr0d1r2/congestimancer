@@ -170,6 +170,10 @@ steps: Mapping<String, Config.Step> = new {
     glob = List("**/*", ".context-limits")
     check = "command -v itok >/dev/null 2>&1 || { echo 'itok: itok is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; itok check || { echo 'itok: a file registered in .context-limits is over its token ceiling' >&2; exit 1; }"
   }
+  ["spec-parity"] {
+    glob = List("docs/CONGESTION.md", "src/*/SPEC.md", "nix/guard/spec-parity.sh")
+    check = "command -v bash >/dev/null 2>&1 || { echo 'spec-parity: bash is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; bash nix/guard/spec-parity.sh || { echo 'spec-parity: a switch in docs/CONGESTION.md has no src node invariant naming it, or no task row cites that invariant (.:V18)' >&2; exit 1; }"
+  }
   ["spec-records"] {
     glob = List("SPEC.md", ".spec-records")
     check = "command -v mth >/dev/null 2>&1 || { echo 'spec-records: mth is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; mth check --records .spec-records SPEC.md || { echo 'spec-records: a rejected option recorded in .spec-records was edited out of SPEC.md; restore the record or remove it from .spec-records in its own reviewed commit' >&2; exit 1; }"

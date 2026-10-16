@@ -44,7 +44,7 @@ The `src` nodes are built in rounds that `sherd wave` schedules from the
 ## The gate
 
 <!-- BEGIN steps: generated from hk.pkl by `cargo run -p congestimancer-dev -- agents`; do not edit -->
-45 steps run on every commit and 54 on push and `hk check`; the commit-msg hook checks the message.
+46 steps run on every commit and 55 on push and `hk check`; the commit-msg hook checks the message.
 
 | step | runs on | files | fixes |
 | --- | --- | --- | --- |
@@ -87,6 +87,7 @@ The `src` nodes are built in rounds that `sherd wave` schedules from the
 | `sherd-nav` | commit | `**/SPEC.md` | yes |
 | `sherd-budget` | commit | `**/SPEC.md` `.context-limits` | - |
 | `itok` | commit | `**/*` `.context-limits` | - |
+| `spec-parity` | commit | `docs/CONGESTION.md` `src/*/SPEC.md` `nix/guard/spec-parity.sh` | - |
 | `spec-records` | commit | `SPEC.md` `.spec-records` | - |
 | `ceiling-cap` | commit | `.context-limits` `nix/ceiling-cap.awk` | - |
 | `readme-badges` | commit | `README.md` `Cargo.toml` `.coverage` `hk.pkl` `hk.pklith.pkl` `flake.lock` `**/SPEC.md` `.github/workflows/ci.yml` `dev/**` | yes |
