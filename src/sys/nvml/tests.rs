@@ -40,3 +40,20 @@ fn a_failed_dlopen_never_reaches_dlclose() {
         assert!(!err.to_string().is_empty());
     }
 }
+
+/// src/sys:V9: the loader path first, then NixOS's driver directory,
+/// which is never on the loader path there.
+#[cfg(feature = "nvml")]
+#[test]
+fn nvml_is_looked_up_on_the_loader_path_then_in_the_nixos_driver_dir() {
+    let names: Vec<_> = super::imp::NAMES
+        .iter()
+        .map(|n| n.to_string_lossy().into_owned())
+        .collect();
+    let want = [
+        "libnvidia-ml.so.1",
+        "libnvidia-ml.so",
+        "/run/opengl-driver/lib/libnvidia-ml.so.1",
+    ];
+    assert_eq!(names, want);
+}

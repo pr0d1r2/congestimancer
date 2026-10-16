@@ -63,7 +63,8 @@ mod imp {
     type Memory = unsafe extern "C" fn(Device, *mut [u64; 3]) -> c_int;
 
     /// Where the library may be; the unversioned name is the dev symlink.
-    const NAMES: [&CStr; 2] = [c"libnvidia-ml.so.1", c"libnvidia-ml.so"];
+    pub(super) const NAMES: [&CStr; 2] =
+        [c"libnvidia-ml.so.1", c"libnvidia-ml.so"];
 
     /// An open `dlopen` handle, closed when dropped.
     struct Library(*mut c_void);
