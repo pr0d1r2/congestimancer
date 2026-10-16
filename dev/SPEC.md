@@ -27,7 +27,7 @@ V3: AGENTS.md step table generated from `hk.pkl`; drift → gate fails.
 ## §T TASKS
 
 id|status|task|cites
-T1|.|dev crate scaffold|-
+T1|x|dev crate scaffold|-
 T2|.|badges generator + check|V1
 T3|.|notices generator + check|V2
 T4|.|AGENTS step table generator + check|V3
