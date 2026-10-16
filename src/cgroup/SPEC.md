@@ -44,7 +44,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §V INVARIANTS
 
-V1: `auto` (default) → use cgroup iff it limits this process (`cpu.max` ≠ `max` | `memory.max` ≠ `max`) | runs in a container; else host.
+V1: `--cgroup auto|host|PATH`: `auto` (default) → use cgroup iff it limits this process (`cpu.max` ≠ `max` | `memory.max` ≠ `max`) | runs in a container; else host.
 V2: in cgroup: pressure gates read cgroup files; available memory = `memory.max` − `memory.current` (min w/ host available).
 V3: in cgroup: `--load` warns (stderr) & suggests `--cpu-pressure` ∵ host load / container CPUs wrong.
 V4: `--cpu-throttle X` ⇔ throttled share of last interval (`cpu.stat` `throttled_usec` delta / interval) < X.
