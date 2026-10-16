@@ -188,6 +188,11 @@ steps: Mapping<String, Config.Step> = new {
     check = "command -v cargo >/dev/null 2>&1 || { echo 'notices: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo run -q -p congestimancer-dev -- notices --check || { echo 'notices: docs/THIRD-PARTY-NOTICES.md drifted from Cargo.lock, or its prose counts are stale; run cargo run -p congestimancer-dev -- notices (dev:V2)' >&2; exit 1; }"
     fix = "cargo run -q -p congestimancer-dev -- notices"
   }
+  ["agents-table"] {
+    glob = List("hk.pkl", "hk.pklith.pkl", "AGENTS.md", "dev/**")
+    check = "command -v cargo >/dev/null 2>&1 || { echo 'agents-table: cargo is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; cargo run -q -p congestimancer-dev -- agents --check || { echo 'agents-table: the AGENTS.md step table drifted from hk.pkl; run cargo run -p congestimancer-dev -- agents (dev:V3)' >&2; exit 1; }"
+    fix = "cargo run -q -p congestimancer-dev -- agents"
+  }
   ["gen-check"] {
     glob = List(".pklith", "hk.pklith.pkl", "nix/pklith.nix")
     check = "command -v pklith >/dev/null 2>&1 || { echo 'gen-check: pklith is not on PATH; re-enter the dev shell. A MISSING TOOL, not a finding.' >&2; exit 1; }; pklith gen --check || { echo 'gen-check: hk.pklith.pkl or nix/pklith.nix no longer matches .pklith; run pklith gen' >&2; exit 1; }"

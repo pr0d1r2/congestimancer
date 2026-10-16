@@ -9,7 +9,7 @@
 [![unsafe src/sys only](https://img.shields.io/badge/unsafe-src%2Fsys_only-brightgreen)](Cargo.toml)
 
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
-[![gate steps 44 commit / 53 push](https://img.shields.io/badge/gate_steps-44_commit_%2F_53_push-6E4AFF)](hk.pkl)
+[![gate steps 45 commit / 54 push](https://img.shields.io/badge/gate_steps-45_commit_%2F_54_push-6E4AFF)](hk.pkl)
 [![line coverage 97.3%](https://img.shields.io/badge/line_coverage-97.3%25-brightgreen)](.coverage)
 [![invariants 217](https://img.shields.io/badge/invariants-217-6E4AFF)](SPEC.md)
 [![bugs logged 9](https://img.shields.io/badge/bugs_logged-9-6E4AFF)](SPEC.md)

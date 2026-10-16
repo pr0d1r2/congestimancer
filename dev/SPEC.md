@@ -30,7 +30,7 @@ id|status|task|cites
 T1|x|dev crate scaffold|-
 T2|x|badges generator + check|V1
 T3|x|notices generator + check|V2
-T4|.|AGENTS step table generator + check|V3
+T4|x|AGENTS step table generator + check|V3
 
 ## §B BUGS
 

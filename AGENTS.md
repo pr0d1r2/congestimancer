@@ -40,3 +40,66 @@ The `src` nodes are built in rounds that `sherd wave` schedules from the
    stale one.
 
 `sherd tdd` and its Ollama endpoint are not used to write code.
+
+## The gate
+
+<!-- BEGIN steps: generated from hk.pkl by `cargo run -p congestimancer-dev -- agents`; do not edit -->
+45 steps run on every commit and 54 on push and `hk check`; the commit-msg hook checks the message.
+
+| step | runs on | files | fixes |
+| --- | --- | --- | --- |
+| `trailing-whitespace` | commit | `**/*` | yes |
+| `final-newline` | commit | `**/*` | yes |
+| `line-endings` | commit | `**/*` | yes |
+| `no-bom` | commit | `**/*` | - |
+| `no-merge-conflict` | commit | `**/*` | - |
+| `no-case-conflict` | commit | `**/*` | - |
+| `no-broken-symlinks` | commit | whole tree | - |
+| `no-private-key` | commit | `**/*` | - |
+| `ripsecrets` | commit | `**/*` | - |
+| `no-local-paths` | commit | `**/*` | - |
+| `nixfmt` | commit | `**/*.nix` | yes |
+| `shfmt` | commit | `**/*.sh` `**/*.bash` | yes |
+| `taplo` | commit | `**/*.toml` | yes |
+| `rustfmt` | commit | `**/*.rs` | yes |
+| `typos` | commit | `**/*` | - |
+| `shellcheck` | commit | `**/*.sh` `**/*.bash` `.envrc` | - |
+| `clippy` | commit | `**/*.rs` `Cargo.toml` `clippy.toml` | - |
+| `actionlint` | commit | `.github/workflows/*.yml` `.github/workflows/*.yaml` | - |
+| `zizmor` | commit | `.github/workflows/*.yml` `.github/workflows/*.yaml` | - |
+| `statix` | commit | `**/*.nix` | yes |
+| `deadnix` | commit | `**/*.nix` | yes |
+| `markdownlint` | commit | `**/*.md` | yes |
+| `yamllint` | commit | `**/*.yml` `**/*.yaml` | - |
+| `gawk-lint` | commit | `**/*.awk` | - |
+| `editorconfig-checker` | commit | `**/*` | - |
+| `lychee` | commit | `**/*.md` | - |
+| `ctrm` | commit | `**/*` | yes |
+| `cgmr-profiles` | commit | `.cgmr` `nix/guard/cgmr.sh` | - |
+| `rekall` | commit | `AGENTS.md` `CLAUDE.md` `rekall.toml` | - |
+| `rust-mirror` | commit | `**/*.rs` `nix/guard/rust-mirror.sh` | - |
+| `module-size` | commit | `**/*.rs` `nix/guard/module-size.sh` | - |
+| `unsafe-scope` | commit | `**/*.rs` `nix/guard/unsafe-scope.sh` | - |
+| `cargo-deny` | commit | `Cargo.toml` `Cargo.lock` `deny.toml` `dev/Cargo.toml` | - |
+| `mth-fmt` | commit | `**/SPEC.md` | yes |
+| `mth-check` | commit | `**/SPEC.md` | - |
+| `sherd-check` | commit | `**/SPEC.md` `**/*.rs` | - |
+| `sherd-nav` | commit | `**/SPEC.md` | yes |
+| `sherd-budget` | commit | `**/SPEC.md` `.context-limits` | - |
+| `itok` | commit | `**/*` `.context-limits` | - |
+| `spec-records` | commit | `SPEC.md` `.spec-records` | - |
+| `ceiling-cap` | commit | `.context-limits` `nix/ceiling-cap.awk` | - |
+| `readme-badges` | commit | `README.md` `Cargo.toml` `.coverage` `hk.pkl` `hk.pklith.pkl` `flake.lock` `**/SPEC.md` `.github/workflows/ci.yml` `dev/**` | yes |
+| `notices` | commit | `Cargo.toml` `Cargo.lock` `docs/THIRD-PARTY-NOTICES.md` `dev/**` | yes |
+| `agents-table` | commit | `hk.pkl` `hk.pklith.pkl` `AGENTS.md` `dev/**` | yes |
+| `gen-check` | commit | `.pklith` `hk.pklith.pkl` `nix/pklith.nix` | yes |
+| `cargo-test` | push | `**/*.rs` `Cargo.toml` `Cargo.lock` `dev/Cargo.toml` | - |
+| `rustdoc` | push | `**/*.rs` `Cargo.toml` | - |
+| `package` | push | `**/*.rs` `Cargo.toml` `Cargo.lock` `.cgmr` `nix/guard/package.sh` `nix/guard/cgmr.sh` | - |
+| `no-default-features` | push | `**/*.rs` `Cargo.toml` | - |
+| `semver` | push | `**/*.rs` `Cargo.toml` `nix/guard/semver.sh` | - |
+| `tdd-order` | push | `**/*.rs` `nix/guard/tdd-order.sh` `nix/guard/tdd-order.exempt` | - |
+| `coverage` | push | `**/*.rs` `.coverage` `.cgmr` `nix/guard/coverage.sh` `nix/guard/cgmr.sh` | yes |
+| `bench` | push | `**/*.rs` `Cargo.toml` `Cargo.lock` `nix/guard/bench.sh` | - |
+| `pklith-check` | push | `**/*` | - |
+<!-- END steps -->

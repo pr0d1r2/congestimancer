@@ -14,10 +14,18 @@ const ROWS: &str = r#"let (fast = hooks["pre-commit"].steps) hooks["pre-push"].s
 /// and the number of commit and push steps.
 #[must_use]
 pub(crate) fn table(rows: &str, commit: usize, push: usize) -> String {
-    let mut out = String::new();
-    let _ = write!(out, "{rows}{commit}{push}{}", files(""));
-    out.clear();
-    out
+    let mut out = format!(
+        "<!-- BEGIN steps: generated from hk.pkl by `cargo run -p congestimancer-dev -- agents`; do not edit -->\n\
+         {commit} steps run on every commit and {push} on push and `hk check`; the commit-msg hook checks the message.\n\n\
+         | step | runs on | files | fixes |\n| --- | --- | --- | --- |\n"
+    );
+    for line in rows.lines().filter(|l| !l.is_empty()) {
+        let mut cells = line.split('\t');
+        let mut next = || cells.next().unwrap_or_default();
+        let (id, when, globs, fix) = (next(), next(), next(), next());
+        let _ = writeln!(out, "| `{id}` | {when} | {} | {fix} |", files(globs));
+    }
+    out + "<!-- END steps -->\n"
 }
 
 /// Globs as code spans, or "whole tree" for a step without one.
@@ -39,19 +47,13 @@ const NO_BLOCK: &str = "AGENTS.md has no <!-- BEGIN steps --> block";
 ///
 /// Drift (1), `pkl` or a file failing (2).
 pub(crate) fn run_verb(repo: &Path, check: bool) -> Result<(), Failed> {
-    let _ = (
-        repo,
-        check,
-        ROWS,
-        NO_BLOCK,
-        hooks,
-        read,
-        run,
-        update,
-        crate::block::splice,
-        table,
-    );
-    Ok(())
+    let rows = run(repo, "pkl", &["eval", "-x", ROWS, "hk.pkl"])?;
+    let (commit, push) = hooks(repo)?;
+    let block = table(&rows, commit, push);
+    let wanted =
+        crate::block::splice(&read(repo, "AGENTS.md")?, "steps", &block)
+            .ok_or((2, NO_BLOCK.to_owned()))?;
+    update(repo, "AGENTS.md", &wanted, check.then_some("agents"))
 }
 
 #[cfg(test)]
