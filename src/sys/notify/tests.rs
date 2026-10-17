@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{LOW_POWER_MODE, THERMAL_PRESSURE, notify_state, status_error};
+use super::{THERMAL_PRESSURE, notify_state, status_error};
 
 #[test]
 fn a_status_names_the_call_and_the_notification() {
@@ -37,5 +37,5 @@ fn other_oses_are_unsupported() {
 #[test]
 fn host_thermal_and_low_power_read() {
     assert!(notify_state(THERMAL_PRESSURE).is_ok());
-    assert!(notify_state(LOW_POWER_MODE).is_ok());
+    assert!(notify_state(super::LOW_POWER_MODE).is_ok());
 }
