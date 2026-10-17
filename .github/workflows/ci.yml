@@ -30,6 +30,24 @@ jobs:
         with:
           persist-credentials: false
       - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342  # v31.11.0
+        with:
+          # The flake's nixConfig names the fleet cache, but nix ignores a
+          # flake's substituters unless told to trust them; say it here.
+          extra_nix_config: |
+            extra-substituters = https://pr0d1r2.cachix.org
+            extra-trusted-public-keys = pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=
+      # Push what this job builds, so the next run downloads the dev shell's
+      # tools instead of building them. Fork PRs get no secret and still
+      # read the cache.
+      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71  # v17
+        with:
+          name: pr0d1r2
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: >-
+            ${{ github.event_name == 'pull_request'
+            && github.event.pull_request.head.repo.full_name != github.repository }}
+          # Only what was built here; sources and tarballs stay out of the cache.
+          pushFilter: '(-source$|nixpkgs\.tar\.gz$)'
       - run: nix develop --command hk check --all --check --no-fail-fast
       # Evaluation of every system, x86_64-darwin included, so a fourth
       # platform that stops evaluating fails here even without a runner.
