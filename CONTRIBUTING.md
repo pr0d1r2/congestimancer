@@ -73,6 +73,32 @@ one run, set `CGMR_DOGFOOD=0`.
 4. RED, then GREEN: the reader, the switch table row in `src/cli`, and a
    case in `tests/cli/parity.rs`.
 
+## Releasing
+
+`release.toml` configures [cargo-release](https://github.com/crate-ci/cargo-release);
+there is no release script. Its default flow commits the version bump and
+pushes it to `main`, which branch protection forbids, admins included. So a
+release has two halves:
+
+1. A pull request bumps `version` in `Cargo.toml` and turns
+   `## [Unreleased]` in `CHANGELOG.md` into the new version's section. It
+   merges like any other change, once CI is green on all three runners.
+2. From an up-to-date `main`, the tail:
+
+   ```bash
+   cargo release hook                 # the gate; dry-run is enough
+   cargo release tag --execute
+   cargo release publish --execute
+   cargo release push --execute
+   ```
+
+`hook` comes first on purpose. `tag`, `publish` and `push` do not run
+`pre-release-hook`; only the full flow and `cargo release hook` do. A tail
+that starts at `tag` publishes whatever the tree holds, checked or not.
+
+Before the first release, every test host runs the real-machine suite
+(`cargo test -- --ignored`), and the Intel Mac is checked by hand (nix:V20).
+
 ## Reporting a security problem
 
 Use a private security advisory on GitHub, not a public issue. See
