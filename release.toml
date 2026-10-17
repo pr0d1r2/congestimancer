@@ -1,8 +1,41 @@
-# cargo-release configuration (nix:T11). The release is the gate passing on
-# main, then a tag and a publish; real-machine runs on every test host come
-# first (nix:V20), and the first publish needs explicit approval (.:T14).
+# cargo-release configuration (nix:T11), not a release script: clean tree,
+# allowed branch, tag scheme, dry-run first, verify, publish and push are
+# the tool's job, and a script would be a second copy of the same rules.
+#
+# THE BUMP DOES NOT HAPPEN HERE. cargo-release's default flow bumps the
+# version, commits it and pushes the commit to `main`. Branch protection on
+# `main` forbids that, admins included: a pull request is required, with
+# `gate` green on all three runners. So the version bump and the CHANGELOG
+# section go through a PR like any other change, and only the tail runs
+# from `main` after it merges (CONTRIBUTING.md, "Releasing"):
+#
+#     cargo release hook                  # the gate; dry-run is enough
+#     cargo release tag --execute
+#     cargo release publish --execute
+#     cargo release push --execute
+#
+# `hook` IS FIRST ON PURPOSE. `tag`, `publish` and `push` do not run
+# `pre-release-hook`; only the full flow and `cargo release hook` do. A
+# tail that starts at `tag` publishes whatever the tree holds.
+#
+# Real-machine runs on every test host come first (nix:V20), and the first
+# publish needs explicit approval (.:T14).
+
+# The only branch whose tree has passed every required check. The `.crate`
+# records the commit it was built from (`.cargo_vcs_info.json`), so a
+# publish from a PR branch would name a commit that may end up on no branch.
 allow-branch = ["main"]
+
+# The gate as a precondition: a non-zero return aborts the release.
+# `--check` because fixers would rewrite a tree cargo-release has just
+# asserted is clean; `--no-fail-fast` because a release wants the full list.
 pre-release-hook = ["hk", "check", "--all", "--check", "--no-fail-fast"]
+
+# `v<x.y.z>`: the `semver` gate step diffs the public API against the last
+# `v*` tag, so any other tag shape leaves it checking against nothing.
 tag-name = "v{{version}}"
+
+# `verify` builds the packaged tarball before upload; it is the default,
+# written down so nobody turns it off unnoticed.
 publish = true
 verify = true
