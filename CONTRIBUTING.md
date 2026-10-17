@@ -96,8 +96,9 @@ release has two halves:
 `pre-release-hook`; only the full flow and `cargo release hook` do. A tail
 that starts at `tag` publishes whatever the tree holds, checked or not.
 
-Before the first release, every test host runs the real-machine suite
-(`cargo test -- --ignored`), and the Intel Mac is checked by hand (nix:V20).
+Before a release, every reachable test host runs the real-machine suite
+(`cargo test -- --ignored`) (nix:V20). The Intel Mac run is deferred until
+that machine is set up, and does not block a release.
 
 ## Reporting a security problem
 

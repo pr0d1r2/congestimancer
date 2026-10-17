@@ -45,7 +45,7 @@ V15: guardrails installed on dev-shell entry (pklith `lib.devShell`, tracked `.g
 V16: module size ≤ 500 code lines, ≤ 1000 total (hk `module-size`).
 V17: cargo steps run serially ∵ target-dir lock.
 V19: hk `fast` = pre-commit; `all` = pre-push, `check`, `fix`; `fail_fast`.
-V20: release ! real-machine run (`cargo test -- --ignored`) on ∀ test hosts; x86_64-darwin ! hand-verified on Intel Mac.
+V20: release ! real-machine run (`cargo test -- --ignored`) on ∀ reachable test hosts. x86_64-darwin hand-run on Intel Mac DEFERRED until that machine is set up (user, 2026-10-17) ∴ ⊥ blocks a release.
 V23: CI = one `ci.yml`: `nix develop --command hk check --all --check --no-fail-fast` → `nix build .#default`; actions pinned by SHA, `permissions: contents: read`, `persist-credentials: false`, zizmor & actionlint gate.
 V24: hk `all` adds fleet release-grade steps: `cargo doc` w/ `RUSTDOCFLAGS=-D warnings` · `cargo package --locked` + `must-package` · `cargo semver-checks` (from first publish) · `--no-default-features` build (`nvml` = optional default feature, `src/gpu`).
 V25: hk `all` runs cost benchmarks (`src/wait:V10`); over budget → FAIL.
