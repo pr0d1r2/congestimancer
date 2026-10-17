@@ -40,12 +40,15 @@ case "${CGMR_DOGFOOD:-1}" in
 0 | false | no) ungated "CGMR_DOGFOOD is off" ;;
 esac
 
-if ! cargo build --quiet --manifest-path "$root/Cargo.toml" --bin cgmr >&2; then
+# Its own target dir: cargo-test runs in parallel and spawns
+# target/debug/cgmr, which a relink here would pull from under it.
+target="$root/target/cgmr-shim"
+if ! cargo build --quiet --manifest-path "$root/Cargo.toml" --target-dir "$target" --bin cgmr >&2; then
   [ "${#cmd[@]}" -eq 0 ] || echo "cgmr.sh: cgmr does not build; running ungated (.:V1)." >&2
   ungated "cgmr does not build"
 fi
 
-cgmr="$root/target/debug/cgmr"
+cgmr="$target/debug/cgmr"
 if [ "${#cmd[@]}" -eq 0 ]; then
   exec "$cgmr" "${switches[@]}"
 fi
