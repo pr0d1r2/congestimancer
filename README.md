@@ -10,13 +10,13 @@
 
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
 [![gate steps 46 commit / 55 push](https://img.shields.io/badge/gate_steps-46_commit_%2F_55_push-6E4AFF)](hk.pkl)
-[![line coverage 97.2%](https://img.shields.io/badge/line_coverage-97.2%25-brightgreen)](.coverage)
+[![line coverage 97.3%](https://img.shields.io/badge/line_coverage-97.3%25-brightgreen)](.coverage)
 [![invariants 219](https://img.shields.io/badge/invariants-219-6E4AFF)](SPEC.md)
 [![bugs logged 11](https://img.shields.io/badge/bugs_logged-11-6E4AFF)](SPEC.md)
 [![federated nodes 29](https://img.shields.io/badge/federated_nodes-29-6E4AFF)](SPEC.md)
 
 [![nix flake](https://img.shields.io/badge/nix-flake-5277C3?logo=nixos&logoColor=white)](flake.nix)
-[![nixpkgs 26.05 (a033e66)](https://img.shields.io/badge/nixpkgs-26.05_(a033e66)-5277C3?logo=nixos&logoColor=white)](flake.lock)
+[![nixpkgs 26.05 (26f4107)](https://img.shields.io/badge/nixpkgs-26.05_(26f4107)-5277C3?logo=nixos&logoColor=white)](flake.lock)
 [![intel linux](https://img.shields.io/badge/linux-intel-5277C3)](.github/workflows/ci.yml)
 [![arm linux](https://img.shields.io/badge/linux-arm-5277C3)](.github/workflows/ci.yml)
 [![arm macos](https://img.shields.io/badge/macos-arm-5277C3)](.github/workflows/ci.yml)

@@ -35,6 +35,7 @@ hooks {
     steps = all
   }
   ["fix"] {
+    stage = true
     fix = true
     steps = all
   }
