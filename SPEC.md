@@ -55,7 +55,7 @@ V22: SIGINT|SIGTERM while waiting → default disposition (130|143); cmd ⊥ run
 ## §T TASKS
 
 id|status|task|cites
-T14|.|publish `0.1.0-rc.1` to crates.io ! user approval|V21
+T14|~|publish `0.1.0-rc.1` to crates.io ! user approval|V21
 T15|x|parity check `docs/CONGESTION.md` ↔ node specs|V18
 
 ## §B BUGS

@@ -9,6 +9,10 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+## [0.1.0-rc.1] - 2026-10-17
+
+First release candidate. 0.1 is a development series, not for production.
+
 ### Added
 
 - `UnitError`: every parse error names the input and the form expected.

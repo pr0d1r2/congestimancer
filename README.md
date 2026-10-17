@@ -192,8 +192,10 @@ spawning `cgmr`.
 
 ## Status
 
-In development; not yet published to crates.io. The command line and the
-JSON schema (`schema_version` 1) are what the first release will carry.
+`0.1.0-rc.1` is the first release candidate. 0.1 is a development series,
+not for production; the command line and the JSON schema (`schema_version`
+
+1) may still change before the stable 0.2.
 
 ## Contributing
 

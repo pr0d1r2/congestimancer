@@ -5,8 +5,7 @@ members = ["dev"]
 # The crate carries the meaning, the binary carries the muscle memory
 # (`ripgrep`/`rg`): crate `congestimancer`, bin `cgmr` (.:V21).
 name = "congestimancer"
-# Unpublished until the first release candidate (.:T14).
-version = "0.0.0"
+version = "0.1.0-rc.1"
 edition = "2024"
 # The fleet pin: nixpkgs-lock (nixos-26.05) carries rustc 1.95.
 rust-version = "1.95"
