@@ -29,6 +29,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+          # tdd-order reads history: a shallow clone's one commit looks
+          # like it adds every file at once, with no test: commit before.
+          fetch-depth: 0
       - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342  # v31.11.0
         with:
           # The flake's nixConfig names the fleet cache, but nix ignores a
