@@ -37,7 +37,9 @@ pub fn io_priority() -> io::Result<IoPriority> {
 /// macOS `IOPOL_*` values (`sys/resource.h`).
 #[cfg(any(test, target_os = "macos"))]
 mod iopol {
+    #[cfg(target_os = "macos")]
     pub(super) const TYPE_DISK: i32 = 0;
+    #[cfg(target_os = "macos")]
     pub(super) const SCOPE_PROCESS: i32 = 0;
     pub(super) const DEFAULT: i32 = 0;
     pub(super) const THROTTLE: i32 = 3;

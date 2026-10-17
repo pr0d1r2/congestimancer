@@ -1,9 +1,7 @@
 use std::io;
 use std::path::Path;
 
-use super::{
-    SwapUsage, decode_int, decode_swap_usage, sized, swap_usage, sysctl_int,
-};
+use super::{SwapUsage, decode_int, decode_swap_usage, sized, sysctl_int};
 use crate::sys::raw::decode_hex;
 
 /// The raw bytes of sysctl `name` captured on an M4 macOS 26 host.
@@ -71,7 +69,7 @@ fn a_name_with_a_nul_is_invalid_input() {
 #[test]
 fn host_sysctls_read() {
     assert!(sysctl_int("kern.maxfiles").is_ok_and(|n| n > 0));
-    assert!(swap_usage().is_ok());
+    assert!(super::swap_usage().is_ok());
 }
 
 /// A fake sysctl that reports `sizes` in turn (one per call) and fails
