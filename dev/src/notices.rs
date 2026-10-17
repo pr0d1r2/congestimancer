@@ -65,8 +65,10 @@ pub(crate) fn stale_prose(
 }
 
 /// `cargo tree` over the normal edges of the four shipped platforms
-/// (.:C): a Windows-only crate is never shipped, so never listed.
-const TREE: [&str; 19] = [
+/// (.:C): a Windows-only crate is never shipped, so never listed. Not
+/// `--offline`: a host has only its own platform's crates downloaded, so
+/// the other three would fail to resolve; `--locked` still pins Cargo.lock.
+const TREE: [&str; 18] = [
     "tree",
     "-p",
     "congestimancer",
@@ -77,7 +79,6 @@ const TREE: [&str; 19] = [
     "-f",
     "{p}|{l}",
     "--locked",
-    "--offline",
     "--target",
     "aarch64-apple-darwin",
     "--target",
