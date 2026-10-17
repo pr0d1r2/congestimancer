@@ -1,0 +1,6 @@
+---
+blank_issues_enabled: true
+contact_links:
+  - name: Security problem
+    url: https://github.com/pr0d1r2/congestimancer/security/advisories/new
+    about: Report privately, not as a public issue (docs/SECURITY.md).

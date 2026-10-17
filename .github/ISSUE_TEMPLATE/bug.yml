@@ -1,0 +1,42 @@
+---
+name: Bug report
+description: A gate decides wrong, a reading is off, or cgmr misbehaves.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran, what cgmr did, and what you expected.
+      placeholder: |
+        cgmr --load 1 -- make
+        waited forever although the machine was idle
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: cgmr --version
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS, version and architecture
+      placeholder: NixOS 26.05 x86_64, macOS 26.1 aarch64, Ubuntu 24.04 in a container, ...
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: cgmr status --json
+      description: >-
+        Every reading on the machine where it went wrong. It holds counters,
+        interface and device names only; check it before posting.
+      render: json
+  - type: textarea
+    id: verbose
+    attributes:
+      label: Output with --verbose
+      description: The same command with --verbose, which says which gate blocks and why.
+      render: text
