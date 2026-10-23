@@ -162,6 +162,11 @@ const CASES: &[Case] = &[
     ("slots", &["--slots", "2", "--slot-key", "parity"], Run),
     ("slot-key", &["--slot-key", "parity", "--slots", "2"], Run),
     ("fifo", &["--fifo", "--slot-key", "parity"], Run),
+    (
+        "alone-passes",
+        &["--alone-passes", "--slots", "2", "--slot-key", "parity"],
+        Run,
+    ),
     ("rate", &["--rate", "99/1s", "--slot-key", "parity"], Run),
     (
         "spacing",

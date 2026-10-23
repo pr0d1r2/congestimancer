@@ -3,8 +3,9 @@
 
 use std::convert::Infallible;
 use std::io::Write;
+use std::time::Instant;
 
-use super::run::Run;
+use super::run::{Run, Step};
 use super::{Pacing, jitter_delay};
 use crate::gate::{Evaluation, Gates};
 use crate::signal::{Clock, Source};
@@ -24,6 +25,17 @@ pub trait Admit {
     ///
     /// When a step cannot be tried (the lock dir cannot be read).
     fn try_admit(&mut self) -> Result<Option<Self::Held>, Self::Error>;
+
+    /// Like [`try_admit`](Self::try_admit) but asked before the gates:
+    /// `Some` lets a command that is alone with its slot key go without
+    /// them (`--alone-passes`, src/slot:V12). Never by default.
+    ///
+    /// # Errors
+    ///
+    /// When a step cannot be tried (the lock dir cannot be read).
+    fn try_alone(&mut self) -> Result<Option<Self::Held>, Self::Error> {
+        Ok(None)
+    }
 }
 
 /// No slot steps: the gates alone decide.
@@ -116,9 +128,7 @@ where
     let mut run = Run::new(pacing, rig.clock.now());
     loop {
         let now = rig.clock.now();
-        if run.due(now)
-            && let Some(outcome) = run.round(&mut rig, now, admit)?
-        {
+        if let Some(outcome) = attempt(&mut run, &mut rig, now, admit)? {
             scatter(&outcome, rig.clock, pacing);
             return Ok(outcome);
         }
@@ -128,6 +138,28 @@ where
         }
         rig.clock.sleep(run.pause(now));
     }
+}
+
+/// One try at releasing the command: a command alone with its key goes
+/// before the gates, else a due round asks them (src/slot:V12).
+fn attempt<S, C, A>(
+    run: &mut Run<'_>,
+    rig: &mut Rig<'_, S, C>,
+    now: Instant,
+    admit: &mut A,
+) -> Step<A>
+where
+    S: Source + ?Sized,
+    C: ?Sized,
+    A: Admit,
+{
+    if let Some(held) = admit.try_alone()? {
+        return Ok(Some(Outcome::Released(held)));
+    }
+    if run.due(now) {
+        return run.round(rig, now, admit);
+    }
+    Ok(None)
 }
 
 /// After a release, sleeps the `--jitter` pick, the last step before

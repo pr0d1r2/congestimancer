@@ -6,7 +6,7 @@ use std::time::SystemTime;
 
 use super::{
     LockDir, Reservation, SlotError, SlotGuard, StartLimits, Ticket,
-    claim_slot, is_held, mark_held, record_start,
+    claim_slot, is_held, live_holders, mark_held, record_start,
 };
 use crate::units::{Bytes, Count, Name};
 
@@ -47,6 +47,8 @@ pub struct SlotPlan {
     pub limits: StartLimits,
     /// `--needs-mem X`.
     pub needs_mem: Option<Bytes>,
+    /// `--alone-passes`: with no live holder of the key, skip the gates.
+    pub alone: bool,
 }
 
 impl SlotPlan {
@@ -59,6 +61,7 @@ impl SlotPlan {
             fifo: false,
             limits: StartLimits::default(),
             needs_mem: None,
+            alone: false,
         }
     }
 }
@@ -164,6 +167,28 @@ impl Waiter {
             }
         }
         self.release(slot)
+    }
+
+    /// The release for a command that is alone with its key, before the
+    /// gates are asked: `None` unless `--alone-passes` and `--slots` were
+    /// given and no live job holds a slot of the key. The slot, the
+    /// start record and the reservation are taken as usual; a lost race
+    /// for the slot leaves the command to the gates (src/slot:V12).
+    ///
+    /// # Errors
+    ///
+    /// [`SlotError::Io`] when the lock dir cannot be read or written.
+    pub fn try_alone(
+        &mut self,
+        now: SystemTime,
+    ) -> Result<Option<Release>, SlotError> {
+        let Some(slots) = self.plan.slots.filter(|_| self.plan.alone) else {
+            return Ok(None);
+        };
+        if live_holders(&self.dir, &self.plan.key, slots)? > 0 {
+            return Ok(None);
+        }
+        self.try_release(now)
     }
 
     /// Whether FIFO lets this waiter go on, taking its ticket on the

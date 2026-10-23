@@ -490,6 +490,7 @@ a variable in the environment must not be able to inject a command.
 | `--fifo` | with `--slots`: waiters start in arrival order (fairness) |
 | `--rate N/D --slot-key K` | at most N starts per D for key K (token bucket) |
 | `--spacing D --slot-key K` | at least D between two starts for key K, so the next waiter sees the new load |
+| `--alone-passes` | with `--slots`: when no running job holds key K, the job starts without the gates (it still takes the slot and reserves `--needs-mem`); later jobs wait on the gates |
 | `--or-background` | when `--timeout` is reached, run anyway at background priority instead of exiting 124 |
 | `--verbose` | report which gate blocks, with current value, threshold and trend |
 

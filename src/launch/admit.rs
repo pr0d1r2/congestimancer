@@ -39,6 +39,15 @@ impl Admit for Slots {
             }
         }
     }
+
+    /// Runs the slot steps before the gates for a command alone with its
+    /// key (src/slot:V12).
+    fn try_alone(&mut self) -> Result<Option<Option<Release>>, SlotError> {
+        match &mut self.0 {
+            None => Ok(None),
+            Some(waiter) => Ok(waiter.try_alone(SystemTime::now())?.map(Some)),
+        }
+    }
 }
 
 #[cfg(test)]

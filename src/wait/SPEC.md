@@ -54,6 +54,7 @@ V7: ∀ durations measured on monotonic clock; suspend behaviour = OS monotonic 
 V8: `Unsupported` → return at once (`src/gate:V3`).
 V9: release order: gates pass → `--settle` holds → FIFO ticket (`--fifo`) → slot (`--slots`) → `--rate` & `--spacing` → memory reservation (`--needs-mem`) → `--jitter` → launch. failure at any step → back to gates.
 V10: cost budget: one round w/ `--load` only ≤ 5 ms CPU; resident memory ≤ 10 MB; cold start of `cgmr check --load 1` ≤ 20 ms. benchmark gated in hk `all` (`nix:V25`).
+V11: `--alone-passes` (`src/slot:V12`): slot steps may run before the gates, only for a key with no live holder.
 
 ## §T TASKS
 

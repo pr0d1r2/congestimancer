@@ -16,7 +16,8 @@ use crate::sys::current_uid;
 use crate::units::{Bytes, Name, parse_bytes, parse_count, parse_duration};
 
 /// The switches that need a slot plan even without `--needs-mem`.
-const SLOT_SWITCHES: [&str; 4] = ["slots", "fifo", "rate", "spacing"];
+const SLOT_SWITCHES: [&str; 5] =
+    ["slots", "fifo", "rate", "spacing", "alone-passes"];
 
 /// The per-user lock dir: `$XDG_RUNTIME_DIR/cgmr`, else `$TMPDIR/cgmr`,
 /// else `/tmp/cgmr-<uid>`, made 0700 and checked safe (src/slot:V1).
@@ -65,6 +66,7 @@ pub(crate) fn plan(
     let mut plan = SlotPlan::new(key);
     plan.slots = resolved.parse("slots", parse_count)?;
     plan.fifo = resolved.on("fifo");
+    plan.alone = resolved.on("alone-passes");
     plan.limits = limits(resolved)?;
     plan.needs_mem = needs_mem;
     Ok(Some(plan))

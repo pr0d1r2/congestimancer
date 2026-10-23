@@ -84,3 +84,10 @@ fn slots_wait_only_with_a_plan() {
     let planned = plan(&set(&[("slots", &["1"])]), &cmd(&["make"]));
     assert!(slots(&env, planned.ok().flatten()).is_ok());
 }
+
+#[test]
+fn alone_passes_alone_makes_a_plan() {
+    let resolved = set(&[("alone-passes", &["true"]), ("slots", &["1"])]);
+    let planned = plan(&resolved, &cmd(&["make"])).ok().flatten();
+    assert_eq!(planned.map(|p| p.alone), Some(true));
+}
