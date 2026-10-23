@@ -55,6 +55,12 @@ cgmr --profile heavy -- cargo test
 `--or-background` means a busy machine delays the step, then runs it at
 background priority, instead of failing it after ten minutes.
 
+`--load 1` suits a single long step. It is too tight for a hook that runs
+several heavy steps, see
+[Several heavy steps in one hook](#several-heavy-steps-in-one-hook).
+A project profile shared across platforms should also avoid
+`--mem-pressure` and the other PSI gates: they exit 69 on macOS.
+
 ## hk
 
 Wrap only the steps that are heavy; a fast lint gains nothing from
@@ -67,6 +73,40 @@ waiting.
 }
 ```
 
+### Several heavy steps in one hook
+
+The load average lags by about a minute and counts the hook's own steps. A
+tight `--load` gate is therefore never satisfied once the first steps have
+started: each later step waits for load that its own siblings cause.
+Measured on an 8-core machine, same range:
+
+| profile | wall |
+| --- | --- |
+| ungated | 42s |
+| `--load 0.9 --mem 2GiB --slots 3 --timeout 1m --or-background` | 133s |
+| `--load 1.5 --mem 2GiB --slots 3 --fifo --timeout 30s --or-background` | 40s |
+
+With the tight gate every heavy step waited the full timeout, then ran at
+background priority. Within one hook:
+
+- Pace the steps with `--slots` and `--fifo`; slots count the hook's own
+  steps exactly, with no lag.
+- Keep the load gate for real overload only, well above 1 per CPU.
+- Pair it with `--timeout` and `--or-background` so nothing hangs.
+- `cgmr advise` reads the same lagging load, so it may size `--jobs` down
+  to a fraction of the cores mid-hook.
+
+```text
+# .cgmr
+[hook]
+--load 1.5
+--needs-mem 2GiB
+--slots 3
+--fifo
+--timeout 30s
+--or-background
+```
+
 ## lefthook
 
 ```yaml
@@ -75,6 +115,9 @@ pre-push:
     test:
       run: cgmr --profile heavy -- cargo test --workspace
 ```
+
+With several heavy commands in one hook, use a pacing profile as in
+[Several heavy steps in one hook](#several-heavy-steps-in-one-hook).
 
 ## Make, xargs and other parallel runners
 
