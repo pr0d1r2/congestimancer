@@ -89,8 +89,10 @@ Measured on an 8-core machine, same range:
 With the tight gate every heavy step waited the full timeout, then ran at
 background priority. Within one hook:
 
-- Pace the steps with `--slots` and `--fifo`; slots count the hook's own
-  steps exactly, with no lag.
+- Pace the steps with `--slots`, one `--slot-key` and `--fifo`; slots
+  count the hook's own steps exactly, with no lag. Without `--slot-key`
+  each step's key is its command's name, so steps that run different
+  programs never share a slot.
 - Keep the load gate for real overload only, well above 1 per CPU.
 - Pair it with `--timeout` and `--or-background` so nothing hangs.
 - `cgmr advise` reads the same lagging load, so it may size `--jobs` down
@@ -102,6 +104,7 @@ background priority. Within one hook:
 --load 1.5
 --needs-mem 2GiB
 --slots 3
+--slot-key hook
 --fifo
 --timeout 30s
 --or-background
