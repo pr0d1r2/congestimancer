@@ -113,6 +113,9 @@ pub(crate) fn wait_remote(
 ) -> Result<Outcome<Option<Release>>, Failure> {
     let start = clock.now();
     loop {
+        if let Some(held) = slots.try_alone().map_err(slot_failure)? {
+            return Ok(Outcome::Released(held));
+        }
         if let Some(outcome) = step(remote.round()?, slots)? {
             return Ok(outcome);
         }
