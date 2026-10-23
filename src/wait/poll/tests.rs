@@ -477,3 +477,30 @@ fn a_slot_step_error_ends_the_wait_without_jitter() {
     assert!(matches!(outcome, Err("lock dir unreadable")));
     assert!(bench.sleeps().is_empty());
 }
+
+/// Slot steps that let a command alone with its key go before the gates.
+struct Alone;
+
+impl Admit for Alone {
+    type Held = ();
+    type Error = std::convert::Infallible;
+
+    fn try_admit(&mut self) -> Result<Option<()>, Self::Error> {
+        Ok(None)
+    }
+
+    fn try_alone(&mut self) -> Result<Option<()>, Self::Error> {
+        Ok(Some(()))
+    }
+}
+
+#[test]
+fn a_command_alone_with_its_key_skips_failing_gates() {
+    let mut bench = Bench::new(&[FAIL]);
+    let outcome = match bench.run(&Pacing::new(secs(2)), &mut Alone) {
+        Ok(outcome) => outcome,
+        Err(never) => match never {},
+    };
+    assert!(released(&outcome));
+    assert_eq!(bench.rounds(), 0);
+}

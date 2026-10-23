@@ -39,7 +39,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §I INTERFACES
 
-- switches: `--slots N` · `--slot-key K` · `--fifo` · `--rate N/D` · `--spacing D` (+ `--needs-mem` ledger for `src/mem`).
+- switches: `--slots N` · `--slot-key K` · `--fifo` · `--alone-passes` · `--rate N/D` · `--spacing D` (+ `--needs-mem` ledger for `src/mem`).
 - dir: `$XDG_RUNTIME_DIR/cgmr` else `$TMPDIR/cgmr` else `/tmp/cgmr-<uid>`; mode 0700; per user.
 - env marker: `CGMR_HELD_SLOTS` (keys held by ancestor cgmr).
 
@@ -56,6 +56,7 @@ V8: nested: key ∈ `CGMR_HELD_SLOTS` → slot treated as held, ⊥ deadlock.
 V9: slot checks run AFTER gates pass & settle, BEFORE jitter; full order → `src/wait:V9`.
 V10: slot key = `src/units` `Name` (`src/units:V13`); cmd basename default sanitised to `Name` | refused ∴ ⊥ path escape from lock dir.
 V11: tests: lock free after drop only once ∀ fd copies close; concurrent spawn in test process holds copies till exec ∴ test polls (bounded) for release, ⊥ asserts instant.
+V12: `--alone-passes` + `--slots`: K has no live holder → slot steps run BEFORE the gates; else gates as usual.
 
 ## §T TASKS
 
@@ -69,6 +70,7 @@ T6|x|memory reservation ledger|V7
 T7|x|nested held marker|V8
 T8|x|ordering w/ gates, settle, jitter|V9
 T9|x|slot key validation|V10
+T10|x|alone-passes|V12
 
 ## §B BUGS
 

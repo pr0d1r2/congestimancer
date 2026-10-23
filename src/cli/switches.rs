@@ -249,6 +249,11 @@ pub const SWITCHES: &[SwitchSpec] = &[
         Role::Wait,
         "with --slots: start waiters in arrival order",
     ),
+    flag(
+        "alone-passes",
+        Role::Wait,
+        "with --slots: the first job of a slot key starts without the gates",
+    ),
     one(
         "rate",
         Value::StartRate,

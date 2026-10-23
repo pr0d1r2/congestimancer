@@ -145,3 +145,33 @@ fn a_release_holds_its_memory_reservation() -> io::Result<()> {
     assert_eq!(reserved_total(&dir).map_err(io::Error::other)?, Bytes(5000));
     Ok(())
 }
+
+#[test]
+fn alone_takes_the_slot_only_for_the_first_job_of_a_key() -> io::Result<()> {
+    let scratch = Scratch::new("order-alone")?;
+    let dir = scratch.lock_dir()?;
+    let mut plan = one_slot()?;
+    plan.alone = true;
+    plan.needs_mem = Some(Bytes(7));
+    let mut first = waiter(&dir, &plan, None);
+    let release = first.try_alone(at(0)).map_err(io::Error::other)?;
+    assert!(release.as_ref().is_some_and(|r| r.slot().is_some()));
+    assert_eq!(reserved_total(&dir).map_err(io::Error::other)?, Bytes(7));
+    let mut second = waiter(&dir, &plan, None);
+    let none = second.try_alone(at(0)).map_err(io::Error::other)?;
+    assert!(none.is_none());
+    Ok(())
+}
+
+#[test]
+fn alone_asks_nothing_without_the_switch_or_slots() -> io::Result<()> {
+    let scratch = Scratch::new("order-alone-off")?;
+    let dir = scratch.lock_dir()?;
+    let mut w = waiter(&dir, &one_slot()?, None);
+    assert!(w.try_alone(at(0)).map_err(io::Error::other)?.is_none());
+    let mut plan = SlotPlan::new(key("make")?);
+    plan.alone = true;
+    let mut w = waiter(&dir, &plan, None);
+    assert!(w.try_alone(at(0)).map_err(io::Error::other)?.is_none());
+    Ok(())
+}
