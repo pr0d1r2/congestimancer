@@ -170,3 +170,18 @@ fn run_on_a_host_without_cgmr_exits_69() {
     let run = ran(&["--host", "box"], &[], &mut { unsupported });
     assert_eq!(run.code, 69);
 }
+
+#[test]
+fn a_run_alone_with_its_key_starts_without_asking_the_host() {
+    let Ok(runtime) = tempfile::tempdir() else {
+        return;
+    };
+    let dir = runtime.path().to_string_lossy().into_owned();
+    let mut ssh = ScriptedSsh::always(1, &reply("fail"));
+    let args = ["--host", "box", "--load", "2", "--timeout", "1s"];
+    let alone = ["--alone-passes", "--slots", "1", "--slot-key", "alone"];
+    let all = [&args[..], &alone].concat();
+    let run = ran(&all, &[("XDG_RUNTIME_DIR", &dir)], &mut ssh);
+    assert_eq!(run.code, 0, "{}", run.err);
+    assert!(ssh.calls.is_empty(), "{:?}", ssh.calls);
+}
