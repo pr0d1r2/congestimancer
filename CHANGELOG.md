@@ -7,6 +7,8 @@ All notable changes to congestimancer are recorded here. The format follows
 Version ladder: an even minor (0.2, 0.4, ...) is a stable rung; an odd minor
 is a development series, not for production.
 
+## [Unreleased]
+
 - `--alone-passes`: with `--slots`, the first job of a slot key starts
   without waiting on the gates; later jobs of the key wait as before.
 
