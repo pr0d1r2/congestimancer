@@ -96,3 +96,16 @@ fn export_jobs_never_goes_below_one() {
         assert_eq!(share.as_deref(), Some(want));
     }
 }
+
+#[test]
+fn export_jobs_leaves_the_held_slot_marker_alone() {
+    let mut command = Command::new("true");
+    command.env(HELD_SLOTS_ENV, "k");
+    let names = [HELD_SLOTS_ENV.to_owned(), "J".to_owned()];
+    super::export_jobs(&mut command, &names, 8, 2);
+    let want = BTreeMap::from([
+        (HELD_SLOTS_ENV.to_owned(), Some("k".to_owned())),
+        ("J".to_owned(), Some("4".to_owned())),
+    ]);
+    assert_eq!(changes(&command), want);
+}

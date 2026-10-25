@@ -11,7 +11,8 @@ is a development series, not for production.
 
 - `--export-jobs VAR` (repeatable): set VAR in the command's environment to
   its share of the CPUs, `max(1, CPUs / N)` with N the jobs holding the slot
-  key when the slot is granted (for `CARGO_BUILD_JOBS`).
+  key when the slot is granted (for `CARGO_BUILD_JOBS`). `CGMR_HELD_SLOTS`
+  is never overwritten by it, so a nested `cgmr` still sees the held slot.
 - `--alone-passes`: with `--slots`, the first job of a slot key starts
   without waiting on the gates; later jobs of the key wait as before.
 
