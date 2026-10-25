@@ -26,6 +26,13 @@ fn waiter_asks_one_slot_and_the_memory_given() -> io::Result<()> {
 }
 
 #[test]
+fn sharing_asks_a_slot_and_no_memory() -> io::Result<()> {
+    let scratch = Scratch::new("sharing")?;
+    assert_eq!(scratch.sharing(2)?.steps(), [SlotStep::Slot]);
+    Ok(())
+}
+
+#[test]
 fn eventually_probes_until_done_and_passes_errors_on() {
     let mut calls = 0;
     let third = eventually(

@@ -7,10 +7,13 @@ use std::path::Path;
 use super::{Outcome, cgmr};
 
 /// What the command sees in the two exported variables, run with `extra`
-/// switches and its lock dir under `runtime`.
+/// switches and its lock dir under `runtime`. `CGMR_TEST_JOBS` is in
+/// cgmr's own environment too: the share is set after the env cleanup
+/// removes it.
 fn seen(runtime: &Path, extra: &[&str]) -> Result<String, Box<dyn Error>> {
     let mut cmd = cgmr()?;
-    cmd.env("XDG_RUNTIME_DIR", runtime);
+    cmd.env("XDG_RUNTIME_DIR", runtime)
+        .env("CGMR_TEST_JOBS", "0");
     let names = ["--export-jobs", "CGMR_TEST_JOBS", "--export-jobs", "OTHER"];
     let show = ["--", "sh", "-c", "echo $CGMR_TEST_JOBS $OTHER"];
     let out = cmd.args(names).args(extra).args(show).output()?;

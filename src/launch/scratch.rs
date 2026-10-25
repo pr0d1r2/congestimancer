@@ -40,9 +40,20 @@ impl Scratch {
 
     /// A waiter on key `make` for one slot and, when given, `needs_mem`.
     pub(super) fn waiter(&self, needs_mem: Option<u64>) -> io::Result<Waiter> {
+        self.on(1, needs_mem)
+    }
+
+    /// A waiter on key `make`, which `slots` jobs may hold at once.
+    pub(super) fn sharing(&self, slots: u64) -> io::Result<Waiter> {
+        self.on(slots, None)
+    }
+
+    /// A waiter on key `make` for one of `slots` slots and, when given,
+    /// `needs_mem`.
+    fn on(&self, slots: u64, needs_mem: Option<u64>) -> io::Result<Waiter> {
         let key = parse_name("make").map_err(io::Error::other)?;
         let mut plan = SlotPlan::new(key);
-        plan.slots = Some(Count(1));
+        plan.slots = Some(Count(slots));
         plan.needs_mem = needs_mem.map(Bytes);
         Ok(Waiter::new(self.dir.clone(), plan, None))
     }
