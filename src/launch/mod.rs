@@ -32,6 +32,7 @@ mod start;
 pub use admit::Slots;
 pub use after::{Priority, after_wait};
 pub use env::clean_env;
+use env::export_jobs;
 pub use exec::{exec_command, exec_failure_code};
 pub use govern::{GroupAction, govern_step, status_code};
 pub use governed::{Governing, launch_governed};

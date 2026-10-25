@@ -73,3 +73,26 @@ fn the_command_sees_the_cleaned_environment() -> std::io::Result<()> {
     assert!(command.status()?.success());
     Ok(())
 }
+
+#[test]
+fn export_jobs_splits_the_cpus_across_the_holders() {
+    let mut command = Command::new("true");
+    let names = ["CARGO_BUILD_JOBS".to_owned(), "NIX_BUILD_CORES".to_owned()];
+    super::export_jobs(&mut command, &names, 8, 2);
+    let want = BTreeMap::from([
+        ("CARGO_BUILD_JOBS".to_owned(), Some("4".to_owned())),
+        ("NIX_BUILD_CORES".to_owned(), Some("4".to_owned())),
+    ]);
+    assert_eq!(changes(&command), want);
+}
+
+#[test]
+fn export_jobs_never_goes_below_one() {
+    let names = ["J".to_owned()];
+    for (threads, holders, want) in [(2, 8, "1"), (0, 1, "1"), (4, 0, "4")] {
+        let mut command = Command::new("true");
+        super::export_jobs(&mut command, &names, threads, holders);
+        let share = changes(&command).remove("J").flatten();
+        assert_eq!(share.as_deref(), Some(want));
+    }
+}

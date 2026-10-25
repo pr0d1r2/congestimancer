@@ -57,6 +57,7 @@ V9: slot checks run AFTER gates pass & settle, BEFORE jitter; full order → `sr
 V10: slot key = `src/units` `Name` (`src/units:V13`); cmd basename default sanitised to `Name` | refused ∴ ⊥ path escape from lock dir.
 V11: tests: lock free after drop only once ∀ fd copies close; concurrent spawn in test process holds copies till exec ∴ test polls (bounded) for release, ⊥ asserts instant.
 V12: `--alone-passes` + `--slots`: K has no live holder → slot steps run BEFORE the gates; else gates as usual.
+V13: grant → `Release::holders` = live holders of K, self incl. (≥ 1).
 
 ## §T TASKS
 

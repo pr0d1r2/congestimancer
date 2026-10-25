@@ -120,3 +120,20 @@ fn the_command_gets_its_arguments_and_a_clean_environment() {
     let held = (OsStr::new(HELD_SLOTS_ENV), Some(OsStr::new("make")));
     assert_eq!(envs, [held, removed]);
 }
+
+#[test]
+fn the_start_exports_the_job_share() {
+    let start = Start::new(None, false).with_jobs(vec!["J".to_owned()], 6);
+    let mut command = Command::new("true");
+    let mut log = Vec::new();
+    super::prepare(&start, &mut command, &mut log);
+    let share = command.get_envs().find(|(k, _)| *k == OsStr::new("J"));
+    assert_eq!(share.and_then(|(_, v)| v), Some(OsStr::new("6")));
+}
+
+#[test]
+fn the_start_exports_nothing_unasked() {
+    let mut command = Command::new("true");
+    super::prepare(&Start::new(None, false), &mut command, &mut Vec::new());
+    assert_eq!(command.get_envs().count(), 0);
+}

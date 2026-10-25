@@ -76,9 +76,19 @@ pub struct Release {
     reservation: Option<Reservation>,
     /// The new `CGMR_HELD_SLOTS` for the command, when a slot was claimed.
     held_marker: Option<String>,
+    /// The live jobs holding a slot of the key when this one was granted,
+    /// itself included; 1 when no slot was claimed.
+    holders: u64,
 }
 
 impl Release {
+    /// The jobs holding the slot key at the grant, this one included;
+    /// at least 1 (src/slot:V13).
+    #[must_use]
+    pub const fn holders(&self) -> u64 {
+        self.holders
+    }
+
     /// The slot claimed, if any.
     #[must_use]
     pub const fn slot(&self) -> Option<&SlotGuard> {
@@ -225,14 +235,28 @@ impl Waiter {
             .map(|bytes| Reservation::write(&self.dir, bytes))
             .transpose()?;
         self.ticket = None;
-        let held_marker = slot
-            .as_ref()
-            .map(|_| mark_held(self.marker.as_deref(), &self.plan.key));
+        let (held_marker, holders) = self.held(slot.as_ref())?;
         Ok(Some(Release {
             slot,
             reservation,
             held_marker,
+            holders,
         }))
+    }
+
+    /// What a command given `slot` is told of it: the new
+    /// `CGMR_HELD_SLOTS`, and the live holders of the key now, `slot`
+    /// counted (1 without a slot).
+    fn held(
+        &self,
+        slot: Option<&SlotGuard>,
+    ) -> Result<(Option<String>, u64), SlotError> {
+        let (Some(n), Some(_)) = (self.plan.slots, slot) else {
+            return Ok((None, 1));
+        };
+        let marker = mark_held(self.marker.as_deref(), &self.plan.key);
+        let holders = live_holders(&self.dir, &self.plan.key, n)?;
+        Ok((Some(marker), holders.max(1)))
     }
 }
 

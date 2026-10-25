@@ -177,6 +177,7 @@ const CASES: &[Case] = &[
     ("verbose", &["--verbose"], Run),
     ("govern", &["--govern"], Run),
     ("background", &["--background"], Run),
+    ("export-jobs", &["--export-jobs", "CGMR_PARITY_JOBS"], Run),
 ];
 
 /// Every `--switch` named in the catalogue's tables.

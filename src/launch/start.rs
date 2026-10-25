@@ -5,7 +5,7 @@ use std::ffi::OsString;
 use std::io::Write;
 use std::process::Command;
 
-use super::{background, clean_env, exec_command};
+use super::{background, clean_env, exec_command, export_jobs};
 use crate::slot::Release;
 use crate::sys::inherit_in;
 
@@ -18,6 +18,11 @@ pub struct Start {
     /// Whether it runs at background priority (`--background`,
     /// `--or-background` after a timeout).
     pub background: bool,
+    /// The variables set to the job's share of the CPUs
+    /// (`--export-jobs`).
+    pub export_jobs: Vec<String>,
+    /// The logical CPUs the share is taken of.
+    pub threads: u64,
 }
 
 impl Start {
@@ -28,7 +33,18 @@ impl Start {
         Self {
             release,
             background,
+            export_jobs: Vec::new(),
+            threads: 1,
         }
+    }
+
+    /// This start, also setting each of `names` to the job's share of
+    /// `threads` CPUs (src/launch:V10).
+    #[must_use]
+    pub fn with_jobs(mut self, names: Vec<String>, threads: u64) -> Self {
+        self.export_jobs = names;
+        self.threads = threads;
+        self
     }
 }
 
@@ -63,6 +79,10 @@ pub(super) fn prepare(
 ) {
     if let Some(release) = &start.release {
         hand_over(release, command);
+    }
+    if !start.export_jobs.is_empty() {
+        let holders = start.release.as_ref().map_or(1, Release::holders);
+        export_jobs(command, &start.export_jobs, start.threads, holders);
     }
     if start.background {
         background(log);

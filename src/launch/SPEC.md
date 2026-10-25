@@ -39,7 +39,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §I INTERFACES
 
-- switches: `--govern` · `--background` · `--or-background`.
+- switches: `--govern` · `--background` · `--or-background` · `--export-jobs VAR` (repeatable).
 
 ## §V INVARIANTS
 
@@ -52,6 +52,7 @@ V6: `--or-background`: `--timeout` reached → start anyway as `--background` in
 V7: stdout|stdin|stderr untouched; cmd owns stdout (`.` §I).
 V8: `--govern`: stopped cmd keeps its slot & reservation (held fds inherited); `--timeout` applies only before start; `--host` allowed (remote checks continue each round).
 V9: slot & reservation fds handed to cmd's child only (`src/sys` `inherit_in`); cgmr's own fds stay close-on-exec ∴ ⊥ gate shell | ssh child holds slot.
+V10: `--export-jobs VAR`: set VAR in cmd's env to `max(1, threads / N)`, N = live holders of the slot key at the grant (1 w/o slot); set after env cleanup.
 
 ## §T TASKS
 
@@ -64,6 +65,7 @@ T5|x|`--background` both OS|V5
 T6|x|`--or-background`|V6
 T7|x|govern w/ slots, timeout & host|V8
 T8|x|hand slot over via cmd's child, not cgmr|V9
+T9|x|`--export-jobs` job share|V10
 
 ## §B BUGS
 

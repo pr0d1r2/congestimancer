@@ -9,6 +9,9 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- `--export-jobs VAR` (repeatable): set VAR in the command's environment to
+  its share of the CPUs, `max(1, CPUs / N)` with N the jobs holding the slot
+  key when the slot is granted (for `CARGO_BUILD_JOBS`).
 - `--alone-passes`: with `--slots`, the first job of a slot key starts
   without waiting on the gates; later jobs of the key wait as before.
 

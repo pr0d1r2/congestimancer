@@ -2,7 +2,8 @@
 //! (src/cli:V7). Data only; the row builders live in `table`.
 
 use super::table::{
-    Adj, Role, SwitchSpec, Value, WHEN, above, below, flag, one, procs, state,
+    Adj, Role, SwitchSpec, Value, WHEN, above, below, flag, names, one, procs,
+    state,
 };
 use crate::gate::Op;
 
@@ -285,6 +286,11 @@ pub const SWITCHES: &[SwitchSpec] = &[
         "background",
         Role::Run,
         "run the command at background CPU and IO priority",
+    ),
+    names(
+        "export-jobs",
+        Role::Run,
+        "set VAR to this job's share of the CPUs (repeats)",
     ),
     flag("quiet", Role::Meta, "hide warnings"),
     one(
