@@ -52,7 +52,7 @@ V6: `--or-background`: `--timeout` reached → start anyway as `--background` in
 V7: stdout|stdin|stderr untouched; cmd owns stdout (`.` §I).
 V8: `--govern`: stopped cmd keeps its slot & reservation (held fds inherited); `--timeout` applies only before start; `--host` allowed (remote checks continue each round).
 V9: slot & reservation fds handed to cmd's child only (`src/sys` `inherit_in`); cgmr's own fds stay close-on-exec ∴ ⊥ gate shell | ssh child holds slot.
-V10: `--export-jobs VAR`: set VAR in cmd's env to `max(1, threads / N)`, N = live holders of the slot key at the grant (1 w/o slot); set after env cleanup.
+V10: `--export-jobs VAR`: set VAR in cmd's env to `max(1, threads / N)`, N = live holders of the slot key at the grant (1 w/o slot); set after env cleanup; VAR = `CGMR_HELD_SLOTS` skipped (V3 marker kept).
 
 ## §T TASKS
 
