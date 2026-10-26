@@ -55,8 +55,34 @@ impl<S: Source + ?Sized> Judge for LocalGates<'_, S> {
     }
 }
 
+/// The gates of a run that has none to hold it to: every round passes,
+/// so the command is never stopped. `--needs-mem auto` governs with it
+/// to watch the command alone.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Unjudged;
+
+impl Judge for Unjudged {
+    fn judge(&mut self, _: Instant) -> Overall {
+        Overall::Pass
+    }
+}
+
+/// Something that watches the command each round, such as its memory.
+pub trait Meter {
+    /// Looks at the command, whose group leader is `leader`, at `now`.
+    fn sample(&mut self, leader: Option<u32>, now: Instant);
+
+    /// The command has ended: keep what was seen.
+    fn finish(&mut self);
+}
+
 /// The command's process group, as `--govern` drives it.
 pub trait Group {
+    /// The process id of the group's leader, when the group knows it.
+    fn leader(&self) -> Option<u32> {
+        None
+    }
+
     /// Sends `sig` to every process in the group.
     ///
     /// # Errors
@@ -92,6 +118,8 @@ pub struct GovernRig<'a, J: ?Sized, C: ?Sized, G: ?Sized> {
     pub group: &'a mut G,
     /// Stderr: a line when the command pauses or resumes.
     pub log: &'a mut dyn Write,
+    /// What watches the command each round, if anything.
+    pub meter: Option<&'a mut dyn Meter>,
 }
 
 impl<'a, J: ?Sized, C: ?Sized, G: ?Sized> GovernRig<'a, J, C, G> {
@@ -107,7 +135,15 @@ impl<'a, J: ?Sized, C: ?Sized, G: ?Sized> GovernRig<'a, J, C, G> {
             clock,
             group,
             log,
+            meter: None,
         }
+    }
+
+    /// The same rig with `meter` watching the command each round.
+    #[must_use]
+    pub fn with_meter(mut self, meter: &'a mut dyn Meter) -> Self {
+        self.meter = Some(meter);
+        self
     }
 }
 
@@ -163,6 +199,9 @@ where
     fn step(&mut self) -> io::Result<Option<u8>> {
         if let Some(status) = self.rig.group.try_wait()? {
             self.release();
+            if let Some(meter) = self.rig.meter.as_mut() {
+                meter.finish();
+            }
             return Ok(Some(status_code(status)));
         }
         match self.rig.group.wait(self.left())? {
@@ -188,6 +227,10 @@ where
         let now = self.rig.clock.now();
         self.last = Some(now);
         let overall = self.rig.judge.judge(now);
+        let leader = self.rig.group.leader();
+        if let Some(meter) = self.rig.meter.as_mut() {
+            meter.sample(leader, now);
+        }
         match govern_step(self.stopped, overall) {
             Some(GroupAction::Stop) => self.send(GroupSignal::Stop),
             Some(GroupAction::Continue) => self.send(GroupSignal::Cont),

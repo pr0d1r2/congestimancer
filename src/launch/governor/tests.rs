@@ -4,7 +4,7 @@ use std::os::unix::process::ExitStatusExt as _;
 use std::process::ExitStatus;
 use std::time::{Duration, Instant};
 
-use super::{GovernRig, Group, Judge, LocalGates, govern};
+use super::{GovernRig, Group, Judge, LocalGates, Meter, Unjudged, govern};
 use crate::gate::{Gate, Gates, Overall};
 use crate::signal::{FakeSource, ManualClock, Measure, Reading, SignalId};
 use crate::sys::{ForwardSignal, GroupSignal, Wake};
@@ -188,4 +188,70 @@ fn local_gates_judge_each_round_from_the_source() {
     assert_eq!(judge.judge(now), Overall::Pass);
     drop(judge);
     assert_eq!(source.reads(SignalId::Load), 2);
+}
+
+/// Notes every sample and the end.
+#[derive(Default)]
+struct Notes {
+    samples: Vec<Option<u32>>,
+    finished: usize,
+}
+
+impl Meter for Notes {
+    fn sample(&mut self, leader: Option<u32>, _: Instant) {
+        self.samples.push(leader);
+    }
+
+    fn finish(&mut self) {
+        self.finished = self.finished.saturating_add(1);
+    }
+}
+
+/// A group that names its leader.
+struct Led(FakeGroup);
+
+impl Group for Led {
+    fn signal(&mut self, sig: GroupSignal) -> io::Result<()> {
+        self.0.signal(sig)
+    }
+
+    fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
+        self.0.try_wait()
+    }
+
+    fn wait(&mut self, d: Duration) -> io::Result<Option<Wake>> {
+        self.0.wait(d)
+    }
+
+    fn leader(&self) -> Option<u32> {
+        Some(4242)
+    }
+}
+
+#[test]
+fn a_meter_is_sampled_each_round_and_finished_when_the_command_ends() {
+    let clock = ManualClock::new();
+    let mut log = Vec::new();
+    let mut group = Led(FakeGroup::new(3, 0));
+    let mut notes = Notes::default();
+    let mut judge = Unjudged;
+    let rig = GovernRig::new(&mut judge, &clock, &mut group, &mut log)
+        .with_meter(&mut notes);
+    let code = govern(rig, INTERVAL).unwrap_or(u8::MAX);
+    assert_eq!(code, 0);
+    assert_eq!(notes.samples, vec![Some(4242); 3]);
+    assert_eq!(notes.finished, 1);
+}
+
+#[test]
+fn nobody_to_judge_never_stops_the_command() {
+    let mut group = FakeGroup::new(2, 5);
+    let (code, _) = run(&mut Unjudged, &mut group);
+    assert_eq!(code, 5);
+    assert!(group.sent.is_empty(), "{:?}", group.sent);
+}
+
+#[test]
+fn a_group_names_no_leader_unless_it_knows_one() {
+    assert_eq!(FakeGroup::new(1, 0).leader(), None);
 }

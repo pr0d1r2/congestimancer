@@ -9,6 +9,8 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- Library: `Meter` and `Unjudged` let the `--govern` loop watch a command
+  each round, with or without gates to hold it to.
 - Library: `Snapshot::tree_memory` reads the resident memory of a process
   and its descendants.
 - Library: `parse_unreclaimable` reads the memory a cgroup cannot give

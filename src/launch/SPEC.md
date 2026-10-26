@@ -52,6 +52,7 @@ V6: `--or-background`: `--timeout` reached → start anyway as `--background` in
 V7: stdout|stdin|stderr untouched; cmd owns stdout (`.` §I).
 V8: `--govern`: stopped cmd keeps its slot & reservation (held fds inherited); `--timeout` applies only before start; `--host` allowed (remote checks continue each round).
 V9: slot & reservation fds handed to cmd's child only (`src/sys` `inherit_in`); cgmr's own fds stay close-on-exec ∴ ⊥ gate shell | ssh child holds slot.
+V10: `Meter` (optional, per `--govern` round): `sample(leader, now)` after the gates are judged, `finish()` once when the cmd ends. `Unjudged` = judge that always passes ∴ `--needs-mem auto` runs cmd spawned (to watch it) without gating it.
 
 ## §T TASKS
 
@@ -64,6 +65,7 @@ T5|x|`--background` both OS|V5
 T6|x|`--or-background`|V6
 T7|x|govern w/ slots, timeout & host|V8
 T8|x|hand slot over via cmd's child, not cgmr|V9
+T9|x|`Meter` & `Unjudged` in govern loop|V10
 
 ## §B BUGS
 
