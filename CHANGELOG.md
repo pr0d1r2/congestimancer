@@ -9,6 +9,9 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- Library: `learned_peak`, `learned_peaks`, `record_peak` and `reserve_for`
+  keep a memory peak per key in the lock dir, the ledger behind
+  `--needs-mem auto`.
 - `--alone-passes`: with `--slots`, the first job of a slot key starts
   without waiting on the gates; later jobs of the key wait as before.
 
