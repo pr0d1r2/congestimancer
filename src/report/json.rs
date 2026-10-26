@@ -3,7 +3,7 @@
 
 use std::io::{self, Write};
 
-use super::{StatusReport, StatusRow, switch_name};
+use super::{LearnedPeak, StatusReport, StatusRow, switch_name};
 use crate::gate::{Checked, Custom, Subject, Verdict};
 use crate::signal::{Measure, Reading};
 use crate::units::{Bytes, Count, Rate};
@@ -29,7 +29,13 @@ pub fn write_json<W: Write + ?Sized>(
     write_list(out, &report.signals, write_signal)?;
     out.write_all(b"],\"gates\":[")?;
     write_list(out, &report.gates, write_gate)?;
-    out.write_all(b"]}\n")
+    out.write_all(b"]")?;
+    if !report.learned.is_empty() {
+        out.write_all(b",\"learned\":[")?;
+        write_list(out, &report.learned, write_learned)?;
+        out.write_all(b"]")?;
+    }
+    out.write_all(b"}\n")
 }
 
 /// Writes `items` one by one, separated by commas.
@@ -67,6 +73,15 @@ fn write_signal<W: Write + ?Sized>(
         "{{\"id\":{id},\"value\":{value},\"unit\":{unit},\"trend\":{trend},\
          \"supported\":{supported},\"source\":{source}}}"
     )
+}
+
+/// One entry of `learned`.
+fn write_learned<W: Write + ?Sized>(
+    out: &mut W,
+    peak: &LearnedPeak,
+) -> io::Result<()> {
+    let key = json_string(&peak.key);
+    write!(out, "{{\"key\":{key},\"peak_bytes\":{}}}", peak.bytes.0)
 }
 
 /// One entry of `gates`.

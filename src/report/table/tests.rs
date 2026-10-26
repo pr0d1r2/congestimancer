@@ -1,5 +1,5 @@
 use super::write_status;
-use crate::report::{StatusReport, StatusRow, Style};
+use crate::report::{LearnedPeak, StatusReport, StatusRow, Style};
 use crate::signal::{Measure, Reading, SignalId, Trend};
 use crate::units::{Bytes, Decimal, Percent};
 
@@ -90,4 +90,26 @@ fn colour_paints_the_header_and_odd_values() {
     assert!(shown.contains("\u{1b}[1mSIGNAL   SOURCE  VALUE\u{1b}[0m\n"));
     assert!(shown.contains("\u{1b}[33munsupported: no GPU\u{1b}[0m\n"));
     assert!(shown.contains("\u{1b}[2mwarming up\u{1b}[0m\n"));
+}
+
+#[test]
+fn learned_peaks_follow_the_table_in_their_own_section() {
+    let mut report = StatusReport::new("box");
+    report.signals = vec![StatusRow::new(SignalId::Load, load(1_500))];
+    report
+        .learned
+        .push(LearnedPeak::new("gate", Bytes(3 << 30)));
+    report
+        .learned
+        .push(LearnedPeak::new("lint", Bytes(512 << 20)));
+    let mut out = Vec::new();
+    assert!(write_status(&mut out, &report, Style::Plain).is_ok());
+    let text = String::from_utf8(out).unwrap_or_default();
+    let tail = text.split("\n\n").nth(1).unwrap_or_default();
+    assert_eq!(tail, "learned memory peaks\ngate  3GiB\nlint  512MiB\n");
+}
+
+#[test]
+fn no_learned_peaks_adds_nothing() {
+    assert_eq!(table(Vec::new(), Style::Plain), "host box\n");
 }

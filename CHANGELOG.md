@@ -9,6 +9,9 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- Library: `StatusReport` carries the learned memory peaks (`LearnedPeak`);
+  the status table lists them and `status --json` adds a `learned` list
+  when there are some.
 - Library: `Meter` and `Unjudged` let the `--govern` loop watch a command
   each round, with or without gates to hold it to.
 - Library: `Snapshot::tree_memory` reads the resident memory of a process
