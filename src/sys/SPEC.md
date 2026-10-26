@@ -100,6 +100,7 @@ T23|x|`Blocked::unblock_in(&mut Command)`: child starts w/ mask from before bloc
 T24|x|`inherit_in(&mut Command, &File)`: clear `FD_CLOEXEC` in that child only (`pre_exec` `fcntl`); own fd stays close-on-exec ∵ `src/launch:V9`|V1,V2
 T25|x|NVML `Library` only from non-null `dlopen` handle (B2)|V8
 T26|x|NVML fallback to NixOS `/run/opengl-driver/lib`|V9
+T27|x|`Snapshot::tree_memory(pid)`: process + descendants (threads skipped), resident bytes|V5
 
 ## §B BUGS
 

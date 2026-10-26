@@ -133,6 +133,74 @@ impl Snapshot {
             })
             .collect()
     }
+
+    /// The process `root` and everything below it, with the resident
+    /// memory they hold together; empty and zero when `root` is gone.
+    /// Reads every process's memory, so ask sparingly.
+    pub fn tree_memory(&mut self, root: u32) -> TreeMemory {
+        let kind = ProcessRefreshKind::nothing().with_memory();
+        self.system.refresh_processes_specifics(
+            ProcessesToUpdate::All,
+            true,
+            kind,
+        );
+        tree_of(&self.resident(), root)
+    }
+
+    /// Every process, not its threads, as (pid, parent, resident bytes),
+    /// as of the last refresh.
+    fn resident(&self) -> Vec<Resident> {
+        let processes = self.system.processes().values();
+        processes
+            .filter(|p| p.thread_kind().is_none())
+            .map(|p| {
+                let parent = p.parent().map(Pid::as_u32);
+                (p.pid().as_u32(), parent, p.memory())
+            })
+            .collect()
+    }
+}
+
+/// A process as (pid, parent, resident bytes).
+type Resident = (u32, Option<u32>, u64);
+
+/// A process and its descendants.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[non_exhaustive]
+pub struct TreeMemory {
+    /// Their process ids, `root` first.
+    pub pids: Vec<u32>,
+    /// The resident memory they hold together, in bytes.
+    pub rss: u64,
+}
+
+/// `root` and every process below it in `procs` (pid, parent, resident
+/// bytes), and what they hold together; nothing when `root` is absent.
+fn tree_of(procs: &[Resident], root: u32) -> TreeMemory {
+    let pids = family(procs, root);
+    let held = procs.iter().filter(|p| pids.contains(&p.0));
+    let rss = held.fold(0, |total: u64, p| total.saturating_add(p.2));
+    TreeMemory { pids, rss }
+}
+
+/// `root` and the ids of everything below it in `procs`, `root` first;
+/// none when `root` is absent.
+fn family(procs: &[Resident], root: u32) -> Vec<u32> {
+    let mut pids = Vec::new();
+    if procs.iter().any(|p| p.0 == root) {
+        pids.push(root);
+    }
+    let mut next = 0;
+    while let Some(&parent) = pids.get(next) {
+        let kids: Vec<u32> = procs
+            .iter()
+            .filter(|p| p.1 == Some(parent) && !pids.contains(&p.0))
+            .map(|p| p.0)
+            .collect();
+        pids.extend(kids);
+        next = next.saturating_add(1);
+    }
+    pids
 }
 
 #[cfg(test)]
