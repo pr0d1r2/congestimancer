@@ -9,8 +9,10 @@ use std::path::Path;
 
 use super::{Outcome, cgmr};
 
-/// A job that outlives the first sample and exits 7.
-const SLOW: [&str; 4] = ["--", "sh", "-c", "sleep 1.3; exit 7"];
+/// A job that outlives the meter's second sample (one second after the
+/// first) by a wide margin, so a loaded machine still sees it running, and
+/// exits 7.
+const SLOW: [&str; 4] = ["--", "sh", "-c", "sleep 3; exit 7"];
 
 /// `cgmr` on the fixture tree with its lock dir under `runtime`.
 fn cgmr_in(runtime: &Path) -> Result<assert_cmd::Command, Box<dyn Error>> {
