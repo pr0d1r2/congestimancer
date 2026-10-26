@@ -50,6 +50,7 @@ V3: in cgroup: `--load` warns (stderr) & suggests `--cpu-pressure` ∵ host load
 V4: `--cpu-throttle X` ⇔ throttled share of last interval (`cpu.stat` `throttled_usec` delta / interval) < X.
 V5: cgroup v1 → `Unsupported`.
 V6: `status` shows cgroup & host values side by side.
+V7: unreclaimable memory = `memory.stat` `anon` + `shmem` + `kernel`; ⊥ `file` (page cache) ∵ `memory.peak` counts it ∴ makes readers look big. `kernel` absent before Linux 5.18 → skip.
 
 ## §T TASKS
 
@@ -61,6 +62,7 @@ T4|x|pressure source override ∀ PSI gates|V2
 T5|x|`--load` warning in cgroup|V3
 T6|x|`--cgroup` modes|V1
 T7|x|status dual values|V6
+T8|x|`memory.stat` unreclaimable parser|V7
 
 ## §B BUGS
 

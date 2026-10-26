@@ -76,7 +76,7 @@ pub use cgroup::{
     CGROUP_SIGNALS, Cgroup, CgroupError, CgroupMode, CgroupSignal, CpuMax,
     CpuStat, Dual, Scope, Scoped, Throttling, load_warning, memory_available,
     parse_cgroup_mode, parse_cpu_max, parse_cpu_stat, parse_memory_current,
-    parse_memory_max, parse_proc_cgroup,
+    parse_memory_max, parse_proc_cgroup, parse_unreclaimable,
 };
 
 pub use cli::{SWITCHES, SwitchSpec, cgmr, env_name};

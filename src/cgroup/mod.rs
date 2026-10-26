@@ -25,5 +25,5 @@ pub use membership::{Cgroup, parse_proc_cgroup};
 pub use overlay::{CGROUP_SIGNALS, Scoped};
 pub use scope::{CgroupMode, Scope, parse_cgroup_mode};
 pub use signal::CgroupSignal;
-pub use stat::{CpuStat, Throttling, parse_cpu_stat};
+pub use stat::{CpuStat, Throttling, parse_cpu_stat, parse_unreclaimable};
 pub use warn::load_warning;

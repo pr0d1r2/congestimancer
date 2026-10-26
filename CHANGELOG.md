@@ -9,6 +9,8 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- Library: `parse_unreclaimable` reads the memory a cgroup cannot give
+  back (`anon`, `shmem`, `kernel`; not page cache) from `memory.stat`.
 - Library: `learned_peak`, `learned_peaks`, `record_peak` and `reserve_for`
   keep a memory peak per key in the lock dir, the ledger behind
   `--needs-mem auto`.
