@@ -142,6 +142,9 @@ fn sigint_and_sigterm_while_waiting_keep_the_default_disposition() -> Outcome {
 #[path = "cli/alone.rs"]
 mod alone;
 
+#[path = "cli/learn.rs"]
+mod learn;
+
 #[path = "cli/parity.rs"]
 mod parity;
 

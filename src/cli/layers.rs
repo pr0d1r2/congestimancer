@@ -76,6 +76,14 @@ impl Resolved {
         parse(text).map(Some).map_err(|e| entry.fault(name, &e))
     }
 
+    /// Replaces the value of switch `name` with `text`, keeping its layer;
+    /// nothing when the switch is not set.
+    pub(crate) fn set(&mut self, name: &str, text: &str) {
+        if let Some(entry) = self.0.get_mut(name) {
+            entry.values = vec![text.to_owned()];
+        }
+    }
+
     /// Checks every value against its switch's parser (src/cli:V10).
     ///
     /// # Errors

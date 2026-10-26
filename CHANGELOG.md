@@ -9,6 +9,13 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- `--needs-mem auto[:SIZE]` with `--mem-key K`: cgmr watches the command's
+  memory while it runs (on Linux the unreclaimable memory of its own
+  cgroup, else the resident memory of its process tree), keeps the peak
+  for the key, and reserves that peak plus a tenth the next time. A key
+  never measured reserves `SIZE` (1GiB without it). `cgmr status` lists
+  the learned keys. The command runs as cgmr's child, not exec'd, while
+  it is watched.
 - Library: `StatusReport` carries the learned memory peaks (`LearnedPeak`);
   the status table lists them and `status --json` adds a `learned` list
   when there are some.

@@ -228,9 +228,39 @@ waiting jobs do not all count the same free memory.
 | Switch | Passes when |
 | --- | --- |
 | `--needs-mem X` | available - reserved by running cgmr jobs > X |
+| `--needs-mem auto[:X]` | as above, with X the peak learned for `--mem-key` plus a tenth; X (default `1GiB`) for a key never measured |
 
 The reservation is recorded in the per-user slot directory and released when
 the command exits.
+
+### Learning what a job needs
+
+A guess at `--needs-mem` is too big (fewer jobs run than fit) or too small
+(the machine swaps). `--needs-mem auto` learns it instead:
+
+```sh
+cgmr --needs-mem auto:2GiB --mem-key gate -- make test
+```
+
+While the command runs, cgmr samples its memory and keeps the highest
+reading under the key (`--mem-key`, else `--slot-key`, else the command's
+name). The next start with that key reserves the peak plus a tenth; a key
+never measured reserves the fallback after `auto:` (`1GiB` without one).
+
+- On Linux the reading is the unreclaimable memory of the command's own
+  cgroup (`anon`, `shmem` and `kernel` in `memory.stat`; page cache is left
+  out, as `memory.peak` includes it). When the cgroup is shared with other
+  processes, or there is none (macOS), it is the resident memory of the
+  command's process tree.
+- The first sample comes after a second and they thin out to one every ten
+  seconds, so a short job is caught and a long one is not read often. A job
+  that ends before its first sample leaves no peak.
+- A run smaller than the peak kept only lowers it by a quarter, so one
+  lucky run does not make the next start under-reserve.
+- The ledger is a file per key (`+peak.KEY`) in the per-user slot
+  directory.
+- The command is run as a child of cgmr, not exec'd, so cgmr can watch it
+  and keep the peak; signals are forwarded as with `--govern`.
 
 ### Memory pressure (stall time)
 
@@ -490,6 +520,7 @@ a variable in the environment must not be able to inject a command.
 | `--fifo` | with `--slots`: waiters start in arrival order (fairness) |
 | `--rate N/D --slot-key K` | at most N starts per D for key K (token bucket) |
 | `--spacing D --slot-key K` | at least D between two starts for key K, so the next waiter sees the new load |
+| `--mem-key K` | with `--needs-mem auto`: the key whose memory peak is learned and reserved (default: the slot key) |
 | `--alone-passes` | with `--slots`: when no running job holds key K, the job starts without the gates (it still takes the slot and reserves `--needs-mem`); later jobs wait on the gates |
 | `--or-background` | when `--timeout` is reached, run anyway at background priority instead of exiting 124 |
 | `--verbose` | report which gate blocks, with current value, threshold and trend |

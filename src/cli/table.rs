@@ -17,6 +17,8 @@ pub(crate) enum Value {
     Percent,
     /// A size.
     Bytes,
+    /// `--needs-mem`: a size, `auto` or `auto:SIZE`.
+    MemNeed,
     /// A size per second.
     Rate,
     /// A duration.

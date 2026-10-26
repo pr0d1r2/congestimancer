@@ -4,23 +4,26 @@
 
 use std::ffi::OsString;
 use std::io::{self, Write};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use super::args::RunArgs;
 use super::env::Env;
 use super::exit::{Failure, slot_failure};
 use super::layers::Resolved;
+use super::learn::{Learning, apply};
+use super::meter::PeakMeter;
 use super::remote::{Remote, gate_args, wait_remote};
 use super::slots::{plan, slots};
 use super::verbs::{gates, interval, source};
 use super::world::World;
+use crate::launch::Start as Started;
 use crate::launch::{
-    Governing, Judge, LocalGates, Priority, Slots, after_wait, launch,
-    launch_governed,
+    Governing, Judge, LocalGates, Priority, Slots, Unjudged, after_wait,
+    launch, launch_governed,
 };
 use crate::remote::{Host, parse_host};
 use crate::report::block_reasons;
-use crate::signal::SystemClock;
+use crate::signal::{Root, SystemClock};
 use crate::slot::Release;
 use crate::units::parse_duration;
 use crate::wait::{Outcome, Pacing, Rig, poll};
@@ -36,9 +39,10 @@ pub(crate) fn run(
     world: &mut World<'_>,
     args: &RunArgs,
 ) -> Result<u8, Failure> {
-    let resolved = world.settle(&args.given)?;
+    let mut resolved = world.settle(&args.given)?;
+    let learning = apply(&world.env, &mut resolved, &args.cmd)?;
     let mut slots = slots(&world.env, plan(&resolved, &args.cmd)?)?;
-    let start = Start::new(world, &resolved, &args.cmd)?;
+    let start = Start::new(world, &resolved, &args.cmd, learning)?;
     if let Some(host) = resolved.parse("host", parse_host)? {
         return start.remote(world, host, &mut slots);
     }
@@ -51,6 +55,10 @@ pub(crate) fn run(
     let mut local = LocalGates::new(&mut built.gates, &mut machine);
     Ok(start.launch(Parts::of(world), outcome, &mut local))
 }
+
+/// How often `--needs-mem auto` looks at a command that nothing governs; the
+/// meter reads less often as the command runs on.
+const LEARN_INTERVAL: Duration = Duration::from_secs(1);
 
 /// How the wait is timed and the command starts.
 struct Start<'c> {
@@ -66,6 +74,10 @@ struct Start<'c> {
     gate_args: Vec<String>,
     /// The command.
     cmd: &'c [OsString],
+    /// `--needs-mem auto`: the key whose memory peak this run keeps.
+    learning: Option<Learning>,
+    /// Where the kernel's files are read from, for the peak.
+    root: Root,
 }
 
 impl<'c> Start<'c> {
@@ -74,6 +86,7 @@ impl<'c> Start<'c> {
         world: &World<'_>,
         resolved: &Resolved,
         cmd: &'c [OsString],
+        learning: Option<Learning>,
     ) -> Result<Self, Failure> {
         Ok(Self {
             pacing: pacing(world, resolved)?,
@@ -82,6 +95,8 @@ impl<'c> Start<'c> {
             verbose: resolved.on("verbose"),
             gate_args: gate_args(resolved),
             cmd,
+            learning,
+            root: world.root.clone(),
         })
     }
 
@@ -121,10 +136,35 @@ impl<'c> Start<'c> {
             Err(code) => return code,
         };
         let _ = parts.out.flush();
-        if !self.govern {
+        let mut meter = self
+            .learning
+            .clone()
+            .map(|learning| PeakMeter::new(learning, self.root.clone()));
+        if !self.govern && meter.is_none() {
             return launch(self.cmd, start, parts.vars, parts.err);
         }
-        let governing = Governing::new(judge, self.pacing.interval, parts.err);
+        self.watch(parts, judge, (start, meter.as_mut()))
+    }
+
+    /// Spawns the command and governs it with `judge` when `--govern`
+    /// asks; with only a meter to feed (learning a peak needs cgmr still
+    /// there, so no exec) nothing judges it.
+    fn watch(
+        &self,
+        parts: Parts<'_>,
+        judge: &mut dyn Judge,
+        (start, meter): (Started, Option<&mut PeakMeter>),
+    ) -> u8 {
+        let mut unjudged = Unjudged;
+        let (judge, interval) = if self.govern {
+            (judge, self.pacing.interval)
+        } else {
+            (&mut unjudged as &mut dyn Judge, LEARN_INTERVAL)
+        };
+        let mut governing = Governing::new(judge, interval, parts.err);
+        if let Some(meter) = meter {
+            governing = governing.with_meter(meter);
+        }
         launch_governed(self.cmd, start, parts.vars, governing)
     }
 }
