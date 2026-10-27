@@ -43,7 +43,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §V INVARIANTS
 
-V1: default: `exec` cmd (`CommandExt::exec`); exit code & signals pass through; exec failure → 127 (not found) | 126 (not executable).
+V1: default: `exec` cmd (`CommandExt::exec`); exit code & signals pass through; exec failure → 127 (not found) | 126 (not executable). `--govern` and `--needs-mem auto` keep cgmr as parent: death by signal n exits 128+n (V4, V10).
 V2: no cmd → exit 0 once released.
 V3: env cleanup: `Command::env_remove` ∀ `CGMR_*` except `CGMR_HELD_SLOTS` (updated w/ keys now held).
 V4: `--govern`: spawn cmd in own process group; keep evaluating gates; gates fail → SIGSTOP group; pass again → SIGCONT; forward SIGINT SIGTERM SIGHUP; exit w/ cmd's code (signal death → 128+n).
