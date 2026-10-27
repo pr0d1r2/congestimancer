@@ -1,6 +1,7 @@
 //! [`Snapshot`]: the shared `sysinfo` view of load, memory and processes,
 //! refreshed one part at a time and only on request (src/sys:T3, V5).
 
+use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
 
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
@@ -178,26 +179,36 @@ pub struct TreeMemory {
 /// bytes), and what they hold together; nothing when `root` is absent.
 fn tree_of(procs: &[Resident], root: u32) -> TreeMemory {
     let pids = family(procs, root);
-    let held = procs.iter().filter(|p| pids.contains(&p.0));
+    let family: HashSet<u32> = pids.iter().copied().collect();
+    let held = procs.iter().filter(|p| family.contains(&p.0));
     let rss = held.fold(0, |total: u64, p| total.saturating_add(p.2));
     TreeMemory { pids, rss }
+}
+
+/// The ids of each process's direct children in `procs`, by parent.
+fn children(procs: &[Resident]) -> HashMap<u32, Vec<u32>> {
+    let mut kids: HashMap<u32, Vec<u32>> = HashMap::new();
+    for &(pid, parent, _) in procs {
+        if let Some(parent) = parent {
+            kids.entry(parent).or_default().push(pid);
+        }
+    }
+    kids
 }
 
 /// `root` and the ids of everything below it in `procs`, `root` first;
 /// none when `root` is absent.
 fn family(procs: &[Resident], root: u32) -> Vec<u32> {
-    let mut pids = Vec::new();
-    if procs.iter().any(|p| p.0 == root) {
-        pids.push(root);
-    }
+    let kids = children(procs);
+    let present = procs.iter().any(|p| p.0 == root);
+    let mut pids: Vec<u32> = if present { vec![root] } else { vec![] };
+    let mut seen: HashSet<u32> = pids.iter().copied().collect();
     let mut next = 0;
     while let Some(&parent) = pids.get(next) {
-        let kids: Vec<u32> = procs
-            .iter()
-            .filter(|p| p.1 == Some(parent) && !pids.contains(&p.0))
-            .map(|p| p.0)
-            .collect();
-        pids.extend(kids);
+        let below = kids.get(&parent).into_iter().flatten();
+        let fresh: Vec<u32> =
+            below.filter(|&&k| seen.insert(k)).copied().collect();
+        pids.extend(fresh);
         next = next.saturating_add(1);
     }
     pids
