@@ -1,6 +1,10 @@
 use std::io;
+use std::path::Path;
+use std::thread::JoinHandle;
+use std::time::Duration;
 
 use super::{learned_peak, learned_peaks, record_peak, reserve_for};
+use crate::slot::file::{lock_wait, open_lock, rewrite};
 use crate::slot::scratch::Scratch;
 use crate::units::{Bytes, Name, parse_name};
 
@@ -92,5 +96,29 @@ fn a_slot_file_of_a_key_named_like_a_peak_is_no_peak() -> io::Result<()> {
     let dir = scratch.lock_dir()?;
     std::fs::write(scratch.path().join("peak.0"), "12")?;
     assert!(learned_peaks(&dir).map_err(io::Error::other)?.is_empty());
+    Ok(())
+}
+
+/// Holds `path` locked and empty, then fills it after a pause.
+fn slow_writer(path: &Path) -> io::Result<JoinHandle<io::Result<()>>> {
+    let mut file = open_lock(path)?;
+    lock_wait(&file)?;
+    rewrite(&mut file, "")?;
+    Ok(std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(200));
+        rewrite(&mut file, "4000")
+    }))
+}
+
+#[test]
+fn a_peak_is_read_only_once_its_writer_lets_go() -> io::Result<()> {
+    let scratch = Scratch::new("peaks-locked")?;
+    let dir = scratch.lock_dir()?;
+    let writer = slow_writer(&dir.path().join("+peak.gate"))?;
+    let read = learned_peak(&dir, &name("gate")?).map_err(io::Error::other)?;
+    writer
+        .join()
+        .map_err(|_| io::Error::other("writer panicked"))??;
+    assert_eq!(read, Some(Bytes(4_000)));
     Ok(())
 }

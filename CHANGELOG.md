@@ -16,7 +16,9 @@ is a development series, not for production.
   never measured reserves `SIZE` (1GiB without it). `cgmr status` lists
   the learned keys. The command runs as cgmr's child, not exec'd, while
   it is watched. Sampling the process tree takes time linear in the
-  number of processes, so a large tree does not delay the watch.
+  number of processes, so a large tree does not delay the watch. A learned
+  peak is read under the lock its writer holds, so a start never sees the
+  file half-written and falls back to `SIZE`.
 - Library: `StatusReport` carries the learned memory peaks (`LearnedPeak`);
   the status table lists them and `status --json` adds a `learned` list
   when there are some.

@@ -43,11 +43,17 @@ pub fn learned_peak(
     key: &Name,
 ) -> Result<Option<Bytes>, SlotError> {
     let path = dir.path().join(format!("{PREFIX}{key}"));
-    let text = match std::fs::read_to_string(&path) {
-        Ok(text) => text,
+    let mut file = match std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(&path)
+    {
+        Ok(file) => file,
         Err(err) if err.kind() == io::ErrorKind::NotFound => return Ok(None),
         Err(err) => return Err(SlotError::io(&path, &err)),
     };
+    lock_wait(&file).map_err(|err| SlotError::io(&path, &err))?;
+    let text = read_all(&mut file).map_err(|err| SlotError::io(&path, &err))?;
     Ok(parse(&text))
 }
 
