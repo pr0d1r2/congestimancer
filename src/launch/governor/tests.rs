@@ -4,8 +4,9 @@ use std::os::unix::process::ExitStatusExt as _;
 use std::process::ExitStatus;
 use std::time::{Duration, Instant};
 
-use super::{GovernRig, Group, Judge, LocalGates, govern};
+use super::{GovernRig, Group, Judge, LocalGates, Mates, govern};
 use crate::gate::{Gate, Gates, Overall};
+use crate::launch::GroupAction;
 use crate::signal::{FakeSource, ManualClock, Measure, Reading, SignalId};
 use crate::sys::{ForwardSignal, GroupSignal, Wake};
 use crate::units::Decimal;
@@ -188,4 +189,112 @@ fn local_gates_judge_each_round_from_the_source() {
     assert_eq!(judge.judge(now), Overall::Pass);
     drop(judge);
     assert_eq!(source.reads(SignalId::Load), 2);
+}
+
+/// A crew that does what `scripted` says, noting what it saw.
+struct FakeMates {
+    reply: Option<GroupAction>,
+    calms: Vec<Duration>,
+    resumed: usize,
+    broken: bool,
+    done: Vec<bool>,
+}
+
+impl FakeMates {
+    fn new(reply: Option<GroupAction>) -> Self {
+        Self {
+            reply,
+            calms: Vec::new(),
+            resumed: 0,
+            broken: false,
+            done: Vec::new(),
+        }
+    }
+}
+
+impl Mates for FakeMates {
+    fn round(
+        &mut self,
+        _: Overall,
+        calm: Duration,
+        act: &mut dyn FnMut(GroupAction) -> bool,
+    ) -> io::Result<()> {
+        self.calms.push(calm);
+        if self.broken {
+            return Err(io::Error::other("crew lost"));
+        }
+        if let Some(action) = self.reply {
+            self.done.push(act(action));
+        }
+        Ok(())
+    }
+
+    fn resumed(&mut self) {
+        self.resumed = self.resumed.saturating_add(1);
+    }
+}
+
+fn crewed(
+    judge: &mut dyn Judge,
+    group: &mut FakeGroup,
+    mates: &mut FakeMates,
+) -> (u8, String) {
+    let clock = ManualClock::new();
+    let mut log = Vec::new();
+    let rig = GovernRig::new(judge, &clock, group, &mut log);
+    let code = govern(rig.with_mates(mates), INTERVAL);
+    let code = code.unwrap_or_else(|e| unreachable!("govern failed: {e}"));
+    (code, String::from_utf8_lossy(&log).into_owned())
+}
+
+#[test]
+fn with_a_crew_its_turn_decides_not_the_gates_alone() {
+    let mut group = FakeGroup::new(2, 0);
+    let mut mates = FakeMates::new(None);
+    crewed(&mut Script::new(&[Overall::Fail]), &mut group, &mut mates);
+    assert!(group.sent.is_empty(), "{:?}", group.sent);
+    assert_eq!(mates.calms.len(), 2);
+}
+
+#[test]
+fn a_crew_that_says_stop_stops_the_group_and_hears_it_was_done() {
+    let mut group = FakeGroup::new(1, 0);
+    let mut mates = FakeMates::new(Some(GroupAction::Stop));
+    crewed(&mut Script::new(&[Overall::Fail]), &mut group, &mut mates);
+    assert_eq!(group.sent, vec![GroupSignal::Stop, GroupSignal::Cont]);
+    assert_eq!(mates.done, vec![true]);
+    assert_eq!(mates.resumed, 1);
+}
+
+#[test]
+fn a_refused_stop_is_reported_as_not_done() {
+    let mut group = FakeGroup::new(1, 0);
+    group.refuse = true;
+    let mut mates = FakeMates::new(Some(GroupAction::Stop));
+    crewed(&mut Script::new(&[Overall::Fail]), &mut group, &mut mates);
+    assert_eq!(mates.done, vec![false]);
+}
+
+#[test]
+fn the_calm_time_counts_passing_rounds_and_breaks_on_a_failure() {
+    let mut group = FakeGroup::new(4, 0);
+    let mut mates = FakeMates::new(None);
+    let script = [Overall::Pass, Overall::Pass, Overall::Fail, Overall::Pass];
+    crewed(&mut Script::new(&script), &mut group, &mut mates);
+    let two = INTERVAL * 2;
+    assert_eq!(mates.calms.len(), 4);
+    // ManualClock stands still, so a streak reads zero but never carries
+    // over a failure.
+    assert!(mates.calms.iter().all(|c| *c <= two), "{:?}", mates.calms);
+}
+
+#[test]
+fn a_crew_that_cannot_be_read_is_logged_and_the_loop_goes_on() {
+    let mut group = FakeGroup::new(2, 4);
+    let mut mates = FakeMates::new(None);
+    mates.broken = true;
+    let (code, log) =
+        crewed(&mut Script::new(&[Overall::Fail]), &mut group, &mut mates);
+    assert_eq!(code, 4);
+    assert!(log.contains("crew lost"), "{log}");
 }
