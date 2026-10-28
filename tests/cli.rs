@@ -142,6 +142,10 @@ fn sigint_and_sigterm_while_waiting_keep_the_default_disposition() -> Outcome {
 #[path = "cli/alone.rs"]
 mod alone;
 
+#[path = "cli/turns.rs"]
+#[cfg(target_os = "linux")]
+mod turns;
+
 #[path = "cli/parity.rs"]
 mod parity;
 

@@ -176,6 +176,11 @@ const CASES: &[Case] = &[
     ("or-background", &["--or-background"], Run),
     ("verbose", &["--verbose"], Run),
     ("govern", &["--govern"], Run),
+    (
+        "govern-keep",
+        &["--govern", "--govern-keep", "2", "--slot-key", "parity"],
+        Run,
+    ),
     ("background", &["--background"], Run),
 ];
 
