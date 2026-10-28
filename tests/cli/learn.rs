@@ -64,6 +64,18 @@ fn a_fixed_size_learns_nothing() -> Outcome {
 }
 
 #[test]
+fn a_run_too_short_to_sample_learns_nothing() -> Outcome {
+    let runtime = tempfile::tempdir()?;
+    let run = cgmr_in(runtime.path())?
+        .args(["--needs-mem", "auto:1KB", "--mem-key", "short"])
+        .args(["--", "true"])
+        .assert();
+    run.code(0);
+    assert_eq!(kept(runtime.path(), "short"), None);
+    Ok(())
+}
+
+#[test]
 fn a_bad_fallback_is_a_usage_error() -> Outcome {
     let runtime = tempfile::tempdir()?;
     let run = cgmr_in(runtime.path())?
