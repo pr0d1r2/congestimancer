@@ -56,8 +56,20 @@ fn cgroup_memory(root: &Root, leader: u32, pids: &[u32]) -> Option<u64> {
     if !exclusive(&procs, pids) {
         return None;
     }
+    let tree = read_text(root, &cgroup.file("cgroup.stat")).ok()?;
+    if !childless(&tree) {
+        return None;
+    }
     let stat = read_text(root, &cgroup.file("memory.stat")).ok()?;
     parse_unreclaimable(&stat).ok().map(|b| b.0)
+}
+
+/// Whether `cgroup.stat` counts no descendant cgroups, live or dying:
+/// `memory.stat` also charges their memory to the cgroup.
+fn childless(stat: &str) -> bool {
+    ["nr_descendants", "nr_dying_descendants"]
+        .iter()
+        .all(|key| stat.lines().any(|line| line == format!("{key} 0")))
 }
 
 /// Keeps the highest memory a command is seen to hold.

@@ -40,18 +40,35 @@ fn an_empty_cgroup_is_nobodys() {
     assert!(!exclusive("", &[10]));
 }
 
+/// A job cgroup of pids 10 and 11 with `descendants` child cgroups and the
+/// given `memory.stat`, under `dir`.
+fn job_cgroup(dir: &Path, descendants: u32, memory: &str) {
+    let base = "/sys/fs/cgroup/work/job";
+    put(dir, "/proc/10/cgroup", "0::/work/job\n");
+    put(dir, &format!("{base}/cgroup.procs"), "10\n11\n");
+    put(
+        dir,
+        &format!("{base}/cgroup.stat"),
+        &format!("nr_descendants {descendants}\nnr_dying_descendants 0\n"),
+    );
+    put(dir, &format!("{base}/memory.stat"), memory);
+}
+
 #[test]
 fn the_cgroup_of_the_job_gives_unreclaimable_memory_not_page_cache() {
     let dir = tree("cgroup");
-    put(&dir, "/proc/10/cgroup", "0::/work/job\n");
-    put(&dir, "/sys/fs/cgroup/work/job/cgroup.procs", "10\n11\n");
-    put(
-        &dir,
-        "/sys/fs/cgroup/work/job/memory.stat",
-        "anon 700\nfile 90000\nshmem 20\nkernel 80\n",
-    );
+    job_cgroup(&dir, 0, "anon 700\nfile 90000\nshmem 20\nkernel 80\n");
     let root = Root::new(&dir);
     assert_eq!(job_memory(&root, 10, &[10, 11], 5), 800);
+    let _ = fs::remove_dir_all(dir);
+}
+
+#[test]
+fn a_cgroup_with_descendants_falls_back_to_the_process_tree() {
+    let dir = tree("parent");
+    job_cgroup(&dir, 1, "anon 700\n");
+    let root = Root::new(&dir);
+    assert_eq!(job_memory(&root, 10, &[10, 11], 5), 5);
     let _ = fs::remove_dir_all(dir);
 }
 

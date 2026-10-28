@@ -250,8 +250,8 @@ never measured reserves the fallback after `auto:` (`1GiB` without one).
 - On Linux the reading is the unreclaimable memory of the command's own
   cgroup (`anon`, `shmem` and `kernel` in `memory.stat`; page cache is left
   out, as `memory.peak` includes it). When the cgroup is shared with other
-  processes, or there is none (macOS), it is the resident memory of the
-  command's process tree.
+  processes or has child cgroups, or there is none (macOS), it is the
+  resident memory of the command's process tree.
 - The first sample comes after a second and they thin out to one every ten
   seconds, so a short job is caught and a long one is not read often. A job
   that ends before its first sample leaves no peak.
