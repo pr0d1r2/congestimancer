@@ -9,7 +9,7 @@ is a development series, not for production.
 
 ## [Unreleased]
 
-- `--govern-keep N`: with `--govern` and `--slot-key`, governed jobs of one
+- `--govern-keep N` (new switch): with `--govern` and `--slot-key`, governed jobs of one
   slot key take turns. While gates fail, one job is stopped per interval,
   the youngest first, and never below N running (default 1); once gates have
   passed for `--settle`, one job resumes (the one stopped first), then the
