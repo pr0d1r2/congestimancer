@@ -36,6 +36,7 @@ T2|x|`tests/cli.rs` exit codes|V1,V2
 T3|x|switch parity test from switch table|V3
 T4|x|`tests/real.rs` ignored real-machine suite|V4
 T5|x|`tests/dogfood.rs`|V5
+T6|x|`--govern` jobs of a slot key take turns, through the binary|V3
 
 ## §B BUGS
 
