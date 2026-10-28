@@ -19,6 +19,7 @@
 
 mod admit;
 mod after;
+mod crewed;
 mod env;
 mod exec;
 mod govern;
@@ -31,10 +32,11 @@ mod start;
 
 pub use admit::Slots;
 pub use after::{Priority, after_wait};
+pub use crewed::{CrewRules, Crewed, wall_nanos};
 pub use env::clean_env;
 pub use exec::{exec_command, exec_failure_code};
-pub use govern::{GroupAction, govern_step, status_code};
-pub use governed::{Governing, launch_governed};
-pub use governor::{GovernRig, Group, Judge, LocalGates, govern};
+pub use govern::{GroupAction, Turn, crew_step, govern_step, status_code};
+pub use governed::{CrewPlan, Governing, launch_governed};
+pub use governor::{GovernRig, Group, Judge, LocalGates, Mates, govern};
 pub use priority::{BACKGROUND_NICE, background};
 pub use start::{Start, launch};

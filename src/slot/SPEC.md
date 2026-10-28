@@ -57,6 +57,7 @@ V9: slot checks run AFTER gates pass & settle, BEFORE jitter; full order → `sr
 V10: slot key = `src/units` `Name` (`src/units:V13`); cmd basename default sanitised to `Name` | refused ∴ ⊥ path escape from lock dir.
 V11: tests: lock free after drop only once ∀ fd copies close; concurrent spawn in test process holds copies till exec ∴ test polls (bounded) for release, ⊥ asserts instant.
 V12: `--alone-passes` + `--slots`: K has no live holder → slot steps run BEFORE the gates; else gates as usual.
+V13: crew: `--govern` jobs of K each hold flock on `+gov.K+<pid>.<n>` (text `started stopped moved`, ns since epoch; 0 = running | never moved); dead file reaped, unparsable file ignored; a round reads & writes the crew under flock `+govlock.K` ∴ one job at a time. state = files + flocks (C).
 
 ## §T TASKS
 
@@ -71,6 +72,7 @@ T7|x|nested held marker|V8
 T8|x|ordering w/ gates, settle, jitter|V9
 T9|x|slot key validation|V10
 T10|x|alone-passes|V12
+T11|x|crew files for `--govern` turns|V13
 
 ## §B BUGS
 

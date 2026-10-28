@@ -38,6 +38,11 @@ impl Scratch {
         Ok(Self { path, dir })
     }
 
+    /// The lock dir.
+    pub(super) const fn dir(&self) -> &LockDir {
+        &self.dir
+    }
+
     /// A waiter on key `make` for one slot and, when given, `needs_mem`.
     pub(super) fn waiter(&self, needs_mem: Option<u64>) -> io::Result<Waiter> {
         let key = parse_name("make").map_err(io::Error::other)?;

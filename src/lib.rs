@@ -104,10 +104,11 @@ pub use io::{
 };
 
 pub use launch::{
-    BACKGROUND_NICE, GovernRig, Governing, Group, GroupAction, Judge,
-    LocalGates, Priority, Slots, Start, after_wait, background, clean_env,
-    exec_command, exec_failure_code, govern, govern_step, launch,
-    launch_governed, status_code,
+    BACKGROUND_NICE, CrewPlan, CrewRules, Crewed, GovernRig, Governing, Group,
+    GroupAction, Judge, LocalGates, Mates, Priority, Slots, Start, Turn,
+    after_wait, background, clean_env, crew_step, exec_command,
+    exec_failure_code, govern, govern_step, launch, launch_governed,
+    status_code, wall_nanos,
 };
 
 pub use limits::{
@@ -164,11 +165,11 @@ pub use signal::{
 };
 
 pub use slot::{
-    DirFacts, HELD_SLOTS_ENV, LockDir, Release, Reservation, SLOT_ORDER,
-    SlotError, SlotGuard, SlotPlan, SlotStep, StartLimits, StartRate, Ticket,
-    Waiter, admit_start, claim_slot, is_held, live_holders, lock_dir_path,
-    mark_held, parse_start_rate, record_start, reserved_total, slot_key,
-    unsafe_reason,
+    Crew, DirFacts, HELD_SLOTS_ENV, LockDir, Member, Release, Reservation,
+    SLOT_ORDER, SlotError, SlotGuard, SlotPlan, SlotStep, StartLimits,
+    StartRate, Ticket, Waiter, admit_start, claim_slot, is_held, live_holders,
+    lock_dir_path, mark_held, parse_start_rate, record_start, reserved_total,
+    slot_key, unsafe_reason,
 };
 
 pub use sys::{
