@@ -17,6 +17,8 @@ is a development series, not for production.
   still stops and resumes on its own.
 - `--alone-passes`: with `--slots`, the first job of a slot key starts
   without waiting on the gates; later jobs of the key wait as before.
+- `--govern` with `--slot-key`: a job that resumes now marks itself under the
+  crew lock, so mates never read a half-written crew file and miscount.
 
 ## [0.1.0-rc.1] - 2026-10-17
 

@@ -66,7 +66,7 @@ impl Mates for Crewed {
     }
 
     fn resumed(&mut self) {
-        let _ = self.crew.mark(None, wall_nanos());
+        let _ = self.crew.alone(|crew| crew.mark(None, wall_nanos()));
     }
 }
 
