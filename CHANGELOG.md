@@ -9,6 +9,29 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- `--needs-mem auto[:SIZE]` with `--mem-key K`: cgmr watches the command's
+  memory while it runs (on Linux the unreclaimable memory of its own
+  cgroup when that has no child cgroups, else the resident memory of its
+  process tree), keeps the peak
+  for the key, and reserves that peak plus a tenth the next time. A key
+  never measured reserves `SIZE` (1GiB without it). `cgmr status` lists
+  the learned keys. The command runs as cgmr's child, not exec'd, while
+  it is watched. Sampling the process tree takes time linear in the
+  number of processes, so a large tree does not delay the watch. A learned
+  peak is read under the lock its writer holds, so a start never sees the
+  file half-written and falls back to `SIZE`.
+- Library: `StatusReport` carries the learned memory peaks (`LearnedPeak`);
+  the status table lists them and `status --json` adds a `learned` list
+  when there are some.
+- Library: `Meter` and `Unjudged` let the `--govern` loop watch a command
+  each round, with or without gates to hold it to.
+- Library: `Snapshot::tree_memory` reads the resident memory of a process
+  and its descendants.
+- Library: `parse_unreclaimable` reads the memory a cgroup cannot give
+  back (`anon`, `shmem`, `kernel`; not page cache) from `memory.stat`.
+- Library: `learned_peak`, `learned_peaks`, `record_peak` and `reserve_for`
+  keep a memory peak per key in the lock dir, the ledger behind
+  `--needs-mem auto`.
 - `--alone-passes`: with `--slots`, the first job of a slot key starts
   without waiting on the gates; later jobs of the key wait as before.
 

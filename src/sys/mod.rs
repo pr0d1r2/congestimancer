@@ -55,7 +55,7 @@ pub use nvml::{NvmlGpu, nvml_gpus};
 pub use power::{PowerState, hid_idle_ns, power_state};
 pub use probe::tcp_connect_time;
 pub use props::{PropValue, Props};
-pub use snapshot::{LoadAverage, Memory, ProcessInfo, Snapshot};
+pub use snapshot::{LoadAverage, Memory, ProcessInfo, Snapshot, TreeMemory};
 pub use sysctl::{SwapUsage, swap_usage, sysctl_int};
 pub use time::local_time;
 pub use users::{current_uid, user_id, user_name};

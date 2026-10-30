@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use super::{SCHEMA_VERSION, json_string, write_json};
 use crate::gate::{Checked, Custom, Gate, Subject, Threshold, Verdict};
-use crate::report::{StatusReport, StatusRow};
+use crate::report::{LearnedPeak, StatusReport, StatusRow};
 use crate::signal::{Level, Measure, Reading, SignalId, Trend};
 use crate::units::{Bytes, Celsius, ClockTime, Count, Decimal, Percent, Rate};
 
@@ -201,4 +201,16 @@ fn non_ascii_passes_through_as_utf8() {
         json_string("za\u{17c}\u{f3}\u{142}\u{107} \u{65e5}\u{672c} \u{7f}"),
         "\"za\u{17c}\u{f3}\u{142}\u{107} \u{65e5}\u{672c} \u{7f}\""
     );
+}
+
+#[test]
+fn learned_peaks_are_listed_after_the_gates_only_when_there_are_some() {
+    let mut report = StatusReport::new("h");
+    report.learned.push(LearnedPeak::new("gate", Bytes(2_048)));
+    report.learned.push(LearnedPeak::new("b\"d", Bytes(1)));
+    let want = "{\"schema_version\":1,\"host\":\"h\",\"signals\":[],\
+                \"gates\":[],\"learned\":[\
+                {\"key\":\"gate\",\"peak_bytes\":2048},\
+                {\"key\":\"b\\\"d\",\"peak_bytes\":1}]}\n";
+    assert_eq!(json(&report), want);
 }

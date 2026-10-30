@@ -206,7 +206,7 @@ const fn heading(role: Role) -> &'static str {
 /// The placeholder for `spec`'s value in `--help`.
 fn value_name(spec: &SwitchSpec) -> &'static str {
     match spec.value {
-        Value::Bytes => "SIZE",
+        Value::Bytes | Value::MemNeed => "SIZE",
         Value::Rate => "RATE",
         Value::Duration => "D",
         Value::Celsius => "TEMP",

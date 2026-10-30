@@ -90,3 +90,16 @@ fn set_above_sees_the_flag_and_the_environment() {
     assert!(!set_above(&given, &vars, "--disk"));
     assert!(!set_above(&given, &vars, "--nope"));
 }
+
+#[test]
+fn set_replaces_a_value_in_place_and_ignores_an_unset_switch() {
+    let mut resolved = Resolved::default().with(
+        "needs-mem",
+        &["auto"],
+        Layer::Env("CGMR_NEEDS_MEM".to_owned()),
+    );
+    resolved.set("needs-mem", "5B");
+    resolved.set("slots", "2");
+    assert_eq!(resolved.text("needs-mem"), Some("5B"));
+    assert_eq!(resolved.text("slots"), None);
+}

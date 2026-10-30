@@ -51,6 +51,7 @@ V4: `--verbose` names each blocking gate w/ value, threshold, trend.
 V5: unsupported signals listed in `status` w/ reason, ⊥ hidden.
 V6: numbers rendered w/ `.` decimal, locale ignored.
 V7: warnings go through one fn honouring `--quiet` (`src/cli:V12`).
+V8: `status` lists learned memory peaks (`--needs-mem auto`, `src/slot:V13`) after the table; JSON gains `learned:[{key,peak_bytes}]` only when there are some ∴ schema v1 stays.
 
 ## §T TASKS
 
@@ -61,6 +62,7 @@ T3|x|stream routing|V2
 T4|x|colour policy|V3
 T5|x|verbose reasons & heartbeat line|V4
 T6|x|warning sink w/ quiet|V7
+T7|x|learned peaks in `status` table & JSON|V8
 
 ## §B BUGS
 

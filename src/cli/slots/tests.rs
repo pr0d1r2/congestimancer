@@ -91,3 +91,23 @@ fn alone_passes_alone_makes_a_plan() {
     let planned = plan(&resolved, &cmd(&["make"])).ok().flatten();
     assert_eq!(planned.map(|p| p.alone), Some(true));
 }
+
+#[test]
+fn learned_peaks_list_by_key_and_an_unusable_dir_lists_none() {
+    use super::learned;
+    use crate::slot::record_peak;
+    use crate::units::parse_name;
+
+    let env = scratch_env("learned");
+    let dir = lock_dir(&env).ok();
+    let key = parse_name("gate").ok();
+    if let (Some(dir), Some(key)) = (dir, key) {
+        assert!(record_peak(&dir, &key, Bytes(2_048)).is_ok());
+    }
+    let listed = learned(&env);
+    let shown: Vec<_> =
+        listed.iter().map(|p| (p.key.as_str(), p.bytes.0)).collect();
+    assert_eq!(shown, [("gate", 2_048)]);
+    let broken = Env::new([(OsString::from("TMPDIR"), "/proc/nope".into())]);
+    assert!(learned(&broken).is_empty());
+}

@@ -1,6 +1,7 @@
 //! [`Snapshot`]: the shared `sysinfo` view of load, memory and processes,
 //! refreshed one part at a time and only on request (src/sys:T3, V5).
 
+use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
 
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
@@ -133,6 +134,84 @@ impl Snapshot {
             })
             .collect()
     }
+
+    /// The process `root` and everything below it, with the resident
+    /// memory they hold together; empty and zero when `root` is gone.
+    /// Reads every process's memory, so ask sparingly.
+    pub fn tree_memory(&mut self, root: u32) -> TreeMemory {
+        let kind = ProcessRefreshKind::nothing().with_memory();
+        self.system.refresh_processes_specifics(
+            ProcessesToUpdate::All,
+            true,
+            kind,
+        );
+        tree_of(&self.resident(), root)
+    }
+
+    /// Every process, not its threads, as (pid, parent, resident bytes),
+    /// as of the last refresh.
+    fn resident(&self) -> Vec<Resident> {
+        let processes = self.system.processes().values();
+        processes
+            .filter(|p| p.thread_kind().is_none())
+            .map(|p| {
+                let parent = p.parent().map(Pid::as_u32);
+                (p.pid().as_u32(), parent, p.memory())
+            })
+            .collect()
+    }
+}
+
+/// A process as (pid, parent, resident bytes).
+type Resident = (u32, Option<u32>, u64);
+
+/// A process and its descendants.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[non_exhaustive]
+pub struct TreeMemory {
+    /// Their process ids, `root` first.
+    pub pids: Vec<u32>,
+    /// The resident memory they hold together, in bytes.
+    pub rss: u64,
+}
+
+/// `root` and every process below it in `procs` (pid, parent, resident
+/// bytes), and what they hold together; nothing when `root` is absent.
+fn tree_of(procs: &[Resident], root: u32) -> TreeMemory {
+    let pids = family(procs, root);
+    let family: HashSet<u32> = pids.iter().copied().collect();
+    let held = procs.iter().filter(|p| family.contains(&p.0));
+    let rss = held.fold(0, |total: u64, p| total.saturating_add(p.2));
+    TreeMemory { pids, rss }
+}
+
+/// The ids of each process's direct children in `procs`, by parent.
+fn children(procs: &[Resident]) -> HashMap<u32, Vec<u32>> {
+    let mut kids: HashMap<u32, Vec<u32>> = HashMap::new();
+    for &(pid, parent, _) in procs {
+        if let Some(parent) = parent {
+            kids.entry(parent).or_default().push(pid);
+        }
+    }
+    kids
+}
+
+/// `root` and the ids of everything below it in `procs`, `root` first;
+/// none when `root` is absent.
+fn family(procs: &[Resident], root: u32) -> Vec<u32> {
+    let kids = children(procs);
+    let present = procs.iter().any(|p| p.0 == root);
+    let mut pids: Vec<u32> = if present { vec![root] } else { vec![] };
+    let mut seen: HashSet<u32> = pids.iter().copied().collect();
+    let mut next = 0;
+    while let Some(&parent) = pids.get(next) {
+        let below = kids.get(&parent).into_iter().flatten();
+        let fresh: Vec<u32> =
+            below.filter(|&&k| seen.insert(k)).copied().collect();
+        pids.extend(fresh);
+        next = next.saturating_add(1);
+    }
+    pids
 }
 
 #[cfg(test)]

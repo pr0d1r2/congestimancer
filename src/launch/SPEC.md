@@ -43,7 +43,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §V INVARIANTS
 
-V1: default: `exec` cmd (`CommandExt::exec`); exit code & signals pass through; exec failure → 127 (not found) | 126 (not executable).
+V1: default: `exec` cmd (`CommandExt::exec`); exit code & signals pass through; exec failure → 127 (not found) | 126 (not executable). `--govern` and `--needs-mem auto` keep cgmr as parent: death by signal n exits 128+n (V4, V10).
 V2: no cmd → exit 0 once released.
 V3: env cleanup: `Command::env_remove` ∀ `CGMR_*` except `CGMR_HELD_SLOTS` (updated w/ keys now held).
 V4: `--govern`: spawn cmd in own process group; keep evaluating gates; gates fail → SIGSTOP group; pass again → SIGCONT; forward SIGINT SIGTERM SIGHUP; exit w/ cmd's code (signal death → 128+n).
@@ -52,6 +52,7 @@ V6: `--or-background`: `--timeout` reached → start anyway as `--background` in
 V7: stdout|stdin|stderr untouched; cmd owns stdout (`.` §I).
 V8: `--govern`: stopped cmd keeps its slot & reservation (held fds inherited); `--timeout` applies only before start; `--host` allowed (remote checks continue each round).
 V9: slot & reservation fds handed to cmd's child only (`src/sys` `inherit_in`); cgmr's own fds stay close-on-exec ∴ ⊥ gate shell | ssh child holds slot.
+V10: `Meter` (optional, every governed-loop round: real judge under `--govern`, `Unjudged` under `--needs-mem auto`): `sample(leader, now)` after the gates are judged, `finish()` once when the cmd ends. `Unjudged` = judge that always passes ∴ `--needs-mem auto` runs cmd spawned (to watch it) without gating it.
 
 ## §T TASKS
 
@@ -64,6 +65,7 @@ T5|x|`--background` both OS|V5
 T6|x|`--or-background`|V6
 T7|x|govern w/ slots, timeout & host|V8
 T8|x|hand slot over via cmd's child, not cgmr|V9
+T9|x|`Meter` & `Unjudged` in govern loop|V10
 
 ## §B BUGS
 

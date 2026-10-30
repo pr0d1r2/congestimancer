@@ -21,15 +21,35 @@ pub fn write_status<W: Write + ?Sized>(
     style: Style,
 ) -> io::Result<()> {
     writeln!(out, "{} {}", style.paint("host", Paint::Bold), report.host)?;
-    if report.signals.is_empty() {
+    if !report.signals.is_empty() {
+        let rows: Vec<Cells> = report.signals.iter().map(Cells::of).collect();
+        let header = Cells::header(rows.iter().any(|r| !r.trend.is_empty()));
+        let widths = Widths::of(&header, &rows);
+        let head = widths.line(&header);
+        writeln!(out, "{}", style.paint(&head, Paint::Bold))?;
+        for row in &rows {
+            writeln!(out, "{}", widths.painted(row, style))?;
+        }
+    }
+    write_learned(out, report, style)
+}
+
+/// The learned memory peaks, one per line under a heading; nothing when
+/// there are none.
+fn write_learned<W: Write + ?Sized>(
+    out: &mut W,
+    report: &StatusReport,
+    style: Style,
+) -> io::Result<()> {
+    if report.learned.is_empty() {
         return Ok(());
     }
-    let rows: Vec<Cells> = report.signals.iter().map(Cells::of).collect();
-    let header = Cells::header(rows.iter().any(|r| !r.trend.is_empty()));
-    let widths = Widths::of(&header, &rows);
-    writeln!(out, "{}", style.paint(&widths.line(&header), Paint::Bold))?;
-    for row in &rows {
-        writeln!(out, "{}", widths.painted(row, style))?;
+    let heading = style.paint("learned memory peaks", Paint::Bold);
+    writeln!(out, "\n{heading}")?;
+    let width = report.learned.iter().map(|p| p.key.len()).max();
+    for peak in &report.learned {
+        let pad = width.unwrap_or(0);
+        writeln!(out, "{:<pad$}  {}", peak.key, peak.bytes)?;
     }
     Ok(())
 }

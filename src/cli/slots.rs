@@ -8,9 +8,10 @@ use super::env::Env;
 use super::exit::{Failure, slot_failure};
 use super::layers::Resolved;
 use crate::launch::Slots;
+use crate::report::LearnedPeak;
 use crate::slot::{
-    HELD_SLOTS_ENV, LockDir, SlotPlan, StartLimits, Waiter, lock_dir_path,
-    parse_start_rate, reserved_total, slot_key,
+    HELD_SLOTS_ENV, LockDir, SlotPlan, StartLimits, Waiter, learned_peaks,
+    lock_dir_path, parse_start_rate, reserved_total, slot_key,
 };
 use crate::sys::current_uid;
 use crate::units::{Bytes, Name, parse_bytes, parse_count, parse_duration};
@@ -42,6 +43,19 @@ pub(crate) fn reserved(env: &Env, needed: bool) -> Result<Bytes, Failure> {
         return Ok(Bytes(0));
     }
     reserved_total(&lock_dir(env)?).map_err(slot_failure)
+}
+
+/// The memory peaks learned per key, for `status`; none when the lock dir
+/// cannot be used, since a listing is no reason to fail.
+pub(crate) fn learned(env: &Env) -> Vec<LearnedPeak> {
+    let Ok(dir) = lock_dir(env) else {
+        return Vec::new();
+    };
+    learned_peaks(&dir)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|l| LearnedPeak::new(l.key, l.peak))
+        .collect()
 }
 
 /// The slot plan the switches make for `cmd`, or `None` when no slot

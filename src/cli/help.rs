@@ -44,6 +44,7 @@ Examples:
   cgmr --load 2 -- make -j8
   cgmr run --mem 2GB --timeout 10m -- cargo test
   cgmr --slots 2 --slot-key build -- nix build
+  cgmr --needs-mem auto:2GiB --mem-key test -- cargo test
   cgmr --load 1 --govern -- ./long-job.sh
   cgmr --load 2 && make
 

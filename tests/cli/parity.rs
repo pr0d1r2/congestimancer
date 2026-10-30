@@ -161,6 +161,11 @@ const CASES: &[Case] = &[
     ("heartbeat", &["--heartbeat", "1s"], Run),
     ("slots", &["--slots", "2", "--slot-key", "parity"], Run),
     ("slot-key", &["--slot-key", "parity", "--slots", "2"], Run),
+    (
+        "mem-key",
+        &["--needs-mem", "auto:1KB", "--mem-key", "parity"],
+        Gate("needs-mem"),
+    ),
     ("fifo", &["--fifo", "--slot-key", "parity"], Run),
     (
         "alone-passes",

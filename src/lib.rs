@@ -76,7 +76,7 @@ pub use cgroup::{
     CGROUP_SIGNALS, Cgroup, CgroupError, CgroupMode, CgroupSignal, CpuMax,
     CpuStat, Dual, Scope, Scoped, Throttling, load_warning, memory_available,
     parse_cgroup_mode, parse_cpu_max, parse_cpu_stat, parse_memory_current,
-    parse_memory_max, parse_proc_cgroup,
+    parse_memory_max, parse_proc_cgroup, parse_unreclaimable,
 };
 
 pub use cli::{SWITCHES, SwitchSpec, cgmr, env_name};
@@ -105,9 +105,9 @@ pub use io::{
 
 pub use launch::{
     BACKGROUND_NICE, GovernRig, Governing, Group, GroupAction, Judge,
-    LocalGates, Priority, Slots, Start, after_wait, background, clean_env,
-    exec_command, exec_failure_code, govern, govern_step, launch,
-    launch_governed, status_code,
+    LocalGates, Meter, Priority, Slots, Start, Unjudged, after_wait,
+    background, clean_env, exec_command, exec_failure_code, govern,
+    govern_step, launch, launch_governed, status_code,
 };
 
 pub use limits::{
@@ -152,9 +152,9 @@ pub use remote::{
 };
 
 pub use report::{
-    Output, Paint, SCHEMA_VERSION, StatusReport, StatusRow, Stream, Streams,
-    Style, Warnings, block_reasons, heartbeat_line, json_string, switch_name,
-    write_json, write_status, write_verbose,
+    LearnedPeak, Output, Paint, SCHEMA_VERSION, StatusReport, StatusRow,
+    Stream, Streams, Style, Warnings, block_reasons, heartbeat_line,
+    json_string, switch_name, write_json, write_status, write_verbose,
 };
 
 pub use signal::{
@@ -164,10 +164,11 @@ pub use signal::{
 };
 
 pub use slot::{
-    DirFacts, HELD_SLOTS_ENV, LockDir, Release, Reservation, SLOT_ORDER,
-    SlotError, SlotGuard, SlotPlan, SlotStep, StartLimits, StartRate, Ticket,
-    Waiter, admit_start, claim_slot, is_held, live_holders, lock_dir_path,
-    mark_held, parse_start_rate, record_start, reserved_total, slot_key,
+    DirFacts, HELD_SLOTS_ENV, Learned, LockDir, Release, Reservation,
+    SLOT_ORDER, SlotError, SlotGuard, SlotPlan, SlotStep, StartLimits,
+    StartRate, Ticket, Waiter, admit_start, claim_slot, is_held, learned_peak,
+    learned_peaks, live_holders, lock_dir_path, mark_held, parse_start_rate,
+    record_peak, record_start, reserve_for, reserved_total, slot_key,
     unsafe_reason,
 };
 
@@ -176,10 +177,10 @@ pub use sys::{
     FsStats, GpuUsage, GroupSignal, InterfaceCounters, IoPriority,
     LOW_POWER_MODE, LinkCounters, LoadAverage, Memory, MountSource, NvmlGpu,
     PowerState, ProcessInfo, PropValue, Props, PsetLoad, SYSTEM_BUS_SOCKET,
-    Snapshot, SwapUsage, THERMAL_PRESSURE, VmStats, Wake, block_devices,
-    block_forwarded, capture, cpu_ticks, current_uid, device_of, gpu_usage,
-    hid_idle_ns, inherit_in, interface_counters, io_priority, list_dir,
-    local_time, mount_source, nice, notify_state, nvml_gpus,
+    Snapshot, SwapUsage, THERMAL_PRESSURE, TreeMemory, VmStats, Wake,
+    block_devices, block_forwarded, capture, cpu_ticks, current_uid, device_of,
+    gpu_usage, hid_idle_ns, inherit_in, interface_counters, io_priority,
+    list_dir, local_time, mount_source, nice, notify_state, nvml_gpus,
     physical_disk_stats, power_state, pset_load, read_text, set_io_priority,
     set_nice, signal_group, statvfs, swap_usage, sysctl_int,
     system_bus_connect, tcp_connect_time, try_lock_exclusive, unlock, user_id,

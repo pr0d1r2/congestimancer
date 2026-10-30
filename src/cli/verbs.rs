@@ -3,13 +3,14 @@
 
 use std::time::Duration;
 
-use super::args::{AdviseArgs, Report};
+use super::args::{AdviseArgs, Given, Report};
 use super::exit::{Failure, check_code};
 use super::gates::{Built, Fit, build};
 use super::host::{HostSource, machine};
 use super::layers::Resolved;
+use super::learn::apply;
 use super::remote::{Remote, check_on, gate_args};
-use super::slots::reserved;
+use super::slots::{learned, reserved};
 use super::world::{World, wrote};
 use crate::advise::{
     AdviseRequest, advise, advise_exit_code, write_advice, write_advice_json,
@@ -73,6 +74,14 @@ pub(crate) fn gates(
     build(resolved, fit, skip)
 }
 
+/// The switches of `given` settled, `--needs-mem auto` sized by what was
+/// learned for its key (there is no command to name one here).
+fn settled(world: &mut World<'_>, given: &Given) -> Result<Resolved, Failure> {
+    let mut resolved = world.settle(given)?;
+    apply(&world.env, &mut resolved, &[])?;
+    Ok(resolved)
+}
+
 /// `check`: every gate once; 0 pass, 1 fail, 69 unsupported
 /// (src/cli:V4).
 ///
@@ -83,7 +92,7 @@ pub(crate) fn check(
     world: &mut World<'_>,
     args: &Report,
 ) -> Result<u8, Failure> {
-    let resolved = world.settle(&args.given)?;
+    let resolved = settled(world, &args.given)?;
     if let Some(host) = resolved.parse("host", parse_host)? {
         return check_host(world, &resolved, host);
     }
@@ -152,15 +161,27 @@ pub(crate) fn status(
     let interval = interval(&resolved)?;
     let read = sample_once(&mut machine, wanted, &mut SystemClock, interval);
     let cgroup = machine.scope().cgroup().is_some();
-    let mut report = StatusReport::new(world.hostname());
-    report.signals =
-        read.into_iter().map(|(id, r)| row(id, r, cgroup)).collect();
+    let report = status_report(world, read, cgroup);
     let written = if args.json {
         write_json(world.out, &report)
     } else {
         write_status(world.out, &report, world.style(world.tty.out))
     };
     wrote(written).map(|()| 0)
+}
+
+/// The `status` report of `read`, with what `--needs-mem auto` learned;
+/// `cgroup` when the cgroup answers the signals it can.
+fn status_report(
+    world: &World<'_>,
+    read: Vec<(SignalId, crate::signal::Reading)>,
+    cgroup: bool,
+) -> StatusReport {
+    let mut report = StatusReport::new(world.hostname());
+    report.signals =
+        read.into_iter().map(|(id, r)| row(id, r, cgroup)).collect();
+    report.learned = learned(&world.env);
+    report
 }
 
 /// One `status` row, its source `cgroup` when the cgroup answers it.
@@ -205,7 +226,7 @@ pub(crate) fn advise_verb(
     world: &mut World<'_>,
     args: &AdviseArgs,
 ) -> Result<u8, Failure> {
-    let resolved = world.settle(&args.report.given)?;
+    let resolved = settled(world, &args.report.given)?;
     let request = request(world, &resolved, args.jobs)?;
     let mut built = gates(world, &resolved, &["load", "needs-mem"])?;
     let mut wanted = built.signals;

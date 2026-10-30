@@ -11,6 +11,7 @@ mod file;
 mod held;
 mod key;
 mod order;
+mod peaks;
 mod reserve;
 #[cfg(test)]
 mod scratch;
@@ -23,6 +24,9 @@ pub use fifo::Ticket;
 pub use held::{HELD_SLOTS_ENV, is_held, mark_held};
 pub use key::slot_key;
 pub use order::{Release, SLOT_ORDER, SlotPlan, SlotStep, Waiter};
+pub use peaks::{
+    Learned, learned_peak, learned_peaks, record_peak, reserve_for,
+};
 pub use reserve::{Reservation, reserved_total};
 pub use slots::{SlotGuard, claim_slot, live_holders};
 pub use starts::{

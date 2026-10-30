@@ -1,8 +1,9 @@
 use std::path::Path;
 use std::time::Duration;
 
-use super::{CpuStat, Throttling, parse_cpu_stat};
+use super::{CpuStat, Throttling, parse_cpu_stat, parse_unreclaimable};
 use crate::cgroup::CgroupError;
+use crate::units::Bytes;
 
 /// The text of the job cgroup's `cpu.stat` in fixture `limited`.
 fn fixture() -> String {
@@ -54,4 +55,45 @@ fn malformed_lines_are_errors() {
             "{text:?} parsed as {parsed:?}"
         );
     }
+}
+
+#[test]
+fn unreclaimable_memory_is_anon_shmem_and_kernel() -> Result<(), CgroupError> {
+    let text = "anon 1000\nfile 99999\nkernel 300\nshmem 20\nslab 7\n";
+    assert_eq!(parse_unreclaimable(text)?, Bytes(1_320));
+    Ok(())
+}
+
+#[test]
+fn page_cache_is_not_counted() -> Result<(), CgroupError> {
+    let text = "anon 5\nfile 1000000\nfile_mapped 50\nshmem 0\nkernel 0\n";
+    assert_eq!(parse_unreclaimable(text)?, Bytes(5));
+    Ok(())
+}
+
+#[test]
+fn an_older_kernel_without_kernel_still_counts_anon_and_shmem()
+-> Result<(), CgroupError> {
+    assert_eq!(parse_unreclaimable("anon 10\nshmem 4\n")?, Bytes(14));
+    Ok(())
+}
+
+#[test]
+fn memory_stat_without_anon_is_missing_it() {
+    let err = parse_unreclaimable("file 1\nshmem 2\n").err();
+    assert_eq!(
+        err,
+        Some(CgroupError::Missing {
+            file: "memory.stat",
+            key: "anon"
+        })
+    );
+}
+
+#[test]
+fn a_memory_stat_line_that_is_no_pair_is_malformed() {
+    assert!(matches!(
+        parse_unreclaimable("anon many\n"),
+        Err(CgroupError::Malformed { .. })
+    ));
 }

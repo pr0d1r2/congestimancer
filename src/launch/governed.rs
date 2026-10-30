@@ -14,7 +14,7 @@ use std::time::Duration;
 use std::os::unix::process::CommandExt as _;
 
 use super::start::{command, prepare};
-use super::{GovernRig, Group, Judge, Start, exec_failure_code, govern};
+use super::{GovernRig, Group, Judge, Meter, Start, exec_failure_code, govern};
 use crate::signal::SystemClock;
 use crate::slot::Release;
 use crate::sys::{Blocked, GroupSignal, Wake, block_forwarded, signal_group};
@@ -29,6 +29,8 @@ pub struct Governing<'a, J: ?Sized> {
     pub interval: Duration,
     /// Stderr.
     pub log: &'a mut dyn Write,
+    /// What watches the command each round, if anything.
+    pub meter: Option<&'a mut dyn Meter>,
 }
 
 impl<'a, J: ?Sized> Governing<'a, J> {
@@ -42,7 +44,15 @@ impl<'a, J: ?Sized> Governing<'a, J> {
             judge,
             interval,
             log,
+            meter: None,
         }
+    }
+
+    /// The same governing with `meter` watching the command each round.
+    #[must_use]
+    pub fn with_meter(mut self, meter: &'a mut dyn Meter) -> Self {
+        self.meter = Some(meter);
+        self
     }
 }
 
@@ -83,8 +93,12 @@ fn run<J: Judge + ?Sized>(
         judge,
         interval,
         log,
+        mut meter,
     } = governing;
-    let rig = GovernRig::new(judge, &SystemClock, group, &mut *log);
+    let mut rig = GovernRig::new(judge, &SystemClock, group, &mut *log);
+    if let Some(meter) = meter.as_mut() {
+        rig.meter = Some(&mut **meter);
+    }
     govern(rig, interval).unwrap_or_else(|err| lost(&err, log))
 }
 
@@ -116,6 +130,10 @@ impl Spawned {
 }
 
 impl Group for Spawned {
+    fn leader(&self) -> Option<u32> {
+        Some(self.child.id())
+    }
+
     fn signal(&mut self, sig: GroupSignal) -> io::Result<()> {
         signal_group(self.child.id(), sig)
     }

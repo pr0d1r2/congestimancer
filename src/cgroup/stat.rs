@@ -4,6 +4,7 @@
 use std::time::Duration;
 
 use super::CgroupError;
+use crate::units::Bytes;
 
 /// A cgroup's `cpu.stat`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -50,14 +51,52 @@ pub fn parse_cpu_stat(text: &str) -> Result<CpuStat, CgroupError> {
     })
 }
 
-/// One `key number` line.
+/// Parses `memory.stat` into the memory a job cannot give back: `anon`,
+/// `shmem` and `kernel` (`kernel` is absent before Linux 5.18). Page
+/// cache (`file`) is left out, as `memory.peak` includes it and would
+/// make every job that reads files look big (src/cgroup:V7).
+///
+/// # Errors
+///
+/// [`CgroupError::Malformed`] for a line not `key number`;
+/// [`CgroupError::Missing`] without `anon`.
+pub fn parse_unreclaimable(text: &str) -> Result<Bytes, CgroupError> {
+    let mut anon = None;
+    let mut rest: u64 = 0;
+    for line in text.lines().filter(|l| !l.trim().is_empty()) {
+        let (key, value) = parse_line_in(line, MEMORY_STAT)?;
+        match key {
+            "anon" => anon = Some(value),
+            "shmem" | "kernel" => rest = rest.saturating_add(value),
+            _ => {}
+        }
+    }
+    let anon = anon.ok_or(CgroupError::Missing {
+        file: MEMORY_STAT,
+        key: "anon",
+    })?;
+    Ok(Bytes(anon.saturating_add(rest)))
+}
+
+/// The file [`parse_unreclaimable`] parses.
+const MEMORY_STAT: &str = "memory.stat";
+
+/// One `key number` line of `cpu.stat`.
 fn parse_line(line: &str) -> Result<(&str, u64), CgroupError> {
+    parse_line_in(line, FILE)
+}
+
+/// One `key number` line of `file`.
+fn parse_line_in<'a>(
+    line: &'a str,
+    file: &'static str,
+) -> Result<(&'a str, u64), CgroupError> {
     let mut words = line.split_whitespace();
     words
         .next()
         .zip(words.next().and_then(|n| n.parse().ok()))
         .filter(|_| words.next().is_none())
-        .ok_or_else(|| CgroupError::malformed(FILE, line))
+        .ok_or_else(|| CgroupError::malformed(file, line))
 }
 
 /// The keys of `cpu.stat` this reads, as found.

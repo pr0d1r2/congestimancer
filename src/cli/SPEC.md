@@ -58,6 +58,7 @@ V9: single-value switch given twice → usage error 64; only `--max-procs`, `--m
 V10: env formats: value switch = same text as CLI · boolean switch = `1|true|yes` on, `0|false|no` off, else 64 · repeatable switch = comma-separated items (`CGMR_MAX_PROCS="rustc*=4,cargo=2"`).
 V11: unknown `CGMR_*` var (not in switch table & not `CGMR_DOGFOOD`, `CGMR_FIXTURE_ROOT`, `CGMR_HELD_SLOTS`, `CGMR_PROFILE`, `CGMR_PROFILE_FILE`) → warning on stderr naming nearest known var; ⊥ exit.
 V12: `--quiet` suppresses warnings (⊥ errors, ⊥ `status` output); `--version` prints crate version.
+V13: `--needs-mem auto[:X]` settles before any gate reads it: key = `--mem-key` else slot key else cmd; learned → peak + 1/10, else X (default 1GiB). A key → cmd spawned & watched by `PeakMeter` (`src/launch:V10`, `src/slot:V13`); `check` & `advise` only size it.
 
 ## §T TASKS
 
@@ -72,6 +73,7 @@ T7|x|repeat rule|V9
 T8|x|env value formats|V10
 T9|x|unknown env warning w/ nearest-name hint|V11
 T10|x|`--quiet` & `--version`|V12
+T11|x|`--needs-mem auto` settle, `--mem-key`, `PeakMeter`, learned keys in `status`|V13
 
 ## §B BUGS
 

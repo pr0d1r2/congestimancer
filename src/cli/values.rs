@@ -3,6 +3,7 @@
 
 use std::fmt::Display;
 
+use super::learn::{AUTO_DEFAULT, Need, parse_need};
 use super::table::Value;
 use crate::cgroup::parse_cgroup_mode;
 use crate::cpu::parse_load_window;
@@ -13,8 +14,8 @@ use crate::remote::parse_host;
 use crate::signal::{Level, Measure};
 use crate::slot::parse_start_rate;
 use crate::units::{
-    parse_bytes, parse_celsius, parse_clock_window, parse_count, parse_decimal,
-    parse_duration, parse_name, parse_percent, parse_rate,
+    Bytes, parse_bytes, parse_celsius, parse_clock_window, parse_count,
+    parse_decimal, parse_duration, parse_name, parse_percent, parse_rate,
 };
 
 /// What `--mem-level` takes.
@@ -31,6 +32,15 @@ pub(crate) fn parse_level(s: &str) -> Result<Level, String> {
         "warning" => Ok(Level::Warning),
         _ => Err(format!("{s:?}: {LEVELS}")),
     }
+}
+
+/// What a `--needs-mem` value stands for where nothing has learned it:
+/// the size, or an `auto` fallback (one GiB without one).
+fn need_bytes(s: &str) -> Result<Bytes, String> {
+    Ok(match parse_need(s)? {
+        Need::Fixed(bytes) => bytes,
+        Need::Auto(fallback) => fallback.unwrap_or(AUTO_DEFAULT),
+    })
 }
 
 /// `Ok(())`, or the parser's error in words.
@@ -86,6 +96,7 @@ impl Value {
             Self::Decimal => to(parse_decimal(s), Measure::Number),
             Self::Percent => to(parse_percent(s), Measure::Percent),
             Self::Bytes => to(parse_bytes(s), Measure::Bytes),
+            Self::MemNeed => to(need_bytes(s), Measure::Bytes),
             Self::Rate => to(parse_rate(s), Measure::Rate),
             Self::Duration => to(parse_duration(s), Measure::Duration),
             Self::Celsius => to(parse_celsius(s), Measure::Celsius),

@@ -5,6 +5,7 @@ use std::borrow::Cow;
 
 use crate::gate::{Adjust, Checked, Custom, Gate, Subject};
 use crate::signal::{Reading, SignalId, Trend};
+use crate::units::Bytes;
 
 /// The source a row reads when the caller names none.
 const HOST: &str = "host";
@@ -50,6 +51,27 @@ impl StatusRow {
     }
 }
 
+/// A memory peak `--needs-mem auto` learned, as `status` lists it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct LearnedPeak {
+    /// The `--mem-key`.
+    pub key: String,
+    /// The peak kept for it, in bytes.
+    pub bytes: Bytes,
+}
+
+impl LearnedPeak {
+    /// The peak `bytes` kept for `key`.
+    #[must_use]
+    pub fn new(key: impl Into<String>, bytes: Bytes) -> Self {
+        Self {
+            key: key.into(),
+            bytes,
+        }
+    }
+}
+
 /// Everything one `status` or `check` run reports.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 #[non_exhaustive]
@@ -60,6 +82,9 @@ pub struct StatusReport {
     pub signals: Vec<StatusRow>,
     /// The gates judged, in order; empty for `status`.
     pub gates: Vec<Checked>,
+    /// The memory peaks learned per key (`--needs-mem auto`); listed by
+    /// `status` only when there are some.
+    pub learned: Vec<LearnedPeak>,
 }
 
 impl StatusReport {

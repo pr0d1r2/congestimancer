@@ -44,9 +44,10 @@ pub const SWITCHES: &[SwitchSpec] = &[
     above("all-mem", Value::Bytes, "available memory > X"),
     one(
         "needs-mem",
-        Value::Bytes,
+        Value::MemNeed,
         Role::Gate(Op::Above, Adj::Unreserved),
-        "available memory less cgmr reservations > X; reserves X",
+        "available memory less cgmr reservations > X; reserves X \
+         (auto[:X]: the peak learned for --mem-key, else X)",
     ),
     below(
         "mem-pressure",
@@ -243,6 +244,12 @@ pub const SWITCHES: &[SwitchSpec] = &[
         Value::Name,
         Role::Wait,
         "slot key [default: the command's name]",
+    ),
+    one(
+        "mem-key",
+        Value::Name,
+        Role::Wait,
+        "with --needs-mem auto: key of the memory peak [default: the slot key]",
     ),
     flag(
         "fifo",

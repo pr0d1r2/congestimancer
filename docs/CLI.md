@@ -56,6 +56,8 @@ cgmr man > ~/.local/share/man/man1/cgmr.1
 `check --json`, `status --json` and `advise --json` print one JSON object
 with a `schema_version` field (currently 1). Field names are stable; a
 breaking change raises the version.
+`status --json` adds a `learned` list (`key`, `peak_bytes`) once
+`--needs-mem auto` has measured a key.
 
 ## Exit codes
 
