@@ -175,3 +175,25 @@ fn alone_asks_nothing_without_the_switch_or_slots() -> io::Result<()> {
     assert!(w.try_alone(at(0)).map_err(io::Error::other)?.is_none());
     Ok(())
 }
+
+#[test]
+fn a_release_counts_the_holders_of_its_key() -> io::Result<()> {
+    let scratch = Scratch::new("order-holders")?;
+    let dir = scratch.lock_dir()?;
+    let mut plan = SlotPlan::new(key("jobs")?);
+    plan.slots = Some(Count(3));
+    let first = go(&mut waiter(&dir, &plan, None), 0)?;
+    assert_eq!(first.as_ref().map(Release::holders), Some(1));
+    let second = go(&mut waiter(&dir, &plan, None), 0)?;
+    assert_eq!(second.as_ref().map(Release::holders), Some(2));
+    Ok(())
+}
+
+#[test]
+fn a_release_without_a_slot_has_one_holder() -> io::Result<()> {
+    let scratch = Scratch::new("order-holders-none")?;
+    let plan = SlotPlan::new(key("jobs")?);
+    let release = go(&mut waiter(&scratch.lock_dir()?, &plan, None), 0)?;
+    assert_eq!(release.as_ref().map(Release::holders), Some(1));
+    Ok(())
+}

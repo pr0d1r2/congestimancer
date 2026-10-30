@@ -525,6 +525,7 @@ Notes:
 | (default) | `exec` the command; exit code and signals pass through |
 | `--govern` | keep watching after the start: stop the command (SIGSTOP to its process group) when gates fail, continue it (SIGCONT) when they pass again |
 | `--background` | lower the command's CPU and IO priority: `setpriority` plus `ioprio_set` idle class (Linux); `setpriority` plus background QoS / `setiopolicy_np` (macOS) |
+| `--export-jobs VAR` | repeatable: set VAR in the command's environment to its share of the CPUs, `max(1, CPUs / N)` with N the jobs holding the slot key (1 without `--slots`), counted when the slot is granted; for example `CARGO_BUILD_JOBS`; `CGMR_HELD_SLOTS` is never overwritten |
 
 With `--govern`, a stopped command keeps its slot and memory reservation,
 `--timeout` applies only before the start, and `--host` keeps working.

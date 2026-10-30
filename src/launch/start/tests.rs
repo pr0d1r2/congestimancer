@@ -27,7 +27,11 @@ fn child_sees(file: &File) -> io::Result<bool> {
 }
 
 fn claim(scratch: &Scratch) -> io::Result<Release> {
-    let mut slots = Slots::new(scratch.waiter(Some(1 << 20))?);
+    admitted(Slots::new(scratch.waiter(Some(1 << 20))?))
+}
+
+/// The release `slots` grants now.
+fn admitted(mut slots: Slots) -> io::Result<Release> {
     match slots.try_admit().map_err(io::Error::other)? {
         Some(Some(release)) => Ok(release),
         other => Err(io::Error::other(format!("not released: {other:?}"))),
@@ -119,4 +123,35 @@ fn the_command_gets_its_arguments_and_a_clean_environment() {
     let removed = (OsStr::new("CGMR_LOAD"), None);
     let held = (OsStr::new(HELD_SLOTS_ENV), Some(OsStr::new("make")));
     assert_eq!(envs, [held, removed]);
+}
+
+#[test]
+fn the_start_exports_the_job_share() {
+    let start = Start::new(None, false).with_jobs(vec!["J".to_owned()], 6);
+    let mut command = Command::new("true");
+    let mut log = Vec::new();
+    super::prepare(&start, &mut command, &mut log);
+    let share = command.get_envs().find(|(k, _)| *k == OsStr::new("J"));
+    assert_eq!(share.and_then(|(_, v)| v), Some(OsStr::new("6")));
+}
+
+#[test]
+fn the_start_splits_the_cpus_across_the_slot_holders() -> io::Result<()> {
+    let scratch = Scratch::new("job-share")?;
+    let _other = admitted(Slots::new(scratch.sharing(2)?))?;
+    let release = admitted(Slots::new(scratch.sharing(2)?))?;
+    let start = Start::new(Some(release), false);
+    let start = start.with_jobs(vec!["J".to_owned()], 8);
+    let mut command = Command::new("true");
+    super::prepare(&start, &mut command, &mut Vec::new());
+    let share = command.get_envs().find(|(k, _)| *k == OsStr::new("J"));
+    assert_eq!(share.and_then(|(_, v)| v), Some(OsStr::new("4")));
+    Ok(())
+}
+
+#[test]
+fn the_start_exports_nothing_unasked() {
+    let mut command = Command::new("true");
+    super::prepare(&Start::new(None, false), &mut command, &mut Vec::new());
+    assert_eq!(command.get_envs().count(), 0);
 }

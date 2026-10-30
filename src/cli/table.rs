@@ -200,6 +200,18 @@ pub(super) const fn flag(
     one(name, Value::Flag, role, help)
 }
 
+/// A switch of `role` that takes a name and may repeat.
+pub(super) const fn names(
+    name: &'static str,
+    role: Role,
+    help: &'static str,
+) -> SwitchSpec {
+    SwitchSpec {
+        repeats: true,
+        ..one(name, Value::Name, role, help)
+    }
+}
+
 /// A per-pattern process gate, which repeats.
 pub(super) const fn procs(
     name: &'static str,

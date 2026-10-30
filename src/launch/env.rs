@@ -29,5 +29,21 @@ where
     }
 }
 
+/// Sets each of `names` in `command` to this job's share of `threads`
+/// CPUs when `holders` jobs hold the slot key: `threads / holders`, at
+/// least 1 (src/launch:V10). The held-slot marker is never overwritten:
+/// a nested `cgmr` needs it to see the slot its parent holds.
+pub(super) fn export_jobs(
+    command: &mut Command,
+    names: &[String],
+    threads: u64,
+    holders: u64,
+) {
+    let share = threads.checked_div(holders).unwrap_or(threads).max(1);
+    for name in names.iter().filter(|name| *name != HELD_SLOTS_ENV) {
+        command.env(name, share.to_string());
+    }
+}
+
 #[cfg(test)]
 mod tests;

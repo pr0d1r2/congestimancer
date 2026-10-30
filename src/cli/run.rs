@@ -14,6 +14,7 @@ use super::remote::{Remote, gate_args, wait_remote};
 use super::slots::{plan, slots};
 use super::verbs::{gates, interval, source};
 use super::world::World;
+use crate::cpu::cpu_count;
 use crate::launch::{
     Governing, Judge, LocalGates, Priority, Slots, after_wait, launch,
     launch_governed,
@@ -64,6 +65,8 @@ struct Start<'c> {
     verbose: bool,
     /// The gate switches, for `--host`.
     gate_args: Vec<String>,
+    /// `--export-jobs`.
+    export_jobs: Vec<String>,
     /// The command.
     cmd: &'c [OsString],
 }
@@ -81,6 +84,7 @@ impl<'c> Start<'c> {
             govern: resolved.on("govern"),
             verbose: resolved.on("verbose"),
             gate_args: gate_args(resolved),
+            export_jobs: resolved.all("export-jobs").to_vec(),
             cmd,
         })
     }
@@ -117,7 +121,7 @@ impl<'c> Start<'c> {
     ) -> u8 {
         explain(parts.err, &outcome);
         let start = match after_wait(outcome, self.priority) {
-            Ok(start) => start,
+            Ok(start) => start.with_jobs(self.export_jobs.clone(), cpu_count()),
             Err(code) => return code,
         };
         let _ = parts.out.flush();
