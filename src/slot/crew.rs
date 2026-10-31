@@ -164,11 +164,18 @@ impl Crew {
     }
 }
 
-impl Drop for Crew {
-    fn drop(&mut self) {
+impl Crew {
+    /// Removes this job's file, so no mate reads what a failed write left.
+    pub fn leave(&self) {
         let _ = fs::remove_file(
             self.dir.join(format!("{}{}", self.prefix, self.me.name)),
         );
+    }
+}
+
+impl Drop for Crew {
+    fn drop(&mut self) {
+        self.leave();
     }
 }
 

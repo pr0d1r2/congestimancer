@@ -59,10 +59,16 @@ impl Mates for Crewed {
         let rules = self.rules;
         let now = wall_nanos();
         let calm = calm >= rules.settle;
-        self.crew
+        let done = self
+            .crew
             .alone(|crew| turn(crew, &rules, (overall, calm, now), act))
-            .and_then(|done| done)
-            .map_err(io::Error::other)
+            .and_then(|done| done);
+        if done.is_err() {
+            // A half-written file would mislead the mates; the governor
+            // goes on alone.
+            self.crew.leave();
+        }
+        done.map_err(io::Error::other)
     }
 
     fn resumed(&mut self) {
