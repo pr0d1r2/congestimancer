@@ -298,3 +298,13 @@ fn a_crew_that_cannot_be_read_is_logged_and_the_loop_goes_on() {
     assert_eq!(code, 4);
     assert!(log.contains("crew lost"), "{log}");
 }
+
+#[test]
+fn a_crew_that_failed_is_left_and_the_job_governs_alone() {
+    let mut group = FakeGroup::new(3, 0);
+    let mut mates = FakeMates::new(None);
+    mates.broken = true;
+    crewed(&mut Script::new(&[Overall::Fail]), &mut group, &mut mates);
+    assert_eq!(mates.calms.len(), 1);
+    assert_eq!(group.sent.first(), Some(&GroupSignal::Stop));
+}

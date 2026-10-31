@@ -245,8 +245,11 @@ where
         let mut act = |action| self.act(action);
         let calm = since.unwrap_or(Duration::ZERO);
         if let Err(err) = mates.round(overall, calm, &mut act) {
-            let _ =
-                writeln!(self.rig.log, "cgmr: cannot judge the crew: {err}");
+            let _ = writeln!(
+                self.rig.log,
+                "cgmr: cannot judge the crew, governing alone: {err}"
+            );
+            return;
         }
         self.rig.mates = Some(mates);
     }

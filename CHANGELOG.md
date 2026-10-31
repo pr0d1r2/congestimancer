@@ -15,6 +15,7 @@ is a development series, not for production.
   passed for `--settle`, one job resumes (the one stopped first), then the
   settle clock restarts for the next. Without `--slot-key` every governed job
   still stops and resumes on its own.
+  If a job cannot write its crew file, it leaves the crew and governs alone.
 - `--alone-passes`: with `--slots`, the first job of a slot key starts
   without waiting on the gates; later jobs of the key wait as before.
 - `--govern` with `--slot-key`: a job that resumes now marks itself under the
