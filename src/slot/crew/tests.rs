@@ -106,3 +106,19 @@ fn a_crew_file_goes_with_its_job() -> io::Result<()> {
     assert!(names.is_empty(), "{names:?}");
     Ok(())
 }
+
+#[test]
+fn a_file_that_cannot_be_removed_is_emptied_so_it_is_no_member()
+-> io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    let scratch = Scratch::new("crew-stuck")?;
+    let one = join(&scratch, "job", 10)?;
+    let live = join(&scratch, "job", 11)?;
+    let path = live.dir.join(format!("{}{}", live.prefix, live.me.name));
+    fs::set_permissions(scratch.path(), fs::Permissions::from_mode(0o555))?;
+    live.leave();
+    fs::set_permissions(scratch.path(), fs::Permissions::from_mode(0o755))?;
+    assert!(!path.exists() || fs::metadata(&path)?.len() == 0);
+    assert_eq!(count(&one)?, 1);
+    Ok(())
+}

@@ -165,11 +165,13 @@ impl Crew {
 }
 
 impl Crew {
-    /// Removes this job's file, so no mate reads what a failed write left.
+    /// Removes this job's file, so no mate reads what a failed write left;
+    /// when it cannot go, empties it, so it parses as no member.
     pub fn leave(&self) {
-        let _ = fs::remove_file(
-            self.dir.join(format!("{}{}", self.prefix, self.me.name)),
-        );
+        let path = self.dir.join(format!("{}{}", self.prefix, self.me.name));
+        if fs::remove_file(path).is_err() {
+            let _ = self.file.set_len(0);
+        }
     }
 }
 
