@@ -11,12 +11,12 @@ use super::env::Env;
 use super::exit::{Failure, slot_failure};
 use super::layers::Resolved;
 use super::remote::{Remote, gate_args, wait_remote};
-use super::slots::{plan, slots};
+use super::slots::{crew, plan, slots};
 use super::verbs::{gates, interval, source};
 use super::world::World;
 use crate::launch::{
-    Governing, Judge, LocalGates, Priority, Slots, after_wait, launch,
-    launch_governed,
+    CrewPlan, Governing, Judge, LocalGates, Priority, Slots, after_wait,
+    launch, launch_governed,
 };
 use crate::remote::{Host, parse_host};
 use crate::report::block_reasons;
@@ -60,6 +60,8 @@ struct Start<'c> {
     priority: Priority,
     /// `--govern`.
     govern: bool,
+    /// The crew of governed jobs to take turns with, from `--slot-key`.
+    crew: Option<CrewPlan>,
     /// `--verbose`.
     verbose: bool,
     /// The gate switches, for `--host`.
@@ -79,6 +81,7 @@ impl<'c> Start<'c> {
             pacing: pacing(world, resolved)?,
             priority: priority(resolved),
             govern: resolved.on("govern"),
+            crew: crew(&world.env, resolved, interval(resolved)?)?,
             verbose: resolved.on("verbose"),
             gate_args: gate_args(resolved),
             cmd,
@@ -124,7 +127,11 @@ impl<'c> Start<'c> {
         if !self.govern {
             return launch(self.cmd, start, parts.vars, parts.err);
         }
-        let governing = Governing::new(judge, self.pacing.interval, parts.err);
+        let mut governing =
+            Governing::new(judge, self.pacing.interval, parts.err);
+        if let Some(plan) = &self.crew {
+            governing = governing.with_crew(plan.clone());
+        }
         launch_governed(self.cmd, start, parts.vars, governing)
     }
 }

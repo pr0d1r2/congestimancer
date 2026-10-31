@@ -4,6 +4,7 @@
 //! lock dir, never a daemon (src/slot:C): a holder that dies drops its
 //! locks with its open files, so nothing is left to clean but names.
 
+mod crew;
 mod dir;
 mod error;
 mod fifo;
@@ -17,6 +18,7 @@ mod scratch;
 mod slots;
 mod starts;
 
+pub use crew::{Crew, Member};
 pub use dir::{DirFacts, LockDir, lock_dir_path, unsafe_reason};
 pub use error::SlotError;
 pub use fifo::Ticket;

@@ -3,11 +3,12 @@
 //! slot switches make (src/slot).
 
 use std::ffi::OsString;
+use std::time::Duration;
 
 use super::env::Env;
 use super::exit::{Failure, slot_failure};
 use super::layers::Resolved;
-use crate::launch::Slots;
+use crate::launch::{CrewPlan, CrewRules, Slots};
 use crate::slot::{
     HELD_SLOTS_ENV, LockDir, SlotPlan, StartLimits, Waiter, lock_dir_path,
     parse_start_rate, reserved_total, slot_key,
@@ -110,6 +111,47 @@ pub(crate) fn slots(
     };
     let marker = env.text(HELD_SLOTS_ENV)?;
     Ok(Slots::new(Waiter::new(lock_dir(env)?, plan, marker)))
+}
+
+/// Where `--govern` takes turns with the other governed jobs of the slot
+/// key: only with `--govern` and an explicit `--slot-key`; `--govern-keep`
+/// sets how many stay running (src/launch:V10).
+///
+/// # Errors
+///
+/// 69 for a lock dir that cannot be used; 64 for a bad value.
+pub(crate) fn crew(
+    env: &Env,
+    resolved: &Resolved,
+    interval: Duration,
+) -> Result<Option<CrewPlan>, Failure> {
+    let Some(text) =
+        resolved.text("slot-key").filter(|_| resolved.on("govern"))
+    else {
+        return Ok(None);
+    };
+    let key = slot_key(Some(text), None).map_err(slot_failure)?;
+    let rules = crew_rules(resolved, interval)?;
+    Ok(Some(CrewPlan {
+        dir: lock_dir(env)?,
+        key,
+        rules,
+    }))
+}
+
+/// `--govern-keep` (default 1) and `--settle` (default none), with the
+/// interval.
+fn crew_rules(
+    resolved: &Resolved,
+    interval: Duration,
+) -> Result<CrewRules, Failure> {
+    let keep = resolved.parse("govern-keep", parse_count)?;
+    let settle = resolved.parse("settle", parse_duration)?;
+    Ok(CrewRules {
+        interval,
+        settle: settle.unwrap_or(Duration::ZERO),
+        keep: keep.map_or(1, |c| c.0),
+    })
 }
 
 #[cfg(test)]

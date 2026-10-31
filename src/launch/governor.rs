@@ -55,6 +55,28 @@ impl<S: Source + ?Sized> Judge for LocalGates<'_, S> {
     }
 }
 
+/// The other `--govern` jobs of one slot key, which this job takes turns
+/// with (src/launch:V10).
+pub trait Mates {
+    /// One round alongside the crew: works out what `overall` and the
+    /// `calm` time the gates have passed without a break call for, and
+    /// calls `act` with that action; the crew records it only when `act`
+    /// says it was done.
+    ///
+    /// # Errors
+    ///
+    /// When the crew cannot be read or written.
+    fn round(
+        &mut self,
+        overall: Overall,
+        calm: Duration,
+        act: &mut dyn FnMut(GroupAction) -> bool,
+    ) -> io::Result<()>;
+
+    /// This job runs again without a round (a forwarded signal).
+    fn resumed(&mut self);
+}
+
 /// The command's process group, as `--govern` drives it.
 pub trait Group {
     /// Sends `sig` to every process in the group.
@@ -92,6 +114,8 @@ pub struct GovernRig<'a, J: ?Sized, C: ?Sized, G: ?Sized> {
     pub group: &'a mut G,
     /// Stderr: a line when the command pauses or resumes.
     pub log: &'a mut dyn Write,
+    /// The other governed jobs of the slot key, once there is a crew.
+    pub mates: Option<&'a mut dyn Mates>,
 }
 
 impl<'a, J: ?Sized, C: ?Sized, G: ?Sized> GovernRig<'a, J, C, G> {
@@ -107,7 +131,15 @@ impl<'a, J: ?Sized, C: ?Sized, G: ?Sized> GovernRig<'a, J, C, G> {
             clock,
             group,
             log,
+            mates: None,
         }
+    }
+
+    /// This rig, taking turns with the crew `mates`.
+    #[must_use]
+    pub fn with_mates(mut self, mates: &'a mut dyn Mates) -> Self {
+        self.mates = Some(mates);
+        self
     }
 }
 
@@ -132,6 +164,7 @@ where
         interval,
         stopped: false,
         last: None,
+        calm: None,
     };
     loop {
         if let Some(code) = run.step()? {
@@ -150,9 +183,11 @@ struct Run<'a, J: ?Sized, C: ?Sized, G: ?Sized> {
     stopped: bool,
     /// When the last round ran, if one has.
     last: Option<Instant>,
+    /// Since when the gates have passed without a break, if they do.
+    calm: Option<Instant>,
 }
 
-impl<J, C, G> Run<'_, J, C, G>
+impl<'a, J, C, G> Run<'a, J, C, G>
 where
     J: Judge + ?Sized,
     C: Clock + ?Sized,
@@ -183,16 +218,57 @@ where
         self.interval.saturating_sub(since)
     }
 
-    /// Judges the gates and stops or continues the group as they say.
+    /// Judges the gates and stops or continues the group as they say, or
+    /// as the crew's turn allows.
     fn round(&mut self) {
         let now = self.rig.clock.now();
         self.last = Some(now);
         let overall = self.rig.judge.judge(now);
-        match govern_step(self.stopped, overall) {
-            Some(GroupAction::Stop) => self.send(GroupSignal::Stop),
-            Some(GroupAction::Continue) => self.send(GroupSignal::Cont),
-            None => {}
+        self.calm = match overall {
+            Overall::Pass => self.calm.or(Some(now)),
+            _ => None,
+        };
+        match self.rig.mates.take() {
+            Some(mates) => self.crewed(mates, overall, now),
+            None => self.alone(overall),
         }
+    }
+
+    /// A round whose action `mates` decides.
+    fn crewed(
+        &mut self,
+        mates: &'a mut dyn Mates,
+        overall: Overall,
+        now: Instant,
+    ) {
+        let since = self.calm.map(|calm| now.saturating_duration_since(calm));
+        let mut act = |action| self.act(action);
+        let calm = since.unwrap_or(Duration::ZERO);
+        if let Err(err) = mates.round(overall, calm, &mut act) {
+            let _ = writeln!(
+                self.rig.log,
+                "cgmr: cannot judge the crew, governing alone: {err}"
+            );
+            return;
+        }
+        self.rig.mates = Some(mates);
+    }
+
+    /// Stops or continues the group as `overall` says, on its own.
+    fn alone(&mut self, overall: Overall) {
+        if let Some(action) = govern_step(self.stopped, overall) {
+            self.act(action);
+        }
+    }
+
+    /// Does `action`; whether the group is in the state it asks for.
+    fn act(&mut self, action: GroupAction) -> bool {
+        let (sig, stopped) = match action {
+            GroupAction::Stop => (GroupSignal::Stop, true),
+            GroupAction::Continue => (GroupSignal::Cont, false),
+        };
+        self.send(sig);
+        self.stopped == stopped
     }
 
     /// Passes `sig` on; a stopped group is continued too, or it could not
@@ -206,6 +282,9 @@ where
     fn release(&mut self) {
         if self.stopped {
             self.send(GroupSignal::Cont);
+            if let Some(mates) = self.rig.mates.as_deref_mut() {
+                mates.resumed();
+            }
         }
     }
 

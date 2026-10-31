@@ -1,6 +1,8 @@
 use std::ffi::OsString;
 
-use super::{lock_dir, plan, reserved, slots};
+use std::time::Duration;
+
+use super::{crew, lock_dir, plan, reserved, slots};
 use crate::cli::env::Env;
 use crate::cli::exit::USAGE;
 use crate::cli::layers::{Layer, Resolved};
@@ -90,4 +92,49 @@ fn alone_passes_alone_makes_a_plan() {
     let resolved = set(&[("alone-passes", &["true"]), ("slots", &["1"])]);
     let planned = plan(&resolved, &cmd(&["make"])).ok().flatten();
     assert_eq!(planned.map(|p| p.alone), Some(true));
+}
+
+const TICK: Duration = Duration::from_secs(5);
+
+#[test]
+fn govern_with_a_slot_key_takes_turns_by_the_switches() {
+    let env = scratch_env("crew");
+    let resolved = set(&[
+        ("govern", &["true"]),
+        ("slot-key", &["builds"]),
+        ("govern-keep", &["2"]),
+        ("settle", &["30s"]),
+    ]);
+    let plan = crew(&env, &resolved, TICK).ok().flatten();
+    assert_eq!(plan.as_ref().map(|p| p.key.as_str()), Some("builds"));
+    assert_eq!(plan.as_ref().map(|p| p.rules.keep), Some(2));
+    assert_eq!(plan.as_ref().map(|p| p.rules.interval), Some(TICK));
+    let settle = plan.map(|p| p.rules.settle);
+    assert_eq!(settle, Some(Duration::from_secs(30)));
+}
+
+#[test]
+fn keep_one_and_no_settle_are_the_defaults() {
+    let env = scratch_env("crew-defaults");
+    let resolved = set(&[("govern", &["true"]), ("slot-key", &["builds"])]);
+    let plan = crew(&env, &resolved, TICK).ok().flatten();
+    assert_eq!(plan.as_ref().map(|p| p.rules.keep), Some(1));
+    assert_eq!(plan.map(|p| p.rules.settle), Some(Duration::ZERO));
+}
+
+#[test]
+fn without_a_slot_key_or_govern_nobody_takes_turns() {
+    let env = scratch_env("crew-none");
+    let no_key = set(&[("govern", &["true"])]);
+    assert!(crew(&env, &no_key, TICK).ok().flatten().is_none());
+    let no_govern = set(&[("slot-key", &["builds"])]);
+    assert!(crew(&env, &no_govern, TICK).ok().flatten().is_none());
+}
+
+#[test]
+fn a_bad_slot_key_is_a_usage_error() {
+    let env = scratch_env("crew-bad");
+    let resolved = set(&[("govern", &["true"]), ("slot-key", &["a/b"])]);
+    let failure = crew(&env, &resolved, TICK).err();
+    assert_eq!(failure.map(|f| f.code), Some(USAGE));
 }

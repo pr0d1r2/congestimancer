@@ -14,10 +14,25 @@ use std::time::Duration;
 use std::os::unix::process::CommandExt as _;
 
 use super::start::{command, prepare};
-use super::{GovernRig, Group, Judge, Start, exec_failure_code, govern};
+use super::{
+    CrewRules, Crewed, GovernRig, Group, Judge, Start, exec_failure_code,
+    govern, wall_nanos,
+};
 use crate::signal::SystemClock;
-use crate::slot::Release;
+use crate::slot::{Crew, LockDir, Release};
 use crate::sys::{Blocked, GroupSignal, Wake, block_forwarded, signal_group};
+use crate::units::Name;
+
+/// Where `--govern` jobs of one slot key take turns, and by what rules.
+#[derive(Debug, Clone)]
+pub struct CrewPlan {
+    /// The lock dir their crew files live in.
+    pub dir: LockDir,
+    /// The slot key.
+    pub key: Name,
+    /// How they take turns.
+    pub rules: CrewRules,
+}
 
 /// What `--govern` judges each round, how often, and where it writes.
 #[non_exhaustive]
@@ -29,6 +44,8 @@ pub struct Governing<'a, J: ?Sized> {
     pub interval: Duration,
     /// Stderr.
     pub log: &'a mut dyn Write,
+    /// The crew of the slot key to take turns with, if there is one.
+    pub crew: Option<CrewPlan>,
 }
 
 impl<'a, J: ?Sized> Governing<'a, J> {
@@ -42,7 +59,15 @@ impl<'a, J: ?Sized> Governing<'a, J> {
             judge,
             interval,
             log,
+            crew: None,
         }
+    }
+
+    /// These, taking turns with the governed jobs of `plan`'s slot key.
+    #[must_use]
+    pub fn with_crew(mut self, plan: CrewPlan) -> Self {
+        self.crew = Some(plan);
+        self
     }
 }
 
@@ -83,9 +108,26 @@ fn run<J: Judge + ?Sized>(
         judge,
         interval,
         log,
+        crew,
     } = governing;
-    let rig = GovernRig::new(judge, &SystemClock, group, &mut *log);
+    let mut mates = crew.and_then(|plan| join(&plan, &mut *log));
+    let mut rig = GovernRig::new(judge, &SystemClock, group, &mut *log);
+    if let Some(mates) = mates.as_mut() {
+        rig = rig.with_mates(mates);
+    }
     govern(rig, interval).unwrap_or_else(|err| lost(&err, log))
+}
+
+/// This job joined to the crew `plan` says; `None`, with why on `log`,
+/// when it cannot, and the job then governs alone.
+fn join(plan: &CrewPlan, log: &mut dyn Write) -> Option<Crewed> {
+    match Crew::join(&plan.dir, &plan.key, wall_nanos()) {
+        Ok(crew) => Some(Crewed::new(crew, plan.rules)),
+        Err(err) => {
+            let _ = writeln!(log, "cgmr: governing alone: {err}");
+            None
+        }
+    }
 }
 
 /// The exit code when the command can no longer be followed: 1, with

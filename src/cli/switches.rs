@@ -281,6 +281,12 @@ pub const SWITCHES: &[SwitchSpec] = &[
         Role::Run,
         "stop the command while gates fail, continue it when they pass",
     ),
+    one(
+        "govern-keep",
+        Value::Count,
+        Role::Run,
+        "with --govern and --slot-key: keep N jobs running [default: 1]",
+    ),
     flag(
         "background",
         Role::Run,
