@@ -6,7 +6,7 @@
 
 ## §D DESCRIPTION
 
-Rust lib + CLI for Linux & macOS. Measures congestion signals (CPU, memory, disk, IO, network, limits, thermal & power, user presence, GPU, processes, cgroup v2, remote host, custom), compares each to a threshold, holds a cmd until system has room, releases waiters w/o thundering herd. Human catalogue of every method: `docs/CONGESTION.md`.
+Rust lib + CLI for Linux & macOS. Measures congestion signals (CPU, memory, disk, IO, network, limits, thermal & power, user presence, GPU, processes, cgroup v2, remote host, custom), compares each to a threshold, holds a cmd until system has room, releases waiters w/o thundering herd. Human catalogue: `docs/CONGESTION.md`.
 
 ## §F FEDERATION
 
@@ -29,12 +29,12 @@ self|.|-
 - workspace: crate `congestimancer` = lib + bin `cgmr` (V21); member `dev` (`publish = false`).
 - direct deps: `clap` (derive) → `src/cli` · `sysinfo`, `rustix`, `libc`, `objc2-io-kit`, `objc2-core-foundation` → `src/sys` (`src/sys` R1–R3; ⊥ `mach2`, `io-kit-sys`, `core-foundation`, `libloading`). ⊥ `objc2`, `objc2-foundation` (`src/sys` R4), ⊥ `zbus` (`src/presence` R1). ∀ other dep ! justified in `docs/THIRD-PARTY-NOTICES.md` & owned by ONE facade node.
 - ⊥ `humantime`: durations parsed by `src/units`. ⊥ signal-handler crate (V22).
-- `unsafe_code = "deny"` crate-wide; `#[allow(unsafe_code)]` ONLY ∈ `src/sys` (`nix:V11`). `forbid` ⊥ usable ∵ inner `allow` cannot lift `forbid`.
+- `unsafe_code = "deny"` crate-wide; `#[allow(unsafe_code)]` ONLY ∈ `src/sys` (`nix:V11`).
 - clippy: fleet deny list (`unwrap_used expect_used panic indexing_slicing todo unimplemented dbg_macro arithmetic_side_effects too_many_lines cognitive_complexity excessive_nesting fn_params_excessive_bools struct_excessive_bools undocumented_unsafe_blocks`) + rustc `unreachable_pub` (`[lints.rust]`) + fleet `clippy.toml` thresholds; `rustfmt.toml` `max_width = 80`.
 - metric math ! checked | saturating ∵ `arithmetic_side_effects`.
 - platforms: `aarch64-darwin` `x86_64-darwin` `x86_64-linux` `aarch64-linux`. ⊥ Windows, ⊥ BSD. CI & hand-verified targets → `nix`.
 - federation = `sherd`: dir = node = Rust module (dir + `mod.rs`). repo gate, tooling, release → `nix` node.
-- rules & tasks moved to `nix` keep their numbers (`nix` §G) ∴ freed numbers ⊥ reused here.
+- rules & tasks moved to `nix` keep numbers ∴ freed numbers ⊥ reused.
 
 ## §I INTERFACES
 
@@ -61,5 +61,5 @@ T15|x|parity check `docs/CONGESTION.md` ↔ node specs|V18
 ## §B BUGS
 
 id|date|cause|fix
-B1|2026-10-14|§C listed `unreachable_pub` among clippy lints; it is a rustc lint, so `[lints.clippy]` rejects it as unknown (found by `nix:T6`)|§C moves it to rustc `[lints.rust]`; ⊥ new V: the compiler already rejects the wrong table
-B2|2026-10-31|`.coverage` claimed 97.2% but the macOS gate measures 97.1% (llvm-cov differs by platform), so `coverage` failed as overstated|`.coverage` and the README badge claim 97.1%, which both platforms satisfy (claim ≤ measured, within 0.5)
+B1|2026-10-14|§C listed `unreachable_pub` as clippy lint; it is rustc, so `[lints.clippy]` rejects it (found by `nix:T6`)|§C moves it to `[lints.rust]`; ⊥ new V: compiler rejects the wrong table
+B2|2026-10-31|`.coverage` claimed 97.2%; macOS measures 97.1% (llvm-cov differs by platform) ∴ `coverage` failed as overstated|`.coverage` & README badge claim 97.1% (claim ≤ measured)
