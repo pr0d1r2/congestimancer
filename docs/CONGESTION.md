@@ -524,7 +524,7 @@ Notes:
 | --- | --- |
 | (default) | `exec` the command; exit code and signals pass through |
 | `--govern` | keep watching after the start: stop the command (SIGSTOP to its process group) when gates fail, continue it (SIGCONT) when they pass again |
-| `--govern-keep N` | with `--govern` and `--slot-key`: governed jobs of one key take turns (see below); N jobs always keep running [default: 1] |
+| `--govern-keep N` | with `--govern` and `--slot-key`: governed jobs of one key take turns (see below); no job stops if that would leave fewer than N running [default: 1] |
 | `--background` | lower the command's CPU and IO priority: `setpriority` plus `ioprio_set` idle class (Linux); `setpriority` plus background QoS / `setiopolicy_np` (macOS) |
 
 With `--govern`, a stopped command keeps its slot and memory reservation,
@@ -540,6 +540,11 @@ later. Without `--slot-key`, every governed job stops and resumes on its own,
 as before. For example, `--mem-pressure 25 --govern --slot-key builds
 --interval 5s --settle 30s` pauses one build at a time under memory
 pressure instead of all of them together.
+
+The keep counts a job alone in its key too: with the default it runs on
+through failing gates, and so does every job of `--slots 1 --slot-key K`,
+which is never more than one at a time. `--govern-keep 0` lets the last job
+stop as well.
 
 `--govern` needs cgmr to stay alive as the parent, so it spawns the command
 instead of using `exec`. cgmr then forwards SIGINT, SIGTERM and SIGHUP to the
