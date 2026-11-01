@@ -1,13 +1,17 @@
+use std::cell::Cell;
 use std::collections::VecDeque;
 use std::io;
 use std::os::unix::process::ExitStatusExt as _;
 use std::process::ExitStatus;
+use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 use super::{GovernRig, Group, Judge, LocalGates, Mates, govern};
 use crate::gate::{Gate, Gates, Overall};
 use crate::launch::GroupAction;
-use crate::signal::{FakeSource, ManualClock, Measure, Reading, SignalId};
+use crate::signal::{
+    Clock, FakeSource, ManualClock, Measure, Reading, SignalId,
+};
 use crate::sys::{ForwardSignal, GroupSignal, Wake};
 use crate::units::Decimal;
 
@@ -41,6 +45,32 @@ struct FakeGroup {
     waits: Vec<Duration>,
     sent: Vec<GroupSignal>,
     refuse: bool,
+    clock: Option<SharedClock>,
+}
+
+/// A clock several test parts move and read through one handle.
+#[derive(Clone)]
+struct SharedClock(Rc<Cell<Instant>>);
+
+impl SharedClock {
+    fn new() -> Self {
+        Self(Rc::new(Cell::new(Instant::now())))
+    }
+
+    fn advance(&self, d: Duration) {
+        let now = self.0.get();
+        self.0.set(now.checked_add(d).unwrap_or(now));
+    }
+}
+
+impl Clock for SharedClock {
+    fn now(&self) -> Instant {
+        self.0.get()
+    }
+
+    fn sleep(&mut self, d: Duration) {
+        self.advance(d);
+    }
 }
 
 impl FakeGroup {
@@ -52,6 +82,7 @@ impl FakeGroup {
             waits: Vec::new(),
             sent: Vec::new(),
             refuse: false,
+            clock: None,
         }
     }
 
@@ -77,6 +108,9 @@ impl Group for FakeGroup {
     fn wait(&mut self, d: Duration) -> io::Result<Option<Wake>> {
         assert!(self.waits.len() < 1_000, "the command never ended");
         self.waits.push(d);
+        if let Some(clock) = &self.clock {
+            clock.advance(d);
+        }
         Ok(self.wakes.pop_front().flatten())
     }
 }
@@ -239,7 +273,8 @@ fn crewed(
     group: &mut FakeGroup,
     mates: &mut FakeMates,
 ) -> (u8, String) {
-    let clock = ManualClock::new();
+    let clock = SharedClock::new();
+    group.clock = Some(clock.clone());
     let mut log = Vec::new();
     let rig = GovernRig::new(judge, &clock, group, &mut log);
     let code = govern(rig.with_mates(mates), INTERVAL);
@@ -281,11 +316,10 @@ fn the_calm_time_counts_passing_rounds_and_breaks_on_a_failure() {
     let mut mates = FakeMates::new(None);
     let script = [Overall::Pass, Overall::Pass, Overall::Fail, Overall::Pass];
     crewed(&mut Script::new(&script), &mut group, &mut mates);
-    let two = INTERVAL * 2;
-    assert_eq!(mates.calms.len(), 4);
-    // ManualClock stands still, so a streak reads zero but never carries
-    // over a failure.
-    assert!(mates.calms.iter().all(|c| *c <= two), "{:?}", mates.calms);
+    assert_eq!(
+        mates.calms,
+        vec![Duration::ZERO, INTERVAL, Duration::ZERO, Duration::ZERO],
+    );
 }
 
 #[test]
