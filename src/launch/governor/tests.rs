@@ -45,6 +45,7 @@ struct FakeGroup {
     waits: Vec<Duration>,
     sent: Vec<GroupSignal>,
     refuse: bool,
+    refuse_cont: bool,
     clock: Option<SharedClock>,
 }
 
@@ -82,6 +83,7 @@ impl FakeGroup {
             waits: Vec::new(),
             sent: Vec::new(),
             refuse: false,
+            refuse_cont: false,
             clock: None,
         }
     }
@@ -95,7 +97,7 @@ impl FakeGroup {
 impl Group for FakeGroup {
     fn signal(&mut self, sig: GroupSignal) -> io::Result<()> {
         self.sent.push(sig);
-        if self.refuse {
+        if self.refuse || (self.refuse_cont && sig == GroupSignal::Cont) {
             return Err(io::Error::other("no such group"));
         }
         Ok(())
@@ -308,6 +310,16 @@ fn a_refused_stop_is_reported_as_not_done() {
     let mut mates = FakeMates::new(Some(GroupAction::Stop));
     crewed(&mut Script::new(&[Overall::Fail]), &mut group, &mut mates);
     assert_eq!(mates.done, vec![false]);
+}
+
+#[test]
+fn a_refused_resume_is_not_told_to_the_crew() {
+    let hup = Some(Wake::Forward(ForwardSignal::Hup));
+    let mut group = FakeGroup::new(2, 0).wakes(&[None, hup]);
+    group.refuse_cont = true;
+    let mut mates = FakeMates::new(Some(GroupAction::Stop));
+    crewed(&mut Script::new(&[Overall::Fail]), &mut group, &mut mates);
+    assert_eq!(mates.resumed, 0);
 }
 
 #[test]
