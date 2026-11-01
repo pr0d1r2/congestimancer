@@ -108,6 +108,14 @@ mod crew {
     }
 
     #[test]
+    fn keep_zero_lets_a_job_alone_in_its_key_stop() {
+        let alone = [member("a", 1, None)];
+        let stop = Some(GroupAction::Stop);
+        assert_eq!(step(&alone, "a", Overall::Fail, 0), stop);
+        assert_eq!(step(&alone, "a", Overall::Fail, 1), None);
+    }
+
+    #[test]
     fn a_start_time_tie_falls_to_the_name() {
         let all = [member("a", 1, None), member("b", 1, None)];
         let stop = Some(GroupAction::Stop);

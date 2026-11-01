@@ -139,6 +139,37 @@ fn a_resume_restarts_the_settle_clock_for_the_next() -> io::Result<()> {
 }
 
 #[test]
+fn gates_calm_for_less_than_the_settle_resume_nobody() -> io::Result<()> {
+    let scratch = Scratch::new("crewed-calm")?;
+    let settle = Duration::from_millis(20);
+    let (_a, _b, mut c) = two_stopped(&scratch, settle)?;
+    std::thread::sleep(settle.saturating_mul(2));
+    let pass = Overall::Pass;
+    assert_eq!(round(&mut c, pass, settle.saturating_sub(TICK))?, None);
+    assert_eq!(round(&mut c, pass, settle)?, Some(GroupAction::Continue));
+    Ok(())
+}
+
+#[test]
+fn a_crew_stops_one_job_per_interval() -> io::Result<()> {
+    let scratch = Scratch::new("crewed-interval")?;
+    let interval = Duration::from_millis(300);
+    let spaced = CrewRules {
+        interval,
+        ..rules(1)
+    };
+    let _old = joined(&scratch, 3_000, spaced)?;
+    let mut mid = joined(&scratch, 2_000, spaced)?;
+    let mut young = joined(&scratch, 1_000, spaced)?;
+    let stop = Some(GroupAction::Stop);
+    assert_eq!(round(&mut young, Overall::Fail, NONE)?, stop);
+    assert_eq!(round(&mut mid, Overall::Fail, NONE)?, None);
+    std::thread::sleep(Duration::from_millis(350));
+    assert_eq!(round(&mut mid, Overall::Fail, NONE)?, stop);
+    Ok(())
+}
+
+#[test]
 fn a_job_that_resumed_by_signal_runs_in_the_crew() -> io::Result<()> {
     let scratch = Scratch::new("crewed-signal")?;
     let mut old = joined(&scratch, 2_000, rules(1))?;
