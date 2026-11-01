@@ -15,6 +15,9 @@ is a development series, not for production.
   passed for `--settle`, one job resumes (the one stopped first), then the
   settle clock restarts for the next. Without `--slot-key` every governed job
   still stops and resumes on its own.
+  Behaviour change: `--govern --slot-key K` used to stop every job, but the
+  default now keeps one running, so a job alone in its key (always the case
+  with `--slots 1`) never pauses. `--govern-keep 0` lets the last job stop too.
   If a job cannot write its crew file, it leaves the crew and governs alone.
   A crew file that cannot be removed is emptied, so mates never wait on it.
 - `--alone-passes`: with `--slots`, the first job of a slot key starts
