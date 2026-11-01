@@ -22,6 +22,9 @@ is a development series, not for production.
 - `--govern` with `--slot-key`: a job that resumes now marks itself under the
   crew lock, so mates never read a half-written crew file and miscount; if
   that mark cannot be written, the job leaves the crew and governs alone.
+- `--govern` with `--slot-key`: a job whose crew file is gone (it left the
+  crew, or a cleaner removed the file) now says so and governs alone; it
+  used to stop judging the gates, and a stopped command stayed stopped.
 
 ## [0.1.0-rc.1] - 2026-10-17
 

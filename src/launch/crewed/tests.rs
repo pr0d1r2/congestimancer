@@ -151,3 +151,13 @@ fn a_job_that_resumed_by_signal_runs_in_the_crew() -> io::Result<()> {
     assert_eq!(round(&mut young, fail, NONE)?, Some(GroupAction::Stop));
     Ok(())
 }
+
+#[test]
+fn a_job_that_left_the_crew_hears_so_at_its_next_round() -> io::Result<()> {
+    let scratch = Scratch::new("crewed-left")?;
+    let _old = joined(&scratch, 2_000, rules(1))?;
+    let mut young = joined(&scratch, 1_000, rules(1))?;
+    young.crew.leave();
+    assert!(round(&mut young, Overall::Fail, NONE).is_err());
+    Ok(())
+}

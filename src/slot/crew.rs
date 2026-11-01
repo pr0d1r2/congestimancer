@@ -132,7 +132,8 @@ impl Crew {
     ///
     /// # Errors
     ///
-    /// [`SlotError::Io`] when the lock dir cannot be read.
+    /// [`SlotError::Io`] when the lock dir cannot be read, or this job's
+    /// file is gone or unreadable: it no longer has a place in the crew.
     pub fn members(&self) -> Result<Vec<Member>, SlotError> {
         let io = |e: &io::Error| SlotError::io(&self.dir, e);
         let names = suffixes(&self.dir, &self.prefix).map_err(|e| io(&e))?;
@@ -143,7 +144,10 @@ impl Crew {
                 found.push(member);
             }
         }
-        Ok(found)
+        if found.iter().any(|m| m.name == self.me.name) {
+            return Ok(found);
+        }
+        Err(io(&gone()))
     }
 
     /// Writes that this job is stopped since `at`, or running again when
@@ -179,6 +183,11 @@ impl Drop for Crew {
     fn drop(&mut self) {
         self.leave();
     }
+}
+
+/// Why a job whose file went has no crew to read.
+fn gone() -> io::Error {
+    io::Error::new(io::ErrorKind::NotFound, "this job's crew file is gone")
 }
 
 /// The member at `path`, or `None` when its job is gone (the file is then

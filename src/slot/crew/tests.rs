@@ -122,3 +122,13 @@ fn a_file_that_cannot_be_removed_is_emptied_so_it_is_no_member()
     assert_eq!(count(&one)?, 1);
     Ok(())
 }
+
+#[test]
+fn a_job_whose_file_is_gone_cannot_list_its_crew() -> io::Result<()> {
+    let scratch = Scratch::new("crew-lost")?;
+    let _one = join(&scratch, "job", 10)?;
+    let live = join(&scratch, "job", 11)?;
+    live.leave();
+    assert!(live.members().is_err());
+    Ok(())
+}
