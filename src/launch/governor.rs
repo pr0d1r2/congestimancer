@@ -278,13 +278,17 @@ where
         self.release();
     }
 
-    /// Continues the group if it is stopped.
+    /// Continues the group if it is stopped; the crew hears of it only
+    /// when it happened, so a refusal stays stopped in its files too.
     fn release(&mut self) {
-        if self.stopped {
-            self.send(GroupSignal::Cont);
-            if let Some(mates) = self.rig.mates.as_deref_mut() {
-                mates.resumed();
-            }
+        if !self.stopped {
+            return;
+        }
+        self.send(GroupSignal::Cont);
+        if !self.stopped
+            && let Some(mates) = self.rig.mates.as_deref_mut()
+        {
+            mates.resumed();
         }
     }
 
