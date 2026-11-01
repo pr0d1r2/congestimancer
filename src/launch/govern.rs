@@ -35,8 +35,7 @@ pub const fn govern_step(
 /// What a job's round knows of its crew (`--govern` jobs of one slot
 /// key), all times in nanoseconds on one clock (src/launch:V10).
 #[derive(Debug, Clone, Copy)]
-#[non_exhaustive]
-pub struct Turn<'a> {
+pub(crate) struct Turn<'a> {
     /// Every live job of the key, this one included.
     pub members: &'a [Member],
     /// Which of them is this job (`Member::name`).
@@ -61,7 +60,7 @@ pub struct Turn<'a> {
 /// they have passed for the settle time, and the next only a settle time
 /// after that.
 #[must_use]
-pub fn crew_step(turn: &Turn<'_>) -> Option<GroupAction> {
+pub(crate) fn crew_step(turn: &Turn<'_>) -> Option<GroupAction> {
     let mine = turn.members.iter().find(|m| m.name == turn.me)?;
     match (turn.overall, mine.stopped) {
         (Overall::Fail, None) => stops(turn, mine),
