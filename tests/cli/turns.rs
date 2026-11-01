@@ -104,3 +104,37 @@ fn the_youngest_job_stops_alone_and_resumes_when_the_gate_passes() -> Outcome {
     assert!(paused && kept && resumed, "{paused} {kept} {resumed}");
     Ok(())
 }
+
+#[test]
+fn a_job_that_lost_its_crew_file_still_resumes() -> Outcome {
+    let dir = tempfile::tempdir()?;
+    let gate = dir.path().join("gate");
+    fs::write(&gate, "")?;
+    let old = Job::start(dir.path(), &gate, &dir.path().join("old"))?;
+    let young = Job::start(dir.path(), &gate, &dir.path().join("young"))?;
+    fs::remove_file(&gate)?;
+    let paused = soon(|| young.stopped());
+    remove_crew_files(&dir.path().join("cgmr"))?;
+    fs::write(&gate, "")?;
+    let resumed = soon(|| !young.stopped());
+    young.end();
+    old.end();
+    assert!(paused && resumed, "{paused} {resumed}");
+    Ok(())
+}
+
+/// Removes the crew files of key `turns` from `lock_dir`, as a cleaner of
+/// old files would.
+fn remove_crew_files(lock_dir: &Path) -> Outcome {
+    for entry in fs::read_dir(lock_dir)? {
+        let entry = entry?;
+        if entry
+            .file_name()
+            .to_string_lossy()
+            .starts_with("+gov.turns+")
+        {
+            fs::remove_file(entry.path())?;
+        }
+    }
+    Ok(())
+}
