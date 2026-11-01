@@ -49,7 +49,7 @@ sib|src/advise|`advise` verb: how many jobs fit now, what limits them, what to d
 V1: verb omitted → `run`.
 V2: precedence: flag > env > profile > builtin default.
 V3: `--when` ⊥ read from env.
-V4: exit: cmd's own (exec) · 0 released & no cmd · `check`: 0 pass, 1 fail · 64 usage (clap errors, `UnitError`) · 69 unsupported · 124 timeout.
+V4: exit: cmd's own (exec) · 0 released & no cmd · `check`: 0 pass, 1 fail · 64 usage (clap errors, `UnitError`) · 69 unsupported · 124 timeout · 125 `--run-timeout` (configurable).
 V5: exit-code collision (cmd itself exits 124|64|69) documented in `--help` & `docs/CLI.md`.
 V6: `--help` shows examples ∀ verb.
 V7: switch names & env names generated from one table ∴ `docs/CONGESTION.md` parity testable (`.:V18`).

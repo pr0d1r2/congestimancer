@@ -287,6 +287,18 @@ pub const SWITCHES: &[SwitchSpec] = &[
         Role::Run,
         "with --govern and --slot-key: keep N jobs running [default: 1]",
     ),
+    one(
+        "run-timeout",
+        Value::Duration,
+        Role::Run,
+        "kill the command after it ran D, stops excluded: exit 125",
+    ),
+    one(
+        "run-timeout-code",
+        Value::Count,
+        Role::Run,
+        "with --run-timeout: exit N (0-255) on overrun [default: 125]",
+    ),
     flag(
         "background",
         Role::Run,

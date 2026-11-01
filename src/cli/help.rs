@@ -29,6 +29,7 @@ Exit codes:
   64   usage error
   69   a gate is unsupported on this machine
   124  --timeout ran out
+  125  --run-timeout ran out (--run-timeout-code N changes it)
   130  SIGINT while waiting; 143 SIGTERM while waiting
   N    once the command runs, its own exit code
 

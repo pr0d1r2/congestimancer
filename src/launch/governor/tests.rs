@@ -6,7 +6,7 @@ use std::process::ExitStatus;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
-use super::{GovernRig, Group, Judge, LocalGates, Mates, govern};
+use super::{GovernRig, Group, Judge, LocalGates, Mates, RunLimit, govern};
 use crate::gate::{Gate, Gates, Overall};
 use crate::launch::GroupAction;
 use crate::signal::{
@@ -104,7 +104,9 @@ impl Group for FakeGroup {
     }
 
     fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
-        Ok((self.waits.len() >= self.exit_after).then_some(self.status))
+        let done = self.waits.len() >= self.exit_after
+            || self.sent.contains(&GroupSignal::Kill);
+        Ok(done.then_some(self.status))
     }
 
     fn wait(&mut self, d: Duration) -> io::Result<Option<Wake>> {
@@ -353,4 +355,81 @@ fn a_crew_that_failed_is_left_and_the_job_governs_alone() {
     crewed(&mut Script::new(&[Overall::Fail]), &mut group, &mut mates);
     assert_eq!(mates.calms.len(), 1);
     assert_eq!(group.sent.first(), Some(&GroupSignal::Stop));
+}
+
+/// Runs with `limit` on a shared clock that each wait moves forward.
+fn limited(
+    judge: &mut dyn Judge,
+    group: &mut FakeGroup,
+    limit: RunLimit,
+) -> (u8, String) {
+    let clock = SharedClock::new();
+    group.clock = Some(clock.clone());
+    let mut log = Vec::new();
+    let rig = GovernRig::new(judge, &clock, group, &mut log);
+    let code = govern(rig.with_limit(limit), INTERVAL);
+    let code = code.unwrap_or_else(|e| unreachable!("govern failed: {e}"));
+    (code, String::from_utf8_lossy(&log).into_owned())
+}
+
+const LIMIT: RunLimit = RunLimit {
+    budget: Duration::from_secs(5),
+    code: 125,
+};
+
+#[test]
+fn a_command_over_its_run_budget_is_killed_with_the_limit_code() {
+    let mut group = FakeGroup::new(1_000, 0);
+    let (code, log) =
+        limited(&mut Script::new(&[Overall::Pass]), &mut group, LIMIT);
+    assert_eq!(code, 125);
+    assert_eq!(group.sent, vec![GroupSignal::Kill]);
+    assert!(log.contains("--run-timeout"), "{log}");
+    // 2s, 2s, then only the 1s that is left.
+    let want = [INTERVAL, INTERVAL, Duration::from_secs(1)];
+    assert_eq!(group.waits, want);
+}
+
+#[test]
+fn a_command_that_ends_within_its_budget_keeps_its_own_code() {
+    let mut group = FakeGroup::new(2, 7);
+    let (code, _) =
+        limited(&mut Script::new(&[Overall::Pass]), &mut group, LIMIT);
+    assert_eq!(code, 7);
+    assert!(group.sent.is_empty(), "{:?}", group.sent);
+}
+
+#[test]
+fn time_stopped_by_the_gates_does_not_count_against_the_budget() {
+    // Stopped for 20s (ten waits), far over the 5s budget.
+    let rounds = [Overall::Fail; 1];
+    let mut judge = Script::new(&rounds);
+    let mut group = FakeGroup::new(10, 3);
+    let (code, _) = limited(&mut judge, &mut group, LIMIT);
+    assert_eq!(code, 3);
+    assert_eq!(group.sent, vec![GroupSignal::Stop, GroupSignal::Cont]);
+}
+
+#[test]
+fn the_budget_runs_again_once_the_command_resumes() {
+    // Runs 2s, stopped 2s (round 2 passes), runs on until 3s more are used.
+    let rounds = [Overall::Fail, Overall::Pass];
+    let mut group = FakeGroup::new(1_000, 0);
+    let (code, _) = limited(&mut Script::new(&rounds), &mut group, LIMIT);
+    assert_eq!(code, 125);
+    let want = [GroupSignal::Stop, GroupSignal::Cont, GroupSignal::Kill];
+    assert_eq!(group.sent, want);
+}
+
+#[test]
+fn a_stopped_command_is_killed_by_the_signal_not_waited_on() {
+    let mut group = FakeGroup::new(1_000, 0);
+    let limit = RunLimit {
+        budget: Duration::from_secs(1),
+        ..LIMIT
+    };
+    let (code, _) =
+        limited(&mut Script::new(&[Overall::Pass]), &mut group, limit);
+    assert_eq!(code, 125);
+    assert_eq!(group.waits, vec![Duration::from_secs(1)]);
 }

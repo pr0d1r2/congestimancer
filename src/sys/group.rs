@@ -20,6 +20,8 @@ pub enum GroupSignal {
     Term,
     /// `SIGHUP`, forwarded.
     Hup,
+    /// `SIGKILL`: end the group when `--run-timeout` runs out.
+    Kill,
 }
 
 /// Sends `sig` to every process in group `pgid`.
@@ -51,6 +53,7 @@ impl GroupSignal {
             Self::Int => Signal::INT,
             Self::Term => Signal::TERM,
             Self::Hup => Signal::HUP,
+            Self::Kill => Signal::KILL,
         }
     }
 }

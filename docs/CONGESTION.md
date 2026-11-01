@@ -525,10 +525,16 @@ Notes:
 | (default) | `exec` the command; exit code and signals pass through |
 | `--govern` | keep watching after the start: stop the command (SIGSTOP to its process group) when gates fail, continue it (SIGCONT) when they pass again |
 | `--govern-keep N` | with `--govern` and `--slot-key`: governed jobs of one key take turns (see below); no job stops if that would leave fewer than N running [default: 1] |
+| `--run-timeout D` | kill the command's whole process group once it has run D, counted from the launch and without the time `--govern` kept it stopped; cgmr exits 125 (alone it spawns the command and stays the parent, like `--govern`) |
+| `--run-timeout-code N` | with `--run-timeout`: exit N (0-255) on overrun instead of 125 |
 | `--background` | lower the command's CPU and IO priority: `setpriority` plus `ioprio_set` idle class (Linux); `setpriority` plus background QoS / `setiopolicy_np` (macOS) |
 
 With `--govern`, a stopped command keeps its slot and memory reservation,
 `--timeout` applies only before the start, and `--host` keeps working.
+
+`--run-timeout` is the budget after the start: the time spent waiting for
+gates or slots never counts, nor does time a `--govern` stop held the command.
+The overrun exit code (125 by default) differs from the 124 of `--timeout`.
 
 With `--govern` and a `--slot-key`, the governed jobs of that key take
 turns instead of each judging the gates alone (the per-key files in the lock

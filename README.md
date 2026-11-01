@@ -17,7 +17,7 @@
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
 [![gate steps 46 commit / 55 push](https://img.shields.io/badge/gate_steps-46_commit_%2F_55_push-6E4AFF)](hk.pkl)
 [![line coverage 97.1%](https://img.shields.io/badge/line_coverage-97.1%25-brightgreen)](.coverage)
-[![invariants 223](https://img.shields.io/badge/invariants-223-6E4AFF)](SPEC.md)
+[![invariants 224](https://img.shields.io/badge/invariants-224-6E4AFF)](SPEC.md)
 [![bugs logged 12](https://img.shields.io/badge/bugs_logged-12-6E4AFF)](SPEC.md)
 [![federated nodes 29](https://img.shields.io/badge/federated_nodes-29-6E4AFF)](SPEC.md)
 
@@ -189,8 +189,9 @@ spawning `cgmr`.
   process dies.
 - No scheduler. cgmr decides *when* a command starts, never which command
   runs next; FIFO order applies only among waiters that ask for it.
-- No resource enforcement. Once started, the command is not throttled or
-  killed. `--background` lowers its priority, and `--govern` pauses and
+- No resource enforcement beyond a run-time budget. Once started, the command
+  is not throttled, and only `--run-timeout` kills it;
+  `--background` lowers its priority, and `--govern` pauses and
   resumes it as the gates fail and pass.
 - No network calls of its own. Only `--rtt` (a TCP connect you name) and
   `--host` (your own `ssh`) touch the network.

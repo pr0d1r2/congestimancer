@@ -146,6 +146,9 @@ mod alone;
 #[cfg(target_os = "linux")]
 mod turns;
 
+#[path = "cli/runtime.rs"]
+mod runtime;
+
 #[path = "cli/parity.rs"]
 mod parity;
 
