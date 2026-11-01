@@ -15,8 +15,8 @@ use std::os::unix::process::CommandExt as _;
 
 use super::start::{command, prepare};
 use super::{
-    CrewRules, Crewed, GovernRig, Group, Judge, Start, exec_failure_code,
-    govern, wall_nanos,
+    CrewRules, Crewed, GovernRig, Group, Judge, RunLimit, Start,
+    exec_failure_code, govern, wall_nanos,
 };
 use crate::signal::SystemClock;
 use crate::slot::{Crew, LockDir, Release};
@@ -46,6 +46,8 @@ pub struct Governing<'a, J: ?Sized> {
     pub log: &'a mut dyn Write,
     /// The crew of the slot key to take turns with, if there is one.
     pub crew: Option<CrewPlan>,
+    /// The run-time budget (`--run-timeout`), if there is one.
+    pub limit: Option<RunLimit>,
 }
 
 impl<'a, J: ?Sized> Governing<'a, J> {
@@ -60,7 +62,15 @@ impl<'a, J: ?Sized> Governing<'a, J> {
             interval,
             log,
             crew: None,
+            limit: None,
         }
+    }
+
+    /// These, killing the command once it has run `limit` long.
+    #[must_use]
+    pub const fn with_limit(mut self, limit: RunLimit) -> Self {
+        self.limit = Some(limit);
+        self
     }
 
     /// These, taking turns with the governed jobs of `plan`'s slot key.
@@ -109,12 +119,14 @@ fn run<J: Judge + ?Sized>(
         interval,
         log,
         crew,
+        limit,
     } = governing;
     let mut mates = crew.and_then(|plan| join(&plan, &mut *log));
     let mut rig = GovernRig::new(judge, &SystemClock, group, &mut *log);
     if let Some(mates) = mates.as_mut() {
         rig = rig.with_mates(mates);
     }
+    rig.limit = limit;
     govern(rig, interval).unwrap_or_else(|err| lost(&err, log))
 }
 

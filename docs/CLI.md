@@ -82,5 +82,7 @@ usage error, an unsupported gate or a timeout. To tell them apart:
   cgmr's.
 - Or keep the gating and the work separate: `cgmr --load 2 && make`, so
   cgmr's exit code and the command's never share a process.
+- With `--run-timeout`, cgmr kills an overrunning command and exits 125
+  (or `--run-timeout-code N`), a code the command may share.
 - With `--govern`, cgmr stays the parent and still exits with the
   command's code, so the same collision applies.

@@ -102,6 +102,16 @@ pub trait Group {
     fn wait(&mut self, d: Duration) -> io::Result<Option<Wake>>;
 }
 
+/// `--run-timeout`: how long the command may run, stops excluded, and
+/// what `cgmr` exits with once it is killed for overrunning.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RunLimit {
+    /// The run time allowed.
+    pub budget: Duration,
+    /// The exit code on overrun (`--run-timeout-code`).
+    pub code: u8,
+}
+
 /// What one `--govern` run judges, reads the time from, drives and
 /// writes to.
 #[non_exhaustive]
@@ -116,6 +126,8 @@ pub struct GovernRig<'a, J: ?Sized, C: ?Sized, G: ?Sized> {
     pub log: &'a mut dyn Write,
     /// The other governed jobs of the slot key, once there is a crew.
     pub mates: Option<&'a mut dyn Mates>,
+    /// The run-time budget, if `--run-timeout` gave one.
+    pub limit: Option<RunLimit>,
 }
 
 impl<'a, J: ?Sized, C: ?Sized, G: ?Sized> GovernRig<'a, J, C, G> {
@@ -132,7 +144,15 @@ impl<'a, J: ?Sized, C: ?Sized, G: ?Sized> GovernRig<'a, J, C, G> {
             group,
             log,
             mates: None,
+            limit: None,
         }
+    }
+
+    /// This rig, killing the group once it has run `limit` long.
+    #[must_use]
+    pub const fn with_limit(mut self, limit: RunLimit) -> Self {
+        self.limit = Some(limit);
+        self
     }
 
     /// This rig, taking turns with the crew `mates`.
@@ -159,7 +179,10 @@ where
     C: Clock + ?Sized,
     G: Group + ?Sized,
 {
+    let begun = rig.clock.now();
     let mut run = Run {
+        ran: Duration::ZERO,
+        running_since: Some(begun),
         rig,
         interval,
         stopped: false,
@@ -175,6 +198,10 @@ where
 
 /// One `--govern` run's state between rounds.
 struct Run<'a, J: ?Sized, C: ?Sized, G: ?Sized> {
+    /// Run time spent in stretches that ended (stops excluded).
+    ran: Duration,
+    /// Since when the group has been running, if it is not stopped.
+    running_since: Option<Instant>,
     /// Its parts.
     rig: GovernRig<'a, J, C, G>,
     /// How often a round judges the gates.
@@ -200,12 +227,61 @@ where
             self.release();
             return Ok(Some(status_code(status)));
         }
-        match self.rig.group.wait(self.left())? {
+        if self.overran() {
+            return self.kill().map(Some);
+        }
+        match self.rig.group.wait(self.left().min(self.budget_left()))? {
+            None if self.overran() => return self.kill().map(Some),
             None => self.round(),
             Some(Wake::Forward(sig)) => self.forward(sig),
             Some(Wake::Child) => {}
         }
         Ok(None)
+    }
+
+    /// Run time spent so far: stretches that ended plus the current one.
+    fn spent(&self) -> Duration {
+        let now = self.rig.clock.now();
+        self.running_since.map_or(self.ran, |since| {
+            self.ran
+                .saturating_add(now.saturating_duration_since(since))
+        })
+    }
+
+    /// How much of the `--run-timeout` budget is left while the group
+    /// runs; unbounded while it is stopped or there is no budget.
+    fn budget_left(&self) -> Duration {
+        match self.rig.limit {
+            Some(limit) if self.running_since.is_some() => {
+                limit.budget.saturating_sub(self.spent())
+            }
+            _ => Duration::MAX,
+        }
+    }
+
+    /// Whether the group has used up its run-time budget.
+    fn overran(&self) -> bool {
+        let limit = self.rig.limit;
+        limit.is_some_and(|limit| self.spent() >= limit.budget)
+    }
+
+    /// Kills the group, reaps the command and returns the overrun code.
+    fn kill(&mut self) -> io::Result<u8> {
+        let code = self.rig.limit.map_or(1, |limit| limit.code);
+        let _ = writeln!(self.rig.log, "cgmr: --run-timeout ran out, killing");
+        if let Err(err) = self.rig.group.signal(GroupSignal::Kill) {
+            let _ = writeln!(self.rig.log, "cgmr: cannot signal: {err}");
+        }
+        while self.rig.group.try_wait()?.is_none() {
+            self.rig.group.wait(Duration::from_millis(50))?;
+        }
+        if self.stopped {
+            self.stopped = false;
+            if let Some(mates) = self.rig.mates.as_deref_mut() {
+                mates.resumed();
+            }
+        }
+        Ok(code)
     }
 
     /// How long until the next round is due: a whole interval after the
@@ -292,6 +368,21 @@ where
         }
     }
 
+    /// Records the group as `stopped` or running, and the run time with
+    /// it: a stop closes the running stretch, a continue opens one.
+    fn mark(&mut self, stopped: bool) {
+        if stopped == self.stopped {
+            return;
+        }
+        if stopped {
+            self.ran = self.spent();
+            self.running_since = None;
+        } else {
+            self.running_since = Some(self.rig.clock.now());
+        }
+        self.stopped = stopped;
+    }
+
     /// Sends `sig`, keeping track of whether the group is stopped; a
     /// refusal is logged and changes nothing.
     fn send(&mut self, sig: GroupSignal) {
@@ -306,7 +397,7 @@ where
             _ => None,
         };
         if let Some((stopped, note)) = note {
-            self.stopped = stopped;
+            self.mark(stopped);
             let _ = writeln!(self.rig.log, "cgmr: {note}");
         }
     }

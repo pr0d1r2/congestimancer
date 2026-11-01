@@ -181,6 +181,12 @@ const CASES: &[Case] = &[
         &["--govern", "--govern-keep", "2", "--slot-key", "parity"],
         Run,
     ),
+    ("run-timeout", &["--run-timeout", "1s"], Run),
+    (
+        "run-timeout-code",
+        &["--run-timeout", "1s", "--run-timeout-code", "99"],
+        Run,
+    ),
     ("background", &["--background"], Run),
 ];
 

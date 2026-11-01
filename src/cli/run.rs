@@ -14,16 +14,18 @@ use super::remote::{Remote, gate_args, wait_remote};
 use super::slots::{crew, plan, slots};
 use super::verbs::{gates, interval, source};
 use super::world::World;
+use crate::gate::Overall;
 use crate::launch::{
-    CrewPlan, Governing, Judge, LocalGates, Priority, Slots, after_wait,
-    launch, launch_governed,
+    CrewPlan, Governing, Judge, LocalGates, Priority, RunLimit, Slots,
+    after_wait, launch, launch_governed,
 };
 use crate::remote::{Host, parse_host};
 use crate::report::block_reasons;
 use crate::signal::SystemClock;
 use crate::slot::Release;
-use crate::units::parse_duration;
+use crate::units::{parse_count, parse_duration};
 use crate::wait::{Outcome, Pacing, Rig, poll};
+use std::time::Instant;
 
 /// `run`: the command's own exit once it runs (src/launch:V1), 0 when
 /// there is none, 124 on `--timeout`, 69 for an unsupported gate
@@ -60,6 +62,8 @@ struct Start<'c> {
     priority: Priority,
     /// `--govern`.
     govern: bool,
+    /// `--run-timeout` and `--run-timeout-code`.
+    limit: Option<RunLimit>,
     /// The crew of governed jobs to take turns with, from `--slot-key`.
     crew: Option<CrewPlan>,
     /// `--verbose`.
@@ -81,6 +85,7 @@ impl<'c> Start<'c> {
             pacing: pacing(world, resolved)?,
             priority: priority(resolved),
             govern: resolved.on("govern"),
+            limit: limit(resolved)?,
             crew: crew(&world.env, resolved, interval(resolved)?)?,
             verbose: resolved.on("verbose"),
             gate_args: gate_args(resolved),
@@ -124,16 +129,56 @@ impl<'c> Start<'c> {
             Err(code) => return code,
         };
         let _ = parts.out.flush();
-        if !self.govern {
+        if !self.govern && self.limit.is_none() {
             return launch(self.cmd, start, parts.vars, parts.err);
         }
-        let mut governing =
-            Governing::new(judge, self.pacing.interval, parts.err);
+        let mut calm = Unjudged;
+        let judge: &mut dyn Judge = if self.govern { judge } else { &mut calm };
+        let governing = self.governing(judge, parts.err);
+        launch_governed(self.cmd, start, parts.vars, governing)
+    }
+
+    /// What the governed launch judges with and how long it may run.
+    fn governing<'a>(
+        &self,
+        judge: &'a mut dyn Judge,
+        log: &'a mut dyn Write,
+    ) -> Governing<'a, dyn Judge + 'a> {
+        let mut governing = Governing::new(judge, self.pacing.interval, log);
         if let Some(plan) = &self.crew {
             governing = governing.with_crew(plan.clone());
         }
-        launch_governed(self.cmd, start, parts.vars, governing)
+        governing.limit = self.limit;
+        governing
     }
+}
+
+/// The judge of a command that is only run-limited, not governed: the
+/// gates always pass, so it is never stopped (src/launch:V11).
+struct Unjudged;
+
+impl Judge for Unjudged {
+    fn judge(&mut self, _: Instant) -> Overall {
+        Overall::Pass
+    }
+}
+
+/// Exit code of `--run-timeout` when `--run-timeout-code` is not given.
+const RUN_TIMEOUT_CODE: u8 = 125;
+
+/// `--run-timeout D` with `--run-timeout-code N` (src/launch:V11).
+fn limit(resolved: &Resolved) -> Result<Option<RunLimit>, Failure> {
+    let Some(budget) = resolved.parse("run-timeout", parse_duration)? else {
+        return Ok(None);
+    };
+    let code = resolved.parse("run-timeout-code", |s| {
+        let count = parse_count(s).map_err(|e| e.to_string())?;
+        u8::try_from(count.0).map_err(|_| format!("{s:?} is above 255"))
+    })?;
+    Ok(Some(RunLimit {
+        budget,
+        code: code.unwrap_or(RUN_TIMEOUT_CODE),
+    }))
 }
 
 /// What a launch writes to and hands the command.
