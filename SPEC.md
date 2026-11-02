@@ -63,3 +63,4 @@ T15|x|parity check `docs/CONGESTION.md` ↔ node specs|V18
 id|date|cause|fix
 B1|2026-10-14|§C listed `unreachable_pub` as clippy lint; it is rustc, so `[lints.clippy]` rejects it (found by `nix:T6`)|§C moves it to `[lints.rust]`; ⊥ new V: compiler rejects the wrong table
 B2|2026-10-31|`.coverage` claimed 97.2%; macOS measures 97.1% (llvm-cov differs by platform) ∴ `coverage` failed as overstated|`.coverage` & README badge claim 97.1% (claim ≤ measured)
+B3|2026-11-02|`.coverage` claimed 97.1%; macOS measures 97.0% after the `--run-timeout` change (llvm-cov differs by platform) ∴ `coverage` failed as overstated|`.coverage` & README badge claim 97.0% (claim ≤ measured)
