@@ -41,6 +41,11 @@ fn spawn_overrun(pid_file: &Path) -> Result<Child, Box<dyn Error>> {
     let script = "sleep 30 & echo $! > \"$DESCENDANT_PID_FILE\"; wait";
     let state = pid_file.parent().ok_or("pid file has no dir")?;
     let mut cmd = Command::cargo_bin("cgmr")?;
+    for (name, _) in std::env::vars_os() {
+        if name.to_string_lossy().starts_with("CGMR_") {
+            cmd.env_remove(name);
+        }
+    }
     cmd.env("CGMR_FIXTURE_ROOT", FIXTURE);
     cmd.env("XDG_RUNTIME_DIR", state).env("TMPDIR", state);
     cmd.env("DESCENDANT_PID_FILE", pid_file);
