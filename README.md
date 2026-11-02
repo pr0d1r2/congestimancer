@@ -170,10 +170,11 @@ file in the project or `~/.config/cgmr/profiles`.
 | 64 | usage error |
 | 69 | a gate is unsupported on this machine |
 | 124 | `--timeout` ran out |
+| 125 | `--run-timeout` killed the command (or the `--run-timeout-code N` you set) |
 | 130, 143 | SIGINT or SIGTERM while waiting |
 | N | once the command runs, its own exit code |
 
-A command that itself exits 64, 69 or 124 looks like cgmr's own; see
+A command that itself exits 64, 69, 124 or 125 looks like cgmr's own; see
 [docs/CLI.md](docs/CLI.md#the-exit-code-collision).
 
 ## As a library
