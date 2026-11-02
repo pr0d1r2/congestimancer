@@ -34,8 +34,9 @@ Exit codes:
   N    once the command runs, its own exit code
 
 Exit code collision: once the command runs, cgmr exits with the
-command's own code, so a command that itself exits 64, 69 or 124 looks
-like a cgmr usage error, unsupported gate or timeout. To tell them
+command's own code, so a command that itself exits 64, 69, 124 or the
+configured --run-timeout-code (125 by default) looks like a cgmr usage
+error, unsupported gate, timeout or run-time expiry. To tell them
 apart, run `cgmr check` first, or let the command report its own
 failures.";
 
