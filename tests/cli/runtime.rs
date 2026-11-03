@@ -83,6 +83,23 @@ fn the_overrun_kills_the_whole_group() -> Outcome {
     Ok(())
 }
 
+/// The wait for the gates is not run time: a gate that opens only after
+/// twice the budget still leaves the command its whole budget.
+#[test]
+fn the_wait_before_the_launch_does_not_count() -> Outcome {
+    let state = tempfile::tempdir()?;
+    let gate = state.path().join("open");
+    let path = gate.to_str().ok_or("temp dir is not UTF-8")?.to_owned();
+    let opener = thread::spawn(move || {
+        thread::sleep(Duration::from_secs(2));
+        fs::write(&gate, "")
+    });
+    let wait = ["--when-file", &path, "--interval", "50ms"];
+    timed("1s", &wait, "sleep 0.3; exit 7").code(7);
+    opener.join().map_err(|_| "the gate opener panicked")??;
+    Ok(())
+}
+
 #[test]
 fn the_overrun_code_is_configurable() -> Outcome {
     timed("200ms", &["--run-timeout-code", "99"], "sleep 30").code(99);
