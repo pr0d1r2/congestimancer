@@ -148,7 +148,9 @@ impl<'c> Start<'c> {
         if let Some(plan) = &self.crew {
             governing = governing.with_crew(plan.clone());
         }
-        governing.limit = self.limit;
+        if let Some(limit) = self.limit {
+            governing = governing.with_limit(limit);
+        }
         governing
     }
 }
