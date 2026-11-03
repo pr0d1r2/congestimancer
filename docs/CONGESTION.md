@@ -556,8 +556,13 @@ the moment the slot is granted, cgmr counts the live holders of the slot key
 (the new job included) and sets VAR to `max(1, CPUs / holders)`; without
 `--slots` the job is alone and gets every CPU. The count is taken before the
 command starts, so the next waiter cannot race it. For example, `--slots 2
---slot-key build --export-jobs CARGO_BUILD_JOBS --export-jobs NIX_BUILD_CORES
--- nix build`. VAR must be a plain variable name and not a `CGMR_*` one.
+--slot-key build --export-jobs CARGO_BUILD_JOBS -- cargo build`. VAR must be a
+plain variable name and not a `CGMR_*` one.
+
+A tool that does not read VAR itself must be handed it. Nix does not read
+`NIX_BUILD_CORES` from the environment of `nix build`, so pass the share to its
+`cores` setting and keep `max-jobs` at 1 so that builds do not multiply it:
+`--export-jobs JOBS -- sh -c 'nix build --cores "$JOBS" --max-jobs 1'`.
 
 cgmr removes its own `CGMR_*` variables from the command's environment
 (except the held-slot marker), so nested calls do not inherit gates by
