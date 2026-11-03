@@ -419,10 +419,45 @@ fn the_budget_runs_again_once_the_command_resumes() {
     assert_eq!(code, 125);
     let want = [GroupSignal::Stop, GroupSignal::Cont, GroupSignal::Kill];
     assert_eq!(group.sent, want);
+    // Counting the stop would cut the third run short: 2s, 2s, 1s.
+    let rest = Duration::from_secs(1);
+    assert_eq!(group.waits, [INTERVAL, INTERVAL, INTERVAL, rest]);
+}
+
+/// Gates that fail and take `slow` of the shared clock to say so.
+struct Slow {
+    clock: SharedClock,
+    slow: Duration,
+}
+
+impl Judge for Slow {
+    fn judge(&mut self, _: Instant) -> Overall {
+        self.clock.advance(self.slow);
+        Overall::Fail
+    }
 }
 
 #[test]
 fn a_stopped_command_is_killed_by_the_signal_not_waited_on() {
+    // The round that stops it ends past the budget: 2s run, 4s judging.
+    let clock = SharedClock::new();
+    let slow = Duration::from_secs(4);
+    let mut judge = Slow {
+        clock: clock.clone(),
+        slow,
+    };
+    let mut group = FakeGroup::new(1_000, 0);
+    group.clock = Some(clock.clone());
+    let mut log = Vec::new();
+    let rig = GovernRig::new(&mut judge, &clock, &mut group, &mut log);
+    let code = govern(rig.with_limit(LIMIT), INTERVAL);
+    assert_eq!(code.ok(), Some(125));
+    assert_eq!(group.sent, vec![GroupSignal::Stop, GroupSignal::Kill]);
+    assert_eq!(group.waits, vec![INTERVAL]);
+}
+
+#[test]
+fn a_budget_shorter_than_the_interval_cuts_the_first_wait() {
     let mut group = FakeGroup::new(1_000, 0);
     let limit = RunLimit {
         budget: Duration::from_secs(1),
