@@ -55,6 +55,15 @@ fn every_value_kind_checks_its_text() {
 }
 
 #[test]
+fn a_var_is_an_environment_variable_name() {
+    assert_eq!(Value::Var.check("CARGO_BUILD_JOBS"), Ok(()));
+    assert_eq!(Value::Var.check("_x1"), Ok(()));
+    for bad in ["", "1X", "A-B", "A=B", "CGMR_LOAD"] {
+        assert!(Value::Var.check(bad).is_err(), "{bad}");
+    }
+}
+
+#[test]
 fn every_value_kind_refuses_garbage() {
     let bad = [
         Value::Decimal,

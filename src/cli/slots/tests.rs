@@ -2,7 +2,7 @@ use std::ffi::OsString;
 
 use std::time::Duration;
 
-use super::{crew, lock_dir, plan, reserved, slots};
+use super::{crew, exports, job_share, lock_dir, plan, reserved, slots};
 use crate::cli::env::Env;
 use crate::cli::exit::USAGE;
 use crate::cli::layers::{Layer, Resolved};
@@ -137,4 +137,22 @@ fn a_bad_slot_key_is_a_usage_error() {
     let resolved = set(&[("govern", &["true"]), ("slot-key", &["a/b"])]);
     let failure = crew(&env, &resolved, TICK).err();
     assert_eq!(failure.map(|f| f.code), Some(USAGE));
+}
+
+#[test]
+fn a_job_gets_its_share_of_the_cpus_never_below_one() {
+    assert_eq!(job_share(8, 1), 8);
+    assert_eq!(job_share(8, 2), 4);
+    assert_eq!(job_share(8, 3), 2);
+    assert_eq!(job_share(2, 5), 1);
+    assert_eq!(job_share(8, 0), 8);
+}
+
+#[test]
+fn every_export_jobs_name_gets_the_share() {
+    let resolved = set(&[("export-jobs", &["CARGO_BUILD_JOBS", "NIX_CORES"])]);
+    let want = [("CARGO_BUILD_JOBS", "4"), ("NIX_CORES", "4")]
+        .map(|(k, v)| (k.to_owned(), v.to_owned()));
+    assert_eq!(exports(&resolved, 4), want);
+    assert!(exports(&Resolved::default(), 4).is_empty());
 }

@@ -4,7 +4,7 @@ use std::io;
 use std::os::fd::AsRawFd;
 use std::process::Command;
 
-use super::{Start, command, hand_over, launch};
+use super::{Start, command, hand_over, launch, prepare};
 use crate::launch::Slots;
 use crate::launch::scratch::Scratch;
 use crate::slot::{HELD_SLOTS_ENV, Release};
@@ -119,4 +119,17 @@ fn the_command_gets_its_arguments_and_a_clean_environment() {
     let removed = (OsStr::new("CGMR_LOAD"), None);
     let held = (OsStr::new(HELD_SLOTS_ENV), Some(OsStr::new("make")));
     assert_eq!(envs, [held, removed]);
+}
+
+#[test]
+fn exports_reach_the_command() {
+    let start = Start::default().with_exports(vec![(
+        "CARGO_BUILD_JOBS".to_owned(),
+        "4".to_owned(),
+    )]);
+    let mut command = Command::new("true");
+    prepare(&start, &mut command, &mut Vec::new());
+    let envs: Vec<_> = command.get_envs().collect();
+    let jobs = (OsStr::new("CARGO_BUILD_JOBS"), Some(OsStr::new("4")));
+    assert_eq!(envs, [jobs]);
 }

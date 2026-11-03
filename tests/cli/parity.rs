@@ -182,6 +182,7 @@ const CASES: &[Case] = &[
         Run,
     ),
     ("background", &["--background"], Run),
+    ("export-jobs", &["--export-jobs", "CARGO_BUILD_JOBS"], Run),
 ];
 
 /// Every `--switch` named in the catalogue's tables.

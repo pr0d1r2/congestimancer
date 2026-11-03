@@ -62,13 +62,13 @@ fn every_table_switch_is_in_the_catalogue() {
 }
 
 #[test]
-fn only_the_process_gates_repeat() {
+fn only_the_process_gates_and_export_jobs_repeat() {
     let repeating: Vec<&str> = SWITCHES
         .iter()
         .filter(|s| s.repeats())
         .map(|s| s.name())
         .collect();
-    assert_eq!(repeating, ["max-procs", "max-user-procs"]);
+    assert_eq!(repeating, ["max-procs", "max-user-procs", "export-jobs"]);
 }
 
 #[test]
