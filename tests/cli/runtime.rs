@@ -4,12 +4,12 @@
 
 use std::error::Error;
 use std::fs;
-use std::io::Read;
-use std::path::Path;
+use std::io::{self, Read};
+use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdout, Command, Stdio};
 use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use assert_cmd::cargo::CommandCargoExt;
 
@@ -97,6 +97,35 @@ fn the_wait_before_the_launch_does_not_count() -> Outcome {
     let wait = ["--when-file", &path, "--interval", "50ms"];
     timed("1s", &wait, "sleep 0.3; exit 7").code(7);
     opener.join().map_err(|_| "the gate opener panicked")??;
+    Ok(())
+}
+
+/// Removes the open `gate` file 200ms from now and puts it back 3s later.
+fn close_for_3s(gate: PathBuf) -> thread::JoinHandle<io::Result<()>> {
+    thread::spawn(move || {
+        thread::sleep(Duration::from_millis(200));
+        fs::remove_file(&gate)?;
+        thread::sleep(Duration::from_secs(3));
+        fs::write(&gate, "")
+    })
+}
+
+/// With `--govern` the budget still kills, and the time the gates kept
+/// the command stopped is not run time: stopped for 3s, a 1s budget runs
+/// out only after the gate opens again.
+#[test]
+fn a_governed_command_is_killed_once_it_ran_its_budget() -> Outcome {
+    let state = tempfile::tempdir()?;
+    let gate = state.path().join("open");
+    fs::write(&gate, "")?;
+    let path = gate.to_str().ok_or("temp dir is not UTF-8")?.to_owned();
+    let closer = close_for_3s(gate);
+    let govern = ["--govern", "--when-file", &path, "--interval", "50ms"];
+    let begun = Instant::now();
+    timed("1s", &govern, "sleep 30").code(125);
+    let took = begun.elapsed();
+    closer.join().map_err(|_| "the gate closer panicked")??;
+    assert!(took >= Duration::from_secs(3), "killed after {took:?}");
     Ok(())
 }
 
