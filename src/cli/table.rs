@@ -47,6 +47,8 @@ pub(crate) enum Value {
     ProcLimit,
     /// `N/D`.
     StartRate,
+    /// An environment variable name (`--export-jobs`).
+    Var,
     /// A safe name: a slot key, a profile.
     Name,
 }
@@ -198,6 +200,14 @@ pub(super) const fn flag(
     help: &'static str,
 ) -> SwitchSpec {
     one(name, Value::Flag, role, help)
+}
+
+/// A switch naming environment variables for the command, which repeats.
+pub(super) const fn vars(name: &'static str, help: &'static str) -> SwitchSpec {
+    SwitchSpec {
+        repeats: true,
+        ..one(name, Value::Var, Role::Run, help)
+    }
 }
 
 /// A per-pattern process gate, which repeats.

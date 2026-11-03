@@ -11,17 +11,17 @@ use super::env::Env;
 use super::exit::{Failure, slot_failure};
 use super::layers::Resolved;
 use super::remote::{Remote, gate_args, wait_remote};
-use super::slots::{crew, plan, slots};
+use super::slots::{crew, exports_at_grant, plan, slots};
 use super::verbs::{gates, interval, source};
 use super::world::World;
 use crate::launch::{
-    CrewPlan, Governing, Judge, LocalGates, Priority, Slots, after_wait,
-    launch, launch_governed,
+    CrewPlan, Exports, Governing, Judge, LocalGates, Priority, Slots,
+    after_wait, launch, launch_governed,
 };
 use crate::remote::{Host, parse_host};
 use crate::report::block_reasons;
 use crate::signal::SystemClock;
-use crate::slot::Release;
+use crate::slot::{Release, SlotPlan};
 use crate::units::parse_duration;
 use crate::wait::{Outcome, Pacing, Rig, poll};
 
@@ -37,8 +37,9 @@ pub(crate) fn run(
     args: &RunArgs,
 ) -> Result<u8, Failure> {
     let resolved = world.settle(&args.given)?;
-    let mut slots = slots(&world.env, plan(&resolved, &args.cmd)?)?;
-    let start = Start::new(world, &resolved, &args.cmd)?;
+    let plan = plan(&resolved, &args.cmd)?;
+    let mut slots = slots(&world.env, plan.clone())?;
+    let start = Start::new(world, &resolved, &args.cmd, plan)?;
     if let Some(host) = resolved.parse("host", parse_host)? {
         return start.remote(world, host, &mut slots);
     }
@@ -49,7 +50,7 @@ pub(crate) fn run(
     let rig = Rig::new(gates, &mut machine, &mut clock, err);
     let outcome = poll(rig, &start.pacing, &mut slots).map_err(slot_failure)?;
     let mut local = LocalGates::new(&mut built.gates, &mut machine);
-    Ok(start.launch(Parts::of(world), outcome, &mut local))
+    start.launch_here(world, outcome, &mut local)
 }
 
 /// How the wait is timed and the command starts.
@@ -67,6 +68,8 @@ struct Start<'c> {
     /// The gate switches, for `--host`.
     gate_args: Vec<String>,
     /// The command.
+    /// `--export-jobs` and the plan whose slot key sets the share.
+    export: (Resolved, Option<SlotPlan>),
     cmd: &'c [OsString],
 }
 
@@ -76,6 +79,7 @@ impl<'c> Start<'c> {
         world: &World<'_>,
         resolved: &Resolved,
         cmd: &'c [OsString],
+        plan: Option<SlotPlan>,
     ) -> Result<Self, Failure> {
         Ok(Self {
             pacing: pacing(world, resolved)?,
@@ -84,8 +88,34 @@ impl<'c> Start<'c> {
             crew: crew(&world.env, resolved, interval(resolved)?)?,
             verbose: resolved.on("verbose"),
             gate_args: gate_args(resolved),
+            export: (resolved.clone(), plan),
             cmd,
         })
+    }
+
+    /// Launches on this host, once its gates let the job go.
+    fn launch_here(
+        &self,
+        world: &mut World<'_>,
+        outcome: Outcome<Option<Release>>,
+        judge: &mut dyn Judge,
+    ) -> Result<u8, Failure> {
+        let exports = self.exports(&world.env, &outcome)?;
+        let parts = Parts::of(world).with_exports(exports);
+        Ok(self.launch(parts, outcome, judge))
+    }
+
+    /// The `--export-jobs` variables of a released job; none when the
+    /// wait ended otherwise, read at the grant (src/launch:V11).
+    fn exports(
+        &self,
+        env: &Env,
+        outcome: &Outcome<Option<Release>>,
+    ) -> Result<Exports, Failure> {
+        if !matches!(outcome, Outcome::Released(_)) {
+            return Ok(Vec::new());
+        }
+        exports_at_grant(env, &self.export.0, self.export.1.as_ref())
     }
 
     /// `run --host H`: the gates are asked of H; the slots and the
@@ -106,8 +136,9 @@ impl<'c> Start<'c> {
         };
         let outcome =
             wait_remote(&mut remote, &self.pacing, &mut SystemClock, slots)?;
+        let exports = self.exports(&world.env, &outcome)?;
         let parts = Parts::split(&world.env, &mut *world.out, &mut *world.err);
-        Ok(self.launch(parts, outcome, &mut remote))
+        Ok(self.launch(parts.with_exports(exports), outcome, &mut remote))
     }
 
     /// Says why the wait ended without a release, then execs or governs
@@ -120,7 +151,7 @@ impl<'c> Start<'c> {
     ) -> u8 {
         explain(parts.err, &outcome);
         let start = match after_wait(outcome, self.priority) {
-            Ok(start) => start,
+            Ok(start) => start.with_exports(parts.exports),
             Err(code) => return code,
         };
         let _ = parts.out.flush();
@@ -144,12 +175,20 @@ struct Parts<'w> {
     err: &'w mut dyn Write,
     /// The environment the command inherits, cleaned by `src/launch`.
     vars: Vec<(OsString, OsString)>,
+    /// The `--export-jobs` variables, set once the job is granted.
+    exports: Exports,
 }
 
 impl<'w> Parts<'w> {
     /// The parts of `world`.
     fn of(world: &'w mut World<'_>) -> Self {
         Self::split(&world.env, &mut *world.out, &mut *world.err)
+    }
+
+    /// These parts, with the `--export-jobs` variables `exports`.
+    fn with_exports(mut self, exports: Exports) -> Self {
+        self.exports = exports;
+        self
     }
 
     /// The parts made of `env`'s variables, `out` and `err`.
@@ -159,7 +198,13 @@ impl<'w> Parts<'w> {
         err: &'w mut dyn Write,
     ) -> Self {
         let vars = env.vars();
-        Self { out, err, vars }
+        let exports = Exports::new();
+        Self {
+            out,
+            err,
+            vars,
+            exports,
+        }
     }
 }
 

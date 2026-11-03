@@ -39,7 +39,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 
 ## §I INTERFACES
 
-- switches: `--govern` · `--govern-keep N` · `--background` · `--or-background`.
+- switches: `--govern` · `--govern-keep N` · `--background` · `--or-background` · `--export-jobs VAR`.
 
 ## §V INVARIANTS
 
@@ -53,6 +53,7 @@ V7: stdout|stdin|stderr untouched; cmd owns stdout (`.` §I).
 V8: `--govern`: stopped cmd keeps its slot & reservation (held fds inherited); `--timeout` applies only before start; `--host` allowed (remote checks continue each round).
 V9: slot & reservation fds handed to cmd's child only (`src/sys` `inherit_in`); cgmr's own fds stay close-on-exec ∴ ⊥ gate shell | ssh child holds slot.
 V10: `--govern` + `--slot-key K`: governed jobs of K take turns (crew = `src/slot:V13`). gates fail → only the youngest running job stops, ≤ 1 stop per `--interval` ∀ crew, ⊥ below `--govern-keep N` running (default 1); gates pass → only the job stopped first resumes, after gates passed `--settle` & ≥ `--settle` since the crew's last stop|resume. job joins crew once its cmd is spawned, leaves when cmd ends; crew unreadable → job governs alone w/ a log line. ⊥ `--slot-key` → V4 (each job alone).
+V11: `--export-jobs VAR` (repeats): after V3 cleanup, cmd's env gets VAR = `max(1, cpus / h)`, h = live holders of the slot key counted once the slot is granted (cmd included; ⊥ `--slots` → h = 1) ∴ ⊥ race w/ next waiter. VAR = `[A-Za-z_][A-Za-z0-9_]*`, ⊥ `CGMR_*` → else exit 64. also under `--govern`.
 
 ## §T TASKS
 
@@ -66,6 +67,7 @@ T6|x|`--or-background`|V6
 T7|x|govern w/ slots, timeout & host|V8
 T8|x|hand slot over via cmd's child, not cgmr|V9
 T9|x|`--govern-keep`: crew turns, one stop per interval, one resume per settle|V10
+T10|x|`--export-jobs`: each VAR = `max(1, cpus / live holders)` at the grant|V11
 
 ## §B BUGS
 

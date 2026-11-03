@@ -104,10 +104,10 @@ pub use io::{
 };
 
 pub use launch::{
-    BACKGROUND_NICE, CrewPlan, CrewRules, Crewed, GovernRig, Governing, Group,
-    GroupAction, Judge, LocalGates, Mates, Priority, Slots, Start, after_wait,
-    background, clean_env, exec_command, exec_failure_code, govern,
-    govern_step, launch, launch_governed, status_code, wall_nanos,
+    BACKGROUND_NICE, CrewPlan, CrewRules, Crewed, Exports, GovernRig,
+    Governing, Group, GroupAction, Judge, LocalGates, Mates, Priority, Slots,
+    Start, after_wait, background, clean_env, exec_command, exec_failure_code,
+    govern, govern_step, launch, launch_governed, status_code, wall_nanos,
 };
 
 pub use limits::{

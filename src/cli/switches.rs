@@ -3,6 +3,7 @@
 
 use super::table::{
     Adj, Role, SwitchSpec, Value, WHEN, above, below, flag, one, procs, state,
+    vars,
 };
 use crate::gate::Op;
 
@@ -291,6 +292,10 @@ pub const SWITCHES: &[SwitchSpec] = &[
         "background",
         Role::Run,
         "run the command at background CPU and IO priority",
+    ),
+    vars(
+        "export-jobs",
+        "set VAR to the job's share of the CPUs (repeats)",
     ),
     flag("quiet", Role::Meta, "hide warnings"),
     one(

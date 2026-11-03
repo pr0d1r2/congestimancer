@@ -215,7 +215,7 @@ fn value_name(spec: &SwitchSpec) -> &'static str {
         Value::Path => "PATH",
         Value::Text if spec.role == Role::Custom => "CMD",
         Value::Text | Value::Host => "HOST",
-        Value::Device | Value::Iface | Value::Name => "NAME",
+        Value::Device | Value::Iface | Value::Name | Value::Var => "NAME",
         Value::ProcLimit => "NAME=N",
         Value::StartRate => "N/D",
         Value::Flag | Value::Decimal | Value::Percent | Value::Count => "X",

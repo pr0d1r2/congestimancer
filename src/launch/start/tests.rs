@@ -123,10 +123,8 @@ fn the_command_gets_its_arguments_and_a_clean_environment() {
 
 #[test]
 fn exports_reach_the_command() {
-    let start = Start::default().with_exports(vec![(
-        "CARGO_BUILD_JOBS".to_owned(),
-        "4".to_owned(),
-    )]);
+    let start = Start::default()
+        .with_exports(vec![("CARGO_BUILD_JOBS".to_owned(), "4".to_owned())]);
     let mut command = Command::new("true");
     prepare(&start, &mut command, &mut Vec::new());
     let envs: Vec<_> = command.get_envs().collect();

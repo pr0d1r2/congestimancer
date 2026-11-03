@@ -40,4 +40,4 @@ pub(crate) use govern::{Turn, crew_step};
 pub use governed::{CrewPlan, Governing, launch_governed};
 pub use governor::{GovernRig, Group, Judge, LocalGates, Mates, govern};
 pub use priority::{BACKGROUND_NICE, background};
-pub use start::{Start, launch};
+pub use start::{Exports, Start, launch};

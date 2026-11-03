@@ -55,6 +55,27 @@ fn text(s: &str) -> Result<(), String> {
     }
 }
 
+/// An environment variable name: letters, digits and `_`, no digit
+/// first, and not one of `cgmr`'s own `CGMR_*`.
+fn var(s: &str) -> Result<(), String> {
+    let mut chars = s.chars();
+    let head = chars
+        .next()
+        .is_some_and(|c| c.is_ascii_alphabetic() || c == '_');
+    let rest = chars.all(|c| c.is_ascii_alphanumeric() || c == '_');
+    if !head || !rest || s.starts_with("CGMR_") {
+        return Err(format!(
+            "'{s}' is not a variable name (letters, digits, _; not CGMR_*)"
+        ));
+    }
+    Ok(())
+}
+
+/// A value with no parser of its own: a variable name, else some text.
+fn plain(value: Value, s: &str) -> Result<(), String> {
+    if value == Value::Var { var(s) } else { text(s) }
+}
+
 impl Value {
     /// Whether `s` is a value of this kind; why not, in words.
     ///
@@ -75,7 +96,7 @@ impl Value {
             Self::ProcLimit => words(parse_proc_limit(s)),
             Self::StartRate => words(parse_start_rate(s)),
             Self::Name => words(parse_name(s)),
-            _ => text(s),
+            _ => plain(self, s),
         }
     }
 

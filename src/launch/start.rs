@@ -9,6 +9,9 @@ use super::{background, clean_env, exec_command};
 use crate::slot::Release;
 use crate::sys::inherit_in;
 
+/// Variables to set in the command's environment, by name.
+pub type Exports = Vec<(String, String)>;
+
 /// How the command starts once released.
 #[derive(Debug, Default)]
 #[non_exhaustive]
@@ -18,6 +21,8 @@ pub struct Start {
     /// Whether it runs at background priority (`--background`,
     /// `--or-background` after a timeout).
     pub background: bool,
+    /// Variables set in the command's environment (`--export-jobs`).
+    pub exports: Exports,
 }
 
 impl Start {
@@ -28,7 +33,16 @@ impl Start {
         Self {
             release,
             background,
+            exports: Vec::new(),
         }
+    }
+
+    /// The same start, with `exports` set in the command's environment
+    /// after the cleanup (src/launch:V11).
+    #[must_use]
+    pub fn with_exports(mut self, exports: Exports) -> Self {
+        self.exports = exports;
+        self
     }
 }
 
@@ -64,6 +78,7 @@ pub(super) fn prepare(
     if let Some(release) = &start.release {
         hand_over(release, command);
     }
+    command.envs(start.exports.iter().map(|(name, value)| (name, value)));
     if start.background {
         background(log);
     }

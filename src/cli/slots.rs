@@ -8,10 +8,11 @@ use std::time::Duration;
 use super::env::Env;
 use super::exit::{Failure, slot_failure};
 use super::layers::Resolved;
-use crate::launch::{CrewPlan, CrewRules, Slots};
+use crate::cpu::cpu_count;
+use crate::launch::{CrewPlan, CrewRules, Exports, Slots};
 use crate::slot::{
-    HELD_SLOTS_ENV, LockDir, SlotPlan, StartLimits, Waiter, lock_dir_path,
-    parse_start_rate, reserved_total, slot_key,
+    HELD_SLOTS_ENV, LockDir, SlotPlan, StartLimits, Waiter, live_holders,
+    lock_dir_path, parse_start_rate, reserved_total, slot_key,
 };
 use crate::sys::current_uid;
 use crate::units::{Bytes, Name, parse_bytes, parse_count, parse_duration};
@@ -152,6 +153,44 @@ fn crew_rules(
         settle: settle.unwrap_or(Duration::ZERO),
         keep: keep.map_or(1, |c| c.0),
     })
+}
+
+/// A job's share of `cpus` among `holders` jobs holding its slot key:
+/// `cpus / holders`, at least 1 (src/launch:V11).
+pub(crate) fn job_share(cpus: u64, holders: u64) -> u64 {
+    cpus.checked_div(holders).unwrap_or(cpus).max(1)
+}
+
+/// `--export-jobs`: each variable it names, set to `share`.
+pub(crate) fn exports(resolved: &Resolved, share: u64) -> Exports {
+    let value = share.to_string();
+    let names = resolved.all("export-jobs");
+    names.iter().map(|n| (n.clone(), value.clone())).collect()
+}
+
+/// The `--export-jobs` variables for a job just granted `plan`'s slot:
+/// the CPUs divided by the live holders of the key, this job included.
+/// Read at the grant, so the next waiter's start cannot race it. Without
+/// `--slots` the job is alone with the CPUs.
+///
+/// # Errors
+///
+/// 69 for a lock dir that cannot be used.
+pub(crate) fn exports_at_grant(
+    env: &Env,
+    resolved: &Resolved,
+    plan: Option<&SlotPlan>,
+) -> Result<Exports, Failure> {
+    if !resolved.has("export-jobs") {
+        return Ok(Vec::new());
+    }
+    let holders = match plan.and_then(|p| p.slots.map(|n| (&p.key, n))) {
+        Some((key, slots)) => {
+            live_holders(&lock_dir(env)?, key, slots).map_err(slot_failure)?
+        }
+        None => 1,
+    };
+    Ok(exports(resolved, job_share(cpu_count(), holders)))
 }
 
 #[cfg(test)]

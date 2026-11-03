@@ -31,7 +31,7 @@ fn a_lone_job_gets_every_cpu_in_each_variable() -> Outcome {
 #[test]
 fn without_slots_the_share_is_every_cpu() -> Outcome {
     let out = cgmr()?.args(["--export-jobs", "A"]).args(SHOW).output()?;
-    assert_eq!(String::from_utf8(out.stdout)?, format!("{} \n", cpus()?));
+    assert_eq!(String::from_utf8(out.stdout)?, format!("{}\n", cpus()?));
     Ok(())
 }
 

@@ -526,6 +526,7 @@ Notes:
 | `--govern` | keep watching after the start: stop the command (SIGSTOP to its process group) when gates fail, continue it (SIGCONT) when they pass again |
 | `--govern-keep N` | with `--govern` and `--slot-key`: governed jobs of one key take turns (see below); no job stops if that would leave fewer than N running [default: 1] |
 | `--background` | lower the command's CPU and IO priority: `setpriority` plus `ioprio_set` idle class (Linux); `setpriority` plus background QoS / `setiopolicy_np` (macOS) |
+| `--export-jobs VAR` | set VAR in the command's environment to its share of the CPUs when it starts (repeats; see below) |
 
 With `--govern`, a stopped command keeps its slot and memory reservation,
 `--timeout` applies only before the start, and `--host` keeps working.
@@ -549,6 +550,14 @@ stop as well.
 `--govern` needs cgmr to stay alive as the parent, so it spawns the command
 instead of using `exec`. cgmr then forwards SIGINT, SIGTERM and SIGHUP to the
 command and exits with the command's exit code.
+
+`--export-jobs VAR` keeps a tool's own parallelism inside the slot limit. At
+the moment the slot is granted, cgmr counts the live holders of the slot key
+(the new job included) and sets VAR to `max(1, CPUs / holders)`; without
+`--slots` the job is alone and gets every CPU. The count is taken before the
+command starts, so the next waiter cannot race it. For example, `--slots 2
+--slot-key build --export-jobs CARGO_BUILD_JOBS --export-jobs NIX_BUILD_CORES
+-- nix build`. VAR must be a plain variable name and not a `CGMR_*` one.
 
 cgmr removes its own `CGMR_*` variables from the command's environment
 (except the held-slot marker), so nested calls do not inherit gates by

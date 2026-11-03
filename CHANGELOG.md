@@ -9,6 +9,11 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- `--export-jobs VAR` (new, repeatable switch): the command's environment gets
+  VAR set to its share of the CPUs, `max(1, CPUs / live holders of the slot
+  key)`, counted at the moment the slot is granted; without `--slots` it is
+  every CPU. Lets `--slots 2 -- cargo build` cap `CARGO_BUILD_JOBS` without a
+  wrapper racing the next waiter.
 - `--govern-keep N` (new switch): with `--govern` and `--slot-key`, governed jobs of one
   slot key take turns. While gates fail, one job is stopped per interval,
   the youngest first, and never below N running (default 1); once gates have
