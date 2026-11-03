@@ -165,7 +165,8 @@ impl<'a, J: ?Sized, C: ?Sized, G: ?Sized> GovernRig<'a, J, C, G> {
 
 /// Governs the rig's group until its command ends, judging the gates
 /// every `interval`; returns the exit code to leave with: the command's
-/// own, or 128 + n for death by signal n (src/launch:V4).
+/// own, 128 + n for death by signal n (src/launch:V4), or the limit's
+/// code once the rig's run-time budget ran out (src/launch:V11).
 ///
 /// # Errors
 ///

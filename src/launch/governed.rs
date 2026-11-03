@@ -84,7 +84,8 @@ impl<'a, J: ?Sized> Governing<'a, J> {
 /// Starts `argv` as `start` says (environment cleaned from `vars`, slot
 /// handed over, background priority) and governs it until it ends;
 /// returns the exit code to leave with: 0 with no command, 126 or 127
-/// when it cannot start, else the command's own (src/launch:V4).
+/// when it cannot start, the `--run-timeout-code` once its budget ran
+/// out, else the command's own (src/launch:V4, V11).
 pub fn launch_governed<I, J>(
     argv: &[OsString],
     start: Start,
