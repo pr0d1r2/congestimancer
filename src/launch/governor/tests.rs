@@ -457,6 +457,27 @@ fn a_stopped_command_is_killed_by_the_signal_not_waited_on() {
 }
 
 #[test]
+fn a_stopped_job_killed_on_overrun_is_told_to_the_crew_as_running() {
+    // As a command that ends while stopped: the crew must not keep it
+    // counted as stopped.
+    let clock = SharedClock::new();
+    let slow = Duration::from_secs(4);
+    let mut judge = Slow {
+        clock: clock.clone(),
+        slow,
+    };
+    let mut group = FakeGroup::new(1_000, 0);
+    group.clock = Some(clock.clone());
+    let mut mates = FakeMates::new(Some(GroupAction::Stop));
+    let mut log = Vec::new();
+    let rig = GovernRig::new(&mut judge, &clock, &mut group, &mut log);
+    let code = govern(rig.with_mates(&mut mates).with_limit(LIMIT), INTERVAL);
+    assert_eq!(code.ok(), Some(125));
+    assert_eq!(group.sent, vec![GroupSignal::Stop, GroupSignal::Kill]);
+    assert_eq!(mates.resumed, 1);
+}
+
+#[test]
 fn a_budget_shorter_than_the_interval_cuts_the_first_wait() {
     let mut group = FakeGroup::new(1_000, 0);
     let limit = RunLimit {
