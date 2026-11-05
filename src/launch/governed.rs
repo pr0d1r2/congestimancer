@@ -8,6 +8,7 @@
 
 use std::ffi::OsString;
 use std::io::{self, Write};
+use std::path::PathBuf;
 use std::process::{Child, Command, ExitStatus};
 use std::time::Duration;
 
@@ -20,7 +21,9 @@ use super::{
 };
 use crate::signal::SystemClock;
 use crate::slot::{Crew, LockDir, Release};
-use crate::sys::{Blocked, GroupSignal, Wake, block_forwarded, signal_group};
+use crate::sys::{
+    Blocked, CgroupJob, GroupSignal, Wake, block_forwarded, signal_group,
+};
 use crate::units::Name;
 
 /// Where `--govern` jobs of one slot key take turns, and by what rules.
@@ -32,6 +35,17 @@ pub struct CrewPlan {
     pub key: Name,
     /// How they take turns.
     pub rules: CrewRules,
+}
+
+/// What `--govern` acts on (src/launch:V4, V12).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum GovernBy {
+    /// The command's process group.
+    #[default]
+    Group,
+    /// A cgroup `cgmr-<pid>` made below this delegated cgroup.
+    Cgroup(PathBuf),
 }
 
 /// What `--govern` judges each round, how often, and where it writes.
@@ -48,6 +62,8 @@ pub struct Governing<'a, J: ?Sized> {
     pub crew: Option<CrewPlan>,
     /// The run-time budget (`--run-timeout`), if there is one.
     pub limit: Option<RunLimit>,
+    /// What it stops, continues and kills.
+    pub by: GovernBy,
 }
 
 impl<'a, J: ?Sized> Governing<'a, J> {
@@ -63,7 +79,15 @@ impl<'a, J: ?Sized> Governing<'a, J> {
             log,
             crew: None,
             limit: None,
+            by: GovernBy::Group,
         }
+    }
+
+    /// These, acting on `by`.
+    #[must_use]
+    pub fn with_by(mut self, by: GovernBy) -> Self {
+        self.by = by;
+        self
     }
 
     /// These, killing the command once it has run `limit` long.
@@ -101,7 +125,7 @@ where
         return 0;
     };
     prepare(&start, &mut command, governing.log);
-    let code = match Spawned::spawn(&mut command) {
+    let code = match Spawned::spawn(&mut command, None) {
         Ok(mut group) => run(&mut group, governing),
         Err(err) => exec_failure_code(&err),
     };
@@ -121,6 +145,7 @@ fn run<J: Judge + ?Sized>(
         log,
         crew,
         limit,
+        by: _,
     } = governing;
     let mut mates = crew.and_then(|plan| join(&plan, &mut *log));
     let mut rig = GovernRig::new(judge, &SystemClock, group, &mut *log);
@@ -162,7 +187,11 @@ pub(super) struct Spawned {
 impl Spawned {
     /// Blocks the forwarded signals, then spawns `command` in a group of
     /// its own.
-    pub(super) fn spawn(command: &mut Command) -> io::Result<Self> {
+    pub(super) fn spawn(
+        command: &mut Command,
+        cgroup: Option<CgroupJob>,
+    ) -> io::Result<Self> {
+        let _ = cgroup;
         let blocked = block_forwarded()?;
         blocked.unblock_in(command);
         let child = command.process_group(0).spawn()?;
