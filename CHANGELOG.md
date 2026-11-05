@@ -9,6 +9,13 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+- `--govern-by cgroup` (new switch): `--govern` and `--run-timeout` act on a
+  cgroup v2 instead of the command's process group. cgmr makes `cgmr-<pid>`
+  below the delegated cgroup it runs in (a systemd unit with `Delegate=yes`),
+  starts the command inside it, pauses it with `cgroup.freeze` and kills it
+  with `cgroup.kill`, so a child that left the process group is paused too.
+  Without a writable delegated cgroup it exits 69. `group` stays the default.
+
 - `--run-timeout D` and `--run-timeout-code N` (new switches): a run-time budget
   that starts at the launch and excludes time `--govern` kept the command
   stopped. When it runs out cgmr kills the whole process group and exits 125

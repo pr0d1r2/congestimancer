@@ -101,7 +101,7 @@ fn enter_in_makes_the_child_write_itself_to_cgroup_procs() -> io::Result<()> {
     let dir = fake("enter")?;
     let job = CgroupJob::at(dir.clone())?;
     let mut command = Command::new("true");
-    job.enter_in(&mut command)?;
+    job.enter_in(&mut command);
     let child = command.spawn()?.wait()?;
     assert!(child.success());
     // The fake `cgroup.procs` is a plain file: the child wrote "0".

@@ -46,7 +46,7 @@ pub fn signal_group(pgid: u32, sig: GroupSignal) -> io::Result<()> {
 
 impl GroupSignal {
     /// The `rustix` signal this one sends.
-    const fn raw(self) -> Signal {
+    pub(super) const fn raw(self) -> Signal {
         match self {
             Self::Stop => Signal::STOP,
             Self::Cont => Signal::CONT,
