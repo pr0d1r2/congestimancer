@@ -47,6 +47,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 - rustix: `statvfs`, `flock`, `setpriority`; `fcntl` clear `FD_CLOEXEC` (slot lock fd survives exec); `stat` → `st_dev` (major, minor), follows symlinks.
 - macOS FFI: `sysctlbyname` (`kern.memorystatus_*`, `kern.num_*`, `kern.max*`, `vm.swapusage`), `host_processor_info`, `host_statistics64`, IOKit (block stats, power, `HIDIdleTime`, GPU stats), `notify_get_state`, `setiopolicy_np`.
 - Linux FFI: `ioprio_set`; NVML `dlopen` (R3).
+- cgroup job: `CgroupJob` (create `cgmr-<pid>` below own cgroup, `enter_in` via `pre_exec` write of `0` to `cgroup.procs`, `cgroup.freeze`, `cgroup.kill`, per-pid signals), `delegated_cgroup`.
 - signals: `signal_group` (rustix `kill_process_group`); `block_forwarded` → `Blocked`: mask INT TERM HUP CHLD (`pthread_sigmask`), `wait_timeout` (Linux `sigtimedwait`; macOS kqueue `EVFILT_SIGNAL` + `sigwait`), old mask back on drop. ⊥ handler (`.:V22`).
 - net: `NET_RT_IFLIST2` (macOS, R5); TCP connect w/ timeout (std); Linux system bus `UnixStream`, ⊥ codec.
 
@@ -100,6 +101,7 @@ T23|x|`Blocked::unblock_in(&mut Command)`: child starts w/ mask from before bloc
 T24|x|`inherit_in(&mut Command, &File)`: clear `FD_CLOEXEC` in that child only (`pre_exec` `fcntl`); own fd stays close-on-exec ∵ `src/launch:V9`|V1,V2
 T25|x|NVML `Library` only from non-null `dlopen` handle (B2)|V8
 T26|x|NVML fallback to NixOS `/run/opengl-driver/lib`|V9
+T27|x|`CgroupJob`: create below own cgroup, child enters before exec, STOP and CONT write `cgroup.freeze` 1 and 0, KILL writes `cgroup.kill`, INT TERM HUP reach ∀ pid in `cgroup.procs`; `delegated_cgroup` else `Unsupported`|V1,V2,V4
 
 ## §B BUGS
 
