@@ -49,6 +49,20 @@ fn at_wants_a_cgroup_procs_file() -> io::Result<()> {
 }
 
 #[test]
+fn at_wants_writable_freeze_and_kill_files() -> io::Result<()> {
+    // A kernel before 5.14 has no `cgroup.kill`: the job could not end
+    // the command when `--run-timeout` runs out.
+    for missing in ["cgroup.freeze", "cgroup.kill"] {
+        let dir = fake(&format!("no-{missing}"))?;
+        fs::remove_file(dir.join(missing))?;
+        let err = CgroupJob::at(dir.clone()).err();
+        assert_eq!(err.map(|e| e.kind()), Some(io::ErrorKind::Unsupported));
+        fs::remove_dir_all(&dir)?;
+    }
+    Ok(())
+}
+
+#[test]
 fn create_is_unsupported_where_the_parent_is_no_cgroup() -> io::Result<()> {
     let parent = std::env::temp_dir()
         .join(format!("cgmr-cgjob-plain-{}", std::process::id()));
