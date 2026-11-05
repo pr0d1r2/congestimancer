@@ -206,19 +206,28 @@ const fn heading(role: Role) -> &'static str {
 /// The placeholder for `spec`'s value in `--help`.
 fn value_name(spec: &SwitchSpec) -> &'static str {
     match spec.value {
-        Value::Bytes => "SIZE",
-        Value::Rate => "RATE",
-        Value::Duration => "D",
-        Value::Celsius => "TEMP",
-        Value::Window => "HH:MM-HH:MM",
-        Value::Level | Value::LoadWindow | Value::Cgroup => "MODE",
+        Value::Level | Value::LoadWindow | Value::Cgroup | Value::GovernBy => {
+            "MODE"
+        }
         Value::Path => "PATH",
         Value::Text if spec.role == Role::Custom => "CMD",
         Value::Text | Value::Host => "HOST",
         Value::Device | Value::Iface | Value::Name => "NAME",
         Value::ProcLimit => "NAME=N",
         Value::StartRate => "N/D",
-        Value::Flag | Value::Decimal | Value::Percent | Value::Count => "X",
+        other => quantity_name(other),
+    }
+}
+
+/// The placeholder for a value that is a number, size, rate or time.
+const fn quantity_name(value: Value) -> &'static str {
+    match value {
+        Value::Bytes => "SIZE",
+        Value::Rate => "RATE",
+        Value::Duration => "D",
+        Value::Celsius => "TEMP",
+        Value::Window => "HH:MM-HH:MM",
+        _ => "X",
     }
 }
 

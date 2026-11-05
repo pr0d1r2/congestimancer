@@ -282,6 +282,12 @@ pub const SWITCHES: &[SwitchSpec] = &[
         "stop the command while gates fail, continue it when they pass",
     ),
     one(
+        "govern-by",
+        Value::GovernBy,
+        Role::Run,
+        "with --govern or --run-timeout: act on group or cgroup [default: group]",
+    ),
+    one(
         "govern-keep",
         Value::Count,
         Role::Run,

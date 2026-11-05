@@ -43,6 +43,8 @@ pub(crate) enum Value {
     Host,
     /// `auto`, `host` or a cgroup path.
     Cgroup,
+    /// `group` or `cgroup`: what `--govern` acts on.
+    GovernBy,
     /// `PATTERN=N`.
     ProcLimit,
     /// `N/D`.

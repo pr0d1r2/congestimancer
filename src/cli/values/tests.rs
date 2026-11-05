@@ -30,7 +30,7 @@ fn a_bad_measure_names_the_input() {
 }
 
 /// One good text of each value kind that is no measure.
-const GOOD: [(Value, &str); 14] = [
+const GOOD: [(Value, &str); 16] = [
     (Value::Decimal, "1.5"),
     (Value::Rate, "50MB/s"),
     (Value::Duration, "1h30m"),
@@ -41,6 +41,8 @@ const GOOD: [(Value, &str); 14] = [
     (Value::Iface, "en0"),
     (Value::Host, "builder"),
     (Value::Cgroup, "auto"),
+    (Value::GovernBy, "group"),
+    (Value::GovernBy, "cgroup"),
     (Value::ProcLimit, "rustc*=4"),
     (Value::StartRate, "4/1m"),
     (Value::Name, "build"),
@@ -62,6 +64,7 @@ fn every_value_kind_refuses_garbage() {
         Value::LoadWindow,
         Value::Host,
         Value::Cgroup,
+        Value::GovernBy,
         Value::ProcLimit,
         Value::StartRate,
         Value::Name,
@@ -70,4 +73,10 @@ fn every_value_kind_refuses_garbage() {
         assert!(value.check("-?").is_err(), "{value:?}");
     }
     assert!(Value::Text.check(" ").is_err());
+}
+
+#[test]
+fn govern_by_takes_group_or_cgroup_only() {
+    assert!(Value::GovernBy.check("pid").is_err());
+    assert!(Value::GovernBy.check("").is_err());
 }
