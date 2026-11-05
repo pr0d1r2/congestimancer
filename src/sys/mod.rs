@@ -9,6 +9,7 @@
 
 mod bus;
 mod capture;
+mod cgjob;
 mod disk;
 mod error;
 mod files;
@@ -35,6 +36,7 @@ mod users;
 
 pub use bus::{SYSTEM_BUS_SOCKET, system_bus_connect};
 pub use capture::capture;
+pub use cgjob::{CgroupJob, delegated_cgroup, own_cgroup_dir};
 pub use disk::{
     BlockCounters, BlockDevice, BlockStats, MountSource, block_devices,
     mount_source, physical_disk_stats,
