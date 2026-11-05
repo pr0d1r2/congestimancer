@@ -109,7 +109,8 @@ impl<'a, J: ?Sized> Governing<'a, J> {
 /// handed over, background priority) and governs it until it ends;
 /// returns the exit code to leave with: 0 with no command, 126 or 127
 /// when it cannot start, the `--run-timeout-code` once its budget ran
-/// out, else the command's own (src/launch:V4, V11).
+/// out, 69 when `--govern-by cgroup` has no cgroup to make, else the
+/// command's own (src/launch:V4, V11, V12).
 pub fn launch_governed<I, J>(
     argv: &[OsString],
     start: Start,
@@ -124,8 +125,12 @@ where
     let Some(mut command) = command(argv, vars, held) else {
         return 0;
     };
+    let job = match open_job(&governing.by, governing.log) {
+        Ok(job) => job,
+        Err(code) => return code,
+    };
     prepare(&start, &mut command, governing.log);
-    let code = match Spawned::spawn(&mut command, None) {
+    let code = match Spawned::spawn(&mut command, job) {
         Ok(mut group) => run(&mut group, governing),
         Err(err) => exec_failure_code(&err),
     };
@@ -133,6 +138,26 @@ where
     drop(start);
     code
 }
+
+/// The cgroup `by` asks for, made below its delegated parent; the exit
+/// code 69, with why on `log`, when it cannot be (src/launch:V12).
+fn open_job(
+    by: &GovernBy,
+    log: &mut dyn Write,
+) -> Result<Option<CgroupJob>, u8> {
+    let GovernBy::Cgroup(parent) = by else {
+        return Ok(None);
+    };
+    CgroupJob::create(parent, std::process::id())
+        .map(Some)
+        .map_err(|err| {
+            let _ = writeln!(log, "cgmr: --govern-by cgroup: {err}");
+            UNSUPPORTED
+        })
+}
+
+/// The exit code for a gate this machine cannot give (`.:I`).
+const UNSUPPORTED: u8 = 69;
 
 /// Governs `group` as `governing` says, on the real clock.
 fn run<J: Judge + ?Sized>(
@@ -180,6 +205,8 @@ fn lost(err: &io::Error, log: &mut dyn Write) -> u8 {
 pub(super) struct Spawned {
     /// The command, leader of its own group.
     child: Child,
+    /// The cgroup it runs in, when it is governed through one.
+    cgroup: Option<CgroupJob>,
     /// Forwarded signals, blocked until drop.
     blocked: Blocked,
 }
@@ -191,17 +218,26 @@ impl Spawned {
         command: &mut Command,
         cgroup: Option<CgroupJob>,
     ) -> io::Result<Self> {
-        let _ = cgroup;
+        if let Some(job) = &cgroup {
+            job.enter_in(command);
+        }
         let blocked = block_forwarded()?;
         blocked.unblock_in(command);
         let child = command.process_group(0).spawn()?;
-        Ok(Self { child, blocked })
+        Ok(Self {
+            child,
+            cgroup,
+            blocked,
+        })
     }
 }
 
 impl Group for Spawned {
     fn signal(&mut self, sig: GroupSignal) -> io::Result<()> {
-        signal_group(self.child.id(), sig)
+        match &self.cgroup {
+            Some(job) => job.signal(sig),
+            None => signal_group(self.child.id(), sig),
+        }
     }
 
     fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
