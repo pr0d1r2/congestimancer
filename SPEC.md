@@ -64,3 +64,4 @@ id|date|cause|fix
 B1|2026-10-14|§C listed `unreachable_pub` as clippy lint; it is rustc, so `[lints.clippy]` rejects it (found by `nix:T6`)|§C moves it to `[lints.rust]`; ⊥ new V: compiler rejects the wrong table
 B2|2026-10-31|`.coverage` claimed 97.2%; macOS measures 97.1%|claim 97.1%
 B3|2026-11-02|`.coverage` claimed 97.1%; macOS measures 97.0% after `--run-timeout`|claim 97.0%
+B4|2026-11-05|`.coverage` claimed 97.0%; macOS measures 96.9% after `--govern-by cgroup` (Linux-only paths)|claim 96.9%
