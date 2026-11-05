@@ -96,9 +96,16 @@ impl CgroupJob {
     /// # Errors
     ///
     /// [`io::ErrorKind::Unsupported`] when `dir` has no writable
-    /// `cgroup.procs`.
+    /// `cgroup.procs`, `cgroup.freeze` or `cgroup.kill`.
     pub fn at(dir: PathBuf) -> io::Result<Self> {
         let procs = open_procs(&dir)?;
+        // Without these the job could neither pause nor end the command.
+        for name in ["cgroup.freeze", "cgroup.kill"] {
+            let path = dir.join(name);
+            OpenOptions::new().write(true).open(&path).map_err(|err| {
+                unsupported(&format!("{}: {err}", path.display()))
+            })?;
+        }
         Ok(Self {
             dir,
             procs,
