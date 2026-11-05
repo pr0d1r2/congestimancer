@@ -38,7 +38,7 @@ pub use env::clean_env;
 pub use exec::{exec_command, exec_failure_code};
 pub use govern::{GroupAction, govern_step, status_code};
 pub(crate) use govern::{Turn, crew_step};
-pub use governed::{CrewPlan, Governing, launch_governed};
+pub use governed::{CrewPlan, GovernBy, Governing, launch_governed};
 pub use governor::{
     GovernRig, Group, Judge, LocalGates, Mates, RunLimit, govern,
 };

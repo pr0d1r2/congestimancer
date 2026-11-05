@@ -9,7 +9,7 @@ use std::os::unix::process::ExitStatusExt as _;
 use std::process::{Command, Output};
 use std::time::{Duration, Instant};
 
-use super::{Governing, Spawned, launch_governed};
+use super::{GovernBy, Governing, Spawned, launch_governed};
 use crate::gate::Overall;
 use crate::launch::scratch::Scratch;
 use crate::launch::{Group, Judge, Slots, Start};
@@ -76,6 +76,7 @@ fn probe() -> io::Result<()> {
         Some("missing") => plain(&missing, &[]),
         Some("term") => term()?,
         Some("slot") => slot()?,
+        Some("cgroup-files") => cgroup_files()?,
         _ => 99,
     };
     std::process::exit(i32::from(code))
@@ -120,7 +121,7 @@ fn a_missing_command_exits_127() -> io::Result<()> {
 fn term() -> io::Result<u8> {
     let mut command = Command::new("sleep");
     command.arg("5");
-    let mut spawned = Spawned::spawn(&mut command)?;
+    let mut spawned = Spawned::spawn(&mut command, None)?;
     spawned.signal(GroupSignal::Term)?;
     let end = Instant::now().checked_add(Duration::from_secs(2));
     while end.is_some_and(|end| Instant::now() < end) {
@@ -187,4 +188,69 @@ fn a_paused_command_keeps_its_slot_until_it_ends() -> io::Result<()> {
     assert_eq!(code, Some(0), "{log}");
     assert!(log.contains("paused"), "{log}");
     Ok(())
+}
+
+/// A directory that looks like a cgroup: the files a job writes.
+fn fake_cgroup(name: &str) -> io::Result<std::path::PathBuf> {
+    let dir = std::env::temp_dir()
+        .join(format!("cgmr-launch-{name}-{}", std::process::id()));
+    std::fs::create_dir_all(&dir)?;
+    for file in ["cgroup.procs", "cgroup.freeze", "cgroup.kill"] {
+        std::fs::write(dir.join(file), "")?;
+    }
+    Ok(dir)
+}
+
+/// A spawned `sleep` in a fake cgroup at `dir`.
+fn in_fake_cgroup(dir: &std::path::Path) -> io::Result<Spawned> {
+    let job = crate::sys::CgroupJob::at(dir.to_path_buf())?;
+    let mut command = Command::new("sleep");
+    command.arg("5");
+    Spawned::spawn(&mut command, Some(job))
+}
+
+/// 0 when a spawned command in a cgroup is paused, resumed and killed
+/// through the cgroup's files, not through its process group.
+fn cgroup_files() -> io::Result<u8> {
+    let dir = fake_cgroup("files")?;
+    let mut spawned = in_fake_cgroup(&dir)?;
+    let read = |file: &str| std::fs::read_to_string(dir.join(file));
+    spawned.signal(GroupSignal::Stop)?;
+    let stopped = read("cgroup.freeze")? == "1";
+    spawned.signal(GroupSignal::Cont)?;
+    let thawed = read("cgroup.freeze")? == "0";
+    spawned.signal(GroupSignal::Kill)?;
+    let killed = read("cgroup.kill")? == "1";
+    // The fake cgroup killed nothing: the child is still ours to end.
+    let alive = spawned.try_wait()?.is_none();
+    spawned.child.kill()?;
+    spawned.child.wait()?;
+    eprintln!("stopped {stopped} thawed {thawed} killed {killed} {alive}");
+    Ok(u8::from(!(stopped && thawed && killed && alive)))
+}
+
+#[test]
+fn a_cgroup_job_is_frozen_thawed_and_killed_by_its_files() -> io::Result<()> {
+    let (code, log) = in_child("cgroup-files")?;
+    assert_eq!(code, Some(0), "{log}");
+    Ok(())
+}
+
+#[test]
+fn no_delegated_cgroup_exits_69_and_the_command_never_runs() -> io::Result<()> {
+    let parent = std::env::temp_dir()
+        .join(format!("cgmr-launch-plain-{}", std::process::id()));
+    std::fs::create_dir_all(&parent)?;
+    let marker = parent.join("ran");
+    let script = format!("touch {}", marker.display());
+    let mut log = Vec::new();
+    let mut judge = Script::new(&[]);
+    let governing = Governing::new(&mut judge, INTERVAL, &mut log)
+        .with_by(GovernBy::Cgroup(parent.clone()));
+    let code =
+        launch_governed(&sh(&script), Start::default(), Vec::new(), governing);
+    assert_eq!(code, 69, "{}", String::from_utf8_lossy(&log));
+    assert!(String::from_utf8_lossy(&log).contains("cgroup"));
+    assert!(!marker.exists());
+    std::fs::remove_dir_all(&parent)
 }
