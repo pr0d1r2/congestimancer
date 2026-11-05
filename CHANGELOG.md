@@ -15,7 +15,8 @@ is a development series, not for production.
   starts the command inside it, pauses it with `cgroup.freeze` and kills it
   with `cgroup.kill`, so a child that left the process group is paused too.
   Without a writable delegated cgroup it exits 69. `group` stays the default.
-  Library: `Governing::with_by(GovernBy::Cgroup(parent))`.
+  Also `CGMR_GOVERN_BY` and a profile line. Library:
+  `Governing::with_by(GovernBy::Cgroup(parent))`.
 
 - `--run-timeout D` and `--run-timeout-code N` (new switches): a run-time budget
   that starts at the launch and excludes time `--govern` kept the command

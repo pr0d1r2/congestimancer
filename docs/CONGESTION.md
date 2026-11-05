@@ -553,6 +553,15 @@ through failing gates, and so does every job of `--slots 1 --slot-key K`,
 which is never more than one at a time. `--govern-keep 0` lets the last job
 stop as well.
 
+With `--govern-by cgroup`, cgmr makes the cgroup `cgmr-<pid>` below the cgroup it
+runs in, which must be delegated to it (a systemd unit with `Delegate=yes`) and
+writable, and starts the command inside it. `cgroup.freeze` pauses every
+process in it whatever its process group, so a child that called `setsid` or a
+double-forked helper stops too, and `--run-timeout` ends them all with
+`cgroup.kill`. Without such a cgroup cgmr exits 69 before it waits. Work handed
+to a daemon outside the subtree, such as builds done by the nix daemon, is
+reached by neither mode.
+
 `--govern` needs cgmr to stay alive as the parent, so it spawns the command
 instead of using `exec`. cgmr then forwards SIGINT, SIGTERM and SIGHUP to the
 command and exits with the command's exit code.
