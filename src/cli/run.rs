@@ -12,17 +12,19 @@ use super::exit::{Failure, slot_failure};
 use super::layers::Resolved;
 use super::remote::{Remote, gate_args, wait_remote};
 use super::slots::{crew, plan, slots};
+use super::values::parse_govern_by;
 use super::verbs::{gates, interval, source};
 use super::world::World;
 use crate::gate::Overall;
 use crate::launch::{
-    CrewPlan, Governing, Judge, LocalGates, Priority, RunLimit, Slots,
-    after_wait, launch, launch_governed,
+    CrewPlan, GovernBy, Governing, Judge, LocalGates, Priority, RunLimit,
+    Slots, after_wait, launch, launch_governed,
 };
 use crate::remote::{Host, parse_host};
 use crate::report::block_reasons;
 use crate::signal::SystemClock;
 use crate::slot::Release;
+use crate::sys::delegated_cgroup;
 use crate::units::{parse_count, parse_duration};
 use crate::wait::{Outcome, Pacing, Rig, poll};
 use std::time::Instant;
@@ -62,6 +64,8 @@ struct Start<'c> {
     priority: Priority,
     /// `--govern`.
     govern: bool,
+    /// `--govern-by`: what `--govern` and `--run-timeout` act on.
+    by: GovernBy,
     /// `--run-timeout` and `--run-timeout-code`.
     limit: Option<RunLimit>,
     /// The crew of governed jobs to take turns with, from `--slot-key`.
@@ -85,6 +89,7 @@ impl<'c> Start<'c> {
             pacing: pacing(world, resolved)?,
             priority: priority(resolved),
             govern: resolved.on("govern"),
+            by: govern_by(resolved)?,
             limit: limit(resolved)?,
             crew: crew(&world.env, resolved, interval(resolved)?)?,
             verbose: resolved.on("verbose"),
@@ -144,7 +149,8 @@ impl<'c> Start<'c> {
         judge: &'a mut dyn Judge,
         log: &'a mut dyn Write,
     ) -> Governing<'a, dyn Judge + 'a> {
-        let mut governing = Governing::new(judge, self.pacing.interval, log);
+        let mut governing = Governing::new(judge, self.pacing.interval, log)
+            .with_by(self.by.clone());
         if let Some(plan) = &self.crew {
             governing = governing.with_crew(plan.clone());
         }
@@ -163,6 +169,19 @@ impl Judge for Unjudged {
     fn judge(&mut self, _: Instant) -> Overall {
         Overall::Pass
     }
+}
+
+/// `--govern-by`: the process group, or the delegated cgroup cgmr runs
+/// in, which must exist now, before the wait (src/launch:V12).
+fn govern_by(resolved: &Resolved) -> Result<GovernBy, Failure> {
+    let wanted = resolved.parse("govern-by", parse_govern_by)?;
+    let acts = resolved.on("govern") || resolved.has("run-timeout");
+    if !wanted.unwrap_or(false) || !acts {
+        return Ok(GovernBy::Group);
+    }
+    delegated_cgroup().map(GovernBy::Cgroup).map_err(|err| {
+        Failure::unsupported(format!("--govern-by cgroup: {err}"))
+    })
 }
 
 /// Exit code of `--run-timeout` when `--run-timeout-code` is not given.

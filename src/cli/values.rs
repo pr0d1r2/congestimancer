@@ -55,6 +55,20 @@ fn text(s: &str) -> Result<(), String> {
     }
 }
 
+/// `--govern-by`: whether `s` asks for a cgroup (`cgroup`) rather than
+/// the process group (`group`) (src/launch:V12).
+///
+/// # Errors
+///
+/// The words the switch takes, for anything else.
+pub(crate) fn parse_govern_by(s: &str) -> Result<bool, String> {
+    match s {
+        "group" => Ok(false),
+        "cgroup" => Ok(true),
+        _ => Err(format!("{s:?}: --govern-by takes group or cgroup")),
+    }
+}
+
 impl Value {
     /// Whether `s` is a value of this kind; why not, in words.
     ///
@@ -71,11 +85,19 @@ impl Value {
             Self::Device => words(parse_io_device(s)),
             Self::Iface => words(parse_net_iface(s)),
             Self::Host => words(parse_host(s)),
-            Self::Cgroup => words(parse_cgroup_mode(s)),
+            Self::Cgroup | Self::GovernBy => self.mode(s),
             Self::ProcLimit => words(parse_proc_limit(s)),
             Self::StartRate => words(parse_start_rate(s)),
             Self::Name => words(parse_name(s)),
             _ => text(s),
+        }
+    }
+
+    /// Whether `s` is a mode of the kinds that name one.
+    fn mode(self, s: &str) -> Result<(), String> {
+        match self {
+            Self::GovernBy => words(parse_govern_by(s)),
+            _ => words(parse_cgroup_mode(s)),
         }
     }
 
