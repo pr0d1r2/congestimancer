@@ -524,6 +524,7 @@ Notes:
 | --- | --- |
 | (default) | `exec` the command; exit code and signals pass through |
 | `--govern` | keep watching after the start: stop the command (SIGSTOP to its process group) when gates fail, continue it (SIGCONT) when they pass again |
+| `--govern-by MODE` | with `--govern` or `--run-timeout`: `group` (default) signals the command's process group; `cgroup` runs it in a cgroup v2 cgmr makes below the delegated one it runs in (a systemd unit with `Delegate=yes`), pauses it with `cgroup.freeze` and kills it with `cgroup.kill`, so children that left the process group are held too; exits 69 when there is no writable delegated cgroup |
 | `--govern-keep N` | with `--govern` and `--slot-key`: governed jobs of one key take turns (see below); no job stops if that would leave fewer than N running [default: 1] |
 | `--run-timeout D` | kill the command's whole process group once it has run D, counted from the launch and without the time `--govern` kept it stopped; cgmr exits 125 (alone it spawns the command and stays the parent, like `--govern`) |
 | `--run-timeout-code N` | with `--run-timeout`: exit N (0-255) on overrun instead of 125 |

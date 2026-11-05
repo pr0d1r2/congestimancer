@@ -181,6 +181,7 @@ const CASES: &[Case] = &[
         &["--govern", "--govern-keep", "2", "--slot-key", "parity"],
         Run,
     ),
+    ("govern-by", &["--govern", "--govern-by", "group"], Run),
     ("run-timeout", &["--run-timeout", "1s"], Run),
     (
         "run-timeout-code",

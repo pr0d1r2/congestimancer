@@ -152,6 +152,9 @@ mod runtime;
 #[path = "cli/parity.rs"]
 mod parity;
 
+#[path = "cli/cgroup.rs"]
+mod cgroup;
+
 /// A tree `cgmr debug capture` took on a real Linux host (tests:V6).
 #[cfg(target_os = "linux")]
 const CAPTURED: &str = concat!(
