@@ -76,10 +76,31 @@ fn probe() -> io::Result<()> {
         Some("missing") => plain(&missing, &[]),
         Some("term") => term()?,
         Some("slot") => slot()?,
-        Some("cgroup-files") => cgroup_files()?,
-        _ => 99,
+        other => cgroup_case(other)?,
     };
     std::process::exit(i32::from(code))
+}
+
+/// The exit code of the cgroup `case` [`probe`] runs; 99 for no case.
+fn cgroup_case(case: Option<&str>) -> io::Result<u8> {
+    match case {
+        Some("cgroup-files") => cgroup_files(),
+        Some("cgroup-refused") => cgroup_refused(),
+        _ => Ok(99),
+    }
+}
+
+/// The signal `spawned` died of within two seconds; `None` when it did
+/// not die of one by then.
+fn died_of(spawned: &mut Spawned) -> io::Result<Option<i32>> {
+    let end = Instant::now().checked_add(Duration::from_secs(2));
+    while end.is_some_and(|end| Instant::now() < end) {
+        if let Some(status) = spawned.try_wait()? {
+            return Ok(status.signal());
+        }
+        spawned.wait(INTERVAL)?;
+    }
+    Ok(None)
 }
 
 #[test]
@@ -232,6 +253,30 @@ fn cgroup_files() -> io::Result<u8> {
 #[test]
 fn a_cgroup_job_is_frozen_thawed_and_killed_by_its_files() -> io::Result<()> {
     let (code, log) = in_child("cgroup-files")?;
+    assert_eq!(code, Some(0), "{log}");
+    Ok(())
+}
+
+/// 0 when a cgroup that refuses the `cgroup.kill` write still sees its
+/// command killed, through its process group, and the refusal reported.
+fn cgroup_refused() -> io::Result<u8> {
+    let dir = fake_cgroup("refused")?;
+    let mut spawned = in_fake_cgroup(&dir)?;
+    std::fs::remove_file(dir.join("cgroup.kill"))?;
+    std::fs::create_dir(dir.join("cgroup.kill"))?;
+    let reported = spawned.signal(GroupSignal::Kill).is_err();
+    let killed = died_of(&mut spawned)? == Some(libc::SIGKILL);
+    if !killed {
+        let _ = spawned.child.kill();
+        let _ = spawned.child.wait();
+    }
+    eprintln!("reported {reported} killed {killed}");
+    Ok(u8::from(!(reported && killed)))
+}
+
+#[test]
+fn a_refused_cgroup_kill_still_kills_the_command() -> io::Result<()> {
+    let (code, log) = in_child("cgroup-refused")?;
     assert_eq!(code, Some(0), "{log}");
     Ok(())
 }
