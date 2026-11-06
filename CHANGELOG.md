@@ -14,9 +14,9 @@ is a development series, not for production.
   below the delegated cgroup it runs in (a systemd unit with `Delegate=yes`),
   starts the command inside it, pauses it with `cgroup.freeze` and kills it
   with `cgroup.kill`, so a child that left the process group is paused too.
-  Without a writable delegated cgroup it exits 69, as it does when the new
-  cgroup has no writable `cgroup.freeze` or `cgroup.kill` (a kernel before
-  5.14). `group` stays the default.
+  Without a writable delegated cgroup, or when a cgroup made there has no
+  writable `cgroup.freeze` or `cgroup.kill` (a kernel before 5.14), it exits
+  69 before it waits. `group` stays the default.
   Also `CGMR_GOVERN_BY` and a profile line. Library:
   `Governing::with_by(GovernBy::Cgroup(parent))`.
 

@@ -31,8 +31,8 @@ pub struct CgroupJob {
 }
 
 /// The cgroup `cgmr` runs in, when it may create a child there: the
-/// directory below the cgroup2 mount that `/proc/self/cgroup` names, with
-/// a `cgroup.procs` it can write.
+/// directory below the cgroup2 mount that `/proc/self/cgroup` names, in
+/// which a trial child gets the files a [`CgroupJob`] writes.
 ///
 /// # Errors
 ///
@@ -43,9 +43,19 @@ pub fn delegated_cgroup() -> io::Result<PathBuf> {
     delegated(own_cgroup_dir(Path::new(MOUNT), &text)?)
 }
 
-/// `dir`, when `cgmr` may make a cgroup below it.
+/// `dir`, when `cgmr` may make a cgroup below it that it could freeze
+/// and kill: a trial `cgmr-<pid>` is made and removed again, so a parent
+/// it cannot use is refused before the wait, not after (src/launch:V12).
 fn delegated(dir: PathBuf) -> io::Result<PathBuf> {
-    open_procs(&dir)?;
+    match CgroupJob::create(&dir, std::process::id()) {
+        Ok(trial) => drop(trial),
+        Err(err) if err.kind() == io::ErrorKind::Unsupported => {
+            return Err(err);
+        }
+        Err(err) => {
+            return Err(unsupported(&format!("{}: {err}", dir.display())));
+        }
+    }
     Ok(dir)
 }
 
