@@ -4,7 +4,7 @@ use std::os::unix::process::CommandExt as _;
 use std::path::PathBuf;
 use std::process::Command;
 
-use super::{CgroupJob, GroupSignal, own_cgroup_dir};
+use super::{CgroupJob, GroupSignal, delegated, own_cgroup_dir};
 
 /// A directory that looks like a cgroup: the files the job writes.
 fn fake(test: &str) -> io::Result<PathBuf> {
@@ -60,6 +60,20 @@ fn at_wants_writable_freeze_and_kill_files() -> io::Result<()> {
         fs::remove_dir_all(&dir)?;
     }
     Ok(())
+}
+
+#[test]
+fn delegated_wants_a_child_it_could_freeze_and_kill() -> io::Result<()> {
+    // `cgroup.procs` is writable, but the `cgmr-<pid>` made below has no
+    // `cgroup.freeze` or `cgroup.kill` (as on a kernel before 5.14): it is
+    // refused now, before the wait, not once the command is due to start
+    // (src/launch:V12).
+    let parent = fake("delegated")?;
+    let err = delegated(parent.clone()).err();
+    assert_eq!(err.map(|e| e.kind()), Some(io::ErrorKind::Unsupported));
+    let trial = parent.join(format!("cgmr-{}", std::process::id()));
+    assert!(!trial.exists());
+    fs::remove_dir_all(&parent)
 }
 
 #[test]

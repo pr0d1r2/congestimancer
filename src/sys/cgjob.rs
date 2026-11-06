@@ -40,7 +40,11 @@ pub struct CgroupJob {
 pub fn delegated_cgroup() -> io::Result<PathBuf> {
     let text = fs::read_to_string(PROC_CGROUP)
         .map_err(|err| unsupported(&format!("{PROC_CGROUP}: {err}")))?;
-    let dir = own_cgroup_dir(Path::new(MOUNT), &text)?;
+    delegated(own_cgroup_dir(Path::new(MOUNT), &text)?)
+}
+
+/// `dir`, when `cgmr` may make a cgroup below it.
+fn delegated(dir: PathBuf) -> io::Result<PathBuf> {
     open_procs(&dir)?;
     Ok(dir)
 }
