@@ -16,7 +16,9 @@ is a development series, not for production.
   with `cgroup.kill`, so a child that left the process group is paused too.
   Without a writable delegated cgroup, or when a cgroup made there has no
   writable `cgroup.freeze` or `cgroup.kill` (a kernel before 5.14), it exits
-  69 before it waits. `group` stays the default.
+  69 before it waits. `group` stays the default. If the `cgroup.kill` write
+  is still refused when `--run-timeout` runs out, cgmr kills the command's
+  process group instead, so the timeout still ends the command.
   Also `CGMR_GOVERN_BY` and a profile line. Library:
   `Governing::with_by(GovernBy::Cgroup(parent))`.
 

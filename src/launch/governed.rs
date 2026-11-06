@@ -235,7 +235,19 @@ impl Spawned {
 impl Group for Spawned {
     fn signal(&mut self, sig: GroupSignal) -> io::Result<()> {
         match &self.cgroup {
-            Some(job) => job.signal(sig),
+            // A refused `cgroup.kill` must not leave the run-timeout
+            // waiting on a command nothing ends: its group is killed.
+            Some(job) => job.signal(sig).map_err(|err| {
+                if sig != GroupSignal::Kill {
+                    return err;
+                }
+                match signal_group(self.child.id(), sig) {
+                    Ok(()) => io::Error::other(format!(
+                        "{err}; killed its process group instead"
+                    )),
+                    Err(_) => err,
+                }
+            }),
             None => signal_group(self.child.id(), sig),
         }
     }
