@@ -19,6 +19,7 @@ is a development series, not for production.
   69 before it waits. `group` stays the default. If the `cgroup.kill` write
   is still refused when `--run-timeout` runs out, cgmr kills the command's
   process group instead, so the timeout still ends the command.
+  A delegated cgroup bind-mounted at `/sys/fs/cgroup` is found too.
   Also `CGMR_GOVERN_BY` and a profile line. Library:
   `Governing::with_by(GovernBy::Cgroup(parent))`.
 

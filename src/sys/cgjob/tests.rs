@@ -21,20 +21,58 @@ fn read(dir: &std::path::Path, file: &str) -> io::Result<String> {
     fs::read_to_string(dir.join(file))
 }
 
+/// A `/proc/self/mountinfo` with cgroup2 mounted at `/sys/fs/cgroup`
+/// from `root`.
+fn mountinfo(root: &str) -> String {
+    format!(
+        "22 1 0:21 / /proc rw - proc proc rw\n\
+         35 22 0:32 {root} /sys/fs/cgroup rw shared:9 - cgroup2 cgroup2 rw\n"
+    )
+}
+
 #[test]
 fn own_dir_is_the_unified_line_below_the_mount() -> io::Result<()> {
     let mount = PathBuf::from("/sys/fs/cgroup");
-    let dir = own_cgroup_dir(&mount, "0::/user.slice/job.service\n")?;
+    let info = mountinfo("/");
+    let dir = own_cgroup_dir(&mount, &info, "0::/user.slice/job.service\n")?;
     assert_eq!(dir, mount.join("user.slice/job.service"));
-    let root = own_cgroup_dir(&mount, "0::/\n")?;
+    let root = own_cgroup_dir(&mount, &info, "0::/\n")?;
     assert_eq!(root, mount);
+    let unknown = own_cgroup_dir(&mount, "", "0::/user.slice/x\n")?;
+    assert_eq!(unknown, mount.join("user.slice/x"));
     Ok(())
+}
+
+#[test]
+fn own_dir_is_relative_to_a_bind_mounted_subtree() -> io::Result<()> {
+    // A delegated cgroup bind-mounted at the mount point, with no cgroup
+    // namespace of its own: the membership path still names it from the
+    // top, so it must not be joined below the mount twice.
+    let mount = PathBuf::from("/sys/fs/cgroup");
+    let info = mountinfo("/user.slice/job.service");
+    let top = own_cgroup_dir(&mount, &info, "0::/user.slice/job.service\n")?;
+    assert_eq!(top, mount);
+    let below =
+        own_cgroup_dir(&mount, &info, "0::/user.slice/job.service/w\n")?;
+    assert_eq!(below, mount.join("w"));
+    Ok(())
+}
+
+#[test]
+fn own_dir_is_unsupported_outside_the_mounted_subtree() {
+    let mount = PathBuf::from("/sys/fs/cgroup");
+    let info = mountinfo("/user.slice/job.service");
+    for cgroup in ["0::/system.slice/x\n", "0::/user.slice/job.serviceX\n"] {
+        let err = own_cgroup_dir(&mount, &info, cgroup).err();
+        assert_eq!(err.map(|e| e.kind()), Some(io::ErrorKind::Unsupported));
+    }
 }
 
 #[test]
 fn own_dir_is_unsupported_without_a_unified_line() {
     let mount = PathBuf::from("/sys/fs/cgroup");
-    let err = own_cgroup_dir(&mount, "1:name=systemd:/x\n").err();
+    let info = mountinfo("/");
+    let err = own_cgroup_dir(&mount, &info, "1:name=systemd:/x\n").err();
     assert_eq!(err.map(|e| e.kind()), Some(io::ErrorKind::Unsupported));
 }
 
