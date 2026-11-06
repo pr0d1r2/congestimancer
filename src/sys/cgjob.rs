@@ -18,6 +18,9 @@ const MOUNT: &str = "/sys/fs/cgroup";
 /// The kernel's account of this process's cgroups.
 const PROC_CGROUP: &str = "/proc/self/cgroup";
 
+/// This process's mounts, one per line.
+const MOUNTINFO: &str = "/proc/self/mountinfo";
+
 /// A cgroup the command lives in; one `create`d here is removed on drop
 /// when it is empty.
 #[derive(Debug)]
@@ -40,7 +43,9 @@ pub struct CgroupJob {
 pub fn delegated_cgroup() -> io::Result<PathBuf> {
     let text = fs::read_to_string(PROC_CGROUP)
         .map_err(|err| unsupported(&format!("{PROC_CGROUP}: {err}")))?;
-    delegated(own_cgroup_dir(Path::new(MOUNT), &text)?)
+    // Unreadable, it is taken to mount the whole hierarchy.
+    let mounts = fs::read_to_string(MOUNTINFO).unwrap_or_default();
+    delegated(own_cgroup_dir(Path::new(MOUNT), &mounts, &text)?)
 }
 
 /// `dir`, when `cgmr` may make a cgroup below it that it could freeze
@@ -60,17 +65,45 @@ fn delegated(dir: PathBuf) -> io::Result<PathBuf> {
 }
 
 /// The cgroup directory `proc_cgroup` (the text of `/proc/self/cgroup`)
-/// names below `mount`.
+/// names below `mount`. `mountinfo` (the text of `/proc/self/mountinfo`)
+/// gives the cgroup the mount shows at its top: `/`, the whole hierarchy,
+/// when no cgroup2 line names `mount`.
 ///
 /// # Errors
 ///
-/// [`io::ErrorKind::Unsupported`] when no line names a cgroup v2.
-pub fn own_cgroup_dir(mount: &Path, proc_cgroup: &str) -> io::Result<PathBuf> {
+/// [`io::ErrorKind::Unsupported`] when no line names a cgroup v2, or it
+/// is not below the mount's top.
+pub fn own_cgroup_dir(
+    mount: &Path,
+    mountinfo: &str,
+    proc_cgroup: &str,
+) -> io::Result<PathBuf> {
     let unified = proc_cgroup
         .lines()
         .find_map(|line| line.strip_prefix("0::"))
-        .ok_or_else(|| unsupported("this process is in no cgroup v2"))?;
-    Ok(mount.join(unified.trim().trim_start_matches('/')))
+        .ok_or_else(|| unsupported("this process is in no cgroup v2"))?
+        .trim();
+    let top = mount_top(mount, mountinfo).unwrap_or("/");
+    let below = Path::new(unified).strip_prefix(top).map_err(|_| {
+        unsupported(&format!(
+            "cgroup {unified} is not below {top}, the top of {}",
+            mount.display()
+        ))
+    })?;
+    Ok(mount.join(below))
+}
+
+/// The root column of the last cgroup2 line of `mountinfo` mounted at
+/// `mount`: the cgroup a bind mount of a subtree shows at its top.
+fn mount_top<'a>(mount: &Path, mountinfo: &'a str) -> Option<&'a str> {
+    mountinfo.lines().rev().find_map(|line| {
+        let mut words = line.split_whitespace();
+        let root = words.nth(3)?;
+        let point = words.next()?;
+        let mut tail = words.skip_while(|w| *w != "-").skip(1);
+        let cgroup2 = tail.next() == Some("cgroup2");
+        (cgroup2 && Path::new(point) == mount).then_some(root)
+    })
 }
 
 /// `dir`'s `cgroup.procs`, open for writing.
