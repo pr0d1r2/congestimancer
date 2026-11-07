@@ -4,7 +4,17 @@
 //! delegate one, the command runs inside its `cgmr-<pid>` and its code
 //! comes back.
 
+use std::sync::OnceLock;
+
 use super::{NOWHERE, Outcome, cgmr};
+
+/// Whether this machine delegates a cgroup to the tests, probed once.
+/// The probe's trial cgroup is named for this process, `cgmr-<pid>`, so
+/// two tests probing at once collide on it and one reads "none".
+fn delegated() -> bool {
+    static DELEGATED: OnceLock<bool> = OnceLock::new();
+    *DELEGATED.get_or_init(|| congestimancer::delegated_cgroup().is_ok())
+}
 
 /// `cgmr SWITCHES -- sh -c SCRIPT`, with a lock dir of its own.
 fn with(
@@ -48,10 +58,8 @@ fn cgroup_mode_runs_it_where_delegated_else_refuses_with_69() -> Outcome {
     let out = by("cgroup", inside)?;
     let err = String::from_utf8_lossy(&out.stderr);
     // The binary runs in this test's cgroup, so the library's probe says
-    // which outcome is due: a refusal where one is delegated fails. It is
-    // sampled after the run, so it is taken no earlier than the binary's
-    // own check.
-    let delegated = congestimancer::delegated_cgroup().is_ok();
+    // which outcome is due: a refusal where one is delegated fails.
+    let delegated = delegated();
     let want = if delegated { 5 } else { 69 };
     assert_eq!(out.status.code(), Some(want), "{err}");
     assert!(delegated || err.contains("cgroup"), "{err}");
@@ -72,7 +80,7 @@ fn cgroup_mode_without_govern_or_run_timeout_execs_as_before() -> Outcome {
 fn a_missing_delegated_cgroup_is_refused_before_the_wait() -> Outcome {
     // Gates that never pass end the wait with 124; a cgroup that cannot
     // be had must be refused first, with 69, not after the wait.
-    let delegated = congestimancer::delegated_cgroup().is_ok();
+    let delegated = delegated();
     let gated = ["--govern", "--govern-by", "cgroup", "--timeout", "1s"];
     let never = ["--when-file", NOWHERE, "--interval", "10ms"];
     let out = with(&[&gated[..], &never[..]].concat(), "exit 5")?;
