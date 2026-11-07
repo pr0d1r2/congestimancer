@@ -43,13 +43,15 @@ fn group_mode_runs_the_command_as_before() -> Outcome {
 
 #[test]
 fn cgroup_mode_runs_it_where_delegated_else_refuses_with_69() -> Outcome {
-    // The binary runs in this test's cgroup, so the library's probe says
-    // which outcome is due: a refusal where one is delegated fails.
-    let delegated = congestimancer::delegated_cgroup().is_ok();
     // 5 only from inside a `cgmr-<pid>`, not from the cgroup cgmr is in.
     let inside = "grep -q '/cgmr-[0-9]*$' /proc/self/cgroup && exit 5; exit 6";
     let out = by("cgroup", inside)?;
     let err = String::from_utf8_lossy(&out.stderr);
+    // The binary runs in this test's cgroup, so the library's probe says
+    // which outcome is due: a refusal where one is delegated fails. It is
+    // sampled after the run, so it is taken no earlier than the binary's
+    // own check.
+    let delegated = congestimancer::delegated_cgroup().is_ok();
     let want = if delegated { 5 } else { 69 };
     assert_eq!(out.status.code(), Some(want), "{err}");
     assert!(delegated || err.contains("cgroup"), "{err}");
