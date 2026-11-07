@@ -119,6 +119,13 @@ tempfile = "3.27.0"
 default = ["nvml"]
 nvml = []
 
+# The release binary is what bench.sh measures (src/wait:V10): LTO, one
+# codegen unit and stripped symbols make it smaller and cheaper to start.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+strip = "symbols"
+
 [lints.clippy]
 unwrap_used = "deny"
 expect_used = "deny"
