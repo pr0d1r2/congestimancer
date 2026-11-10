@@ -200,7 +200,7 @@ spawning `cgmr`.
 
 ## Status
 
-`0.1.0-rc.1` is the first release candidate. 0.1 is a development series,
+`0.1.0` is the first release. 0.1 is a development series,
 not for production; the command line and the JSON schema (`schema_version`
 
 1) may still change before the stable 0.2.

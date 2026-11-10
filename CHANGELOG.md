@@ -9,6 +9,18 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-10
+
+0.1.0 final: the rc.1 command line plus new switches. `--govern-by cgroup`
+pauses and kills a command through a delegated cgroup v2, `--run-timeout`
+bounds a run, `--govern-keep` makes governed jobs of a slot key take turns
+and `--alone-passes` lets the first job of a key skip the gates. One
+behaviour change: `--govern --slot-key K` now keeps one job running by
+default. The library API only gains items over rc.1. 0.1 is still a
+development series, not for production.
+
+- Smaller release binary (fat LTO, one codegen unit, stripped symbols:
+  about 2.7MB down to 1.8MB), so `cgmr` pages in less at start.
 - `--govern-by cgroup` (new switch): `--govern` and `--run-timeout` act on a
   cgroup v2 instead of the command's process group. cgmr makes `cgmr-<pid>`
   below the delegated cgroup it runs in (a systemd unit with `Delegate=yes`),
