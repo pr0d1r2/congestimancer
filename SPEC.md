@@ -65,3 +65,4 @@ B1|2026-10-14|§C listed `unreachable_pub` as clippy lint; it is rustc, so `[lin
 B2|2026-10-31|`.coverage` claimed 97.2%; macOS measures 97.1%|claim 97.1%
 B3|2026-11-02|`.coverage` claimed 97.1%; macOS measures 97.0% after `--run-timeout`|claim 97.0%
 B4|2026-11-05|`.coverage` claimed 97.0%; macOS measures 96.9% after `--govern-by cgroup` (Linux-only paths)|claim 96.9%
+B5|2026-11-15|loop ⊥ merged 24h: #54 fix-up & `src/gpu:T5` trips added ⊥ commits ∵ on trip node ∀ `cargo` exits 2: `/.cargo/config.toml` wrapper `sccache-rustc` dies `path must be shorter than SUN_LEN` under nested `nix develop` TMPDIR (89 chars). `main` clean (`notices --check` = 0 w/ `TMPDIR=/tmp`); hk `notices` calls exit 2 "drifted"|⊥ here: fleet `sccache-rustc` ! fall back to rustc, or runner ! short TMPDIR
