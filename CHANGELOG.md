@@ -9,6 +9,11 @@ is a development series, not for production.
 
 ## [Unreleased]
 
+### Security
+
+- rustix 1.1.5 to 1.1.6 for RUSTSEC-2026-0486 (its xattr functions marked
+  unwritten bytes as initialized when given a zero-length buffer).
+
 ## [0.1.0] - 2026-11-10
 
 0.1.0 final: the rc.1 command line plus new switches. `--govern-by cgroup`

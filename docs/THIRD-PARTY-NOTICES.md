@@ -55,7 +55,7 @@ the four supported targets:
 | proc-macro2 | 1.0.107 | MIT OR Apache-2.0 |
 | quote | 1.0.47 | MIT OR Apache-2.0 |
 | roff | 1.1.1 | MIT OR Apache-2.0 |
-| rustix | 1.1.5 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT |
+| rustix | 1.1.6 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT |
 | strsim | 0.11.1 | MIT |
 | syn | 3.0.9 | MIT OR Apache-2.0 |
 | sysinfo | 0.39.6 | MIT |
