@@ -597,7 +597,7 @@ accident.
 | `--cool` | yes | yes |
 | `--temp` | yes | no |
 | `--on-ac`, `--battery`, `--no-low-power` | yes | yes |
-| `--idle` | desktop only | yes |
+| `--idle` | local session | yes |
 | `--between` | yes | yes |
 | `--gpu`, `--gpu-mem` | NVIDIA, AMD | yes |
 | `--max-procs`, `--max-user-procs` | yes | yes |
