@@ -405,8 +405,9 @@ Sources:
 | `--between HH:MM-HH:MM` | local time is in the window (may wrap midnight) |
 
 Sources for `--idle`: `HIDIdleTime` from `IOHIDSystem` (macOS); logind's
-idle hint, or a tty's last input, for the least idle local user session
-(Linux, unsupported on headless hosts).
+idle hint, or for a tty the device's access time (an approximation: input
+buffered in canonical mode can be newer), for the least idle local user
+session (Linux, unsupported on headless hosts).
 
 ## GPU
 
