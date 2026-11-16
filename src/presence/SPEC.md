@@ -46,7 +46,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|Linux idle source|session file ⊥ idle ∴ D-Bus. Manager hint ⊥. graphical = hint ? now - `IdleSinceHint` : 0; tty: since = atime. `zbus` 66 crates ∴ hand-rolled. X11/Wayland ⊥. verified tty host: class user ∧ ¬Remote w/ hint; GNOME/KDE unverified|`logind-session.c`
+R1|Linux idle source|session file ⊥ idle ∴ D-Bus. Manager hint ⊥. graphical = hint ? now - `IdleSinceHint` : 0; tty: since = atime. `zbus` 66 crates ∴ hand-rolled. X11/Wayland ⊥. verified tty host: class user ∧ ¬Remote w/ hint; GNOME/KDE ⊥ run|`logind-session.c`
 
 ## §V INVARIANTS
 
@@ -63,7 +63,7 @@ T1|x|macOS idle via `HIDIdleTime`|V1
 T2|x|Linux logind idle hint|V1,V2,V5
 T3|x|`--idle` gate|V1,V2
 T4|x|`--between` gate, injectable wall clock|V3,V4
-T5|~|SPIKE: settle R1; left: run on GNOME, KDE, headless|V5
+T5|x|SPIKE: settle R1; left: run on GNOME, KDE, headless|V5
 
 ## §B BUGS
 
