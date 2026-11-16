@@ -46,7 +46,7 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|Linux idle source|session file ⊥ idle ∴ D-Bus. Manager hint ⊥: idle headless, busy w/ ssh. graphical = hint ? now - `IdleSinceHint` : 0; tty: since = atime. `zbus` 66 crates, syn dup ∴ hand-rolled. X11, Wayland ⊥. unverified on host|`logind-session.c`
+R1|Linux idle source|session file ⊥ idle ∴ D-Bus. Manager hint ⊥: idle headless, busy w/ ssh. graphical = hint ? now - `IdleSinceHint` : 0; tty: since = atime. `zbus` 66 crates, syn dup ∴ hand-rolled. X11, Wayland ⊥. verified on NixOS tty host: tty session class user ∧ ¬Remote w/ IdleSinceHint, class manager excluded; GNOME, KDE unverified|`logind-session.c`
 
 ## §V INVARIANTS
 
