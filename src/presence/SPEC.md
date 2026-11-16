@@ -41,12 +41,12 @@ sib|src/cli|clap verbs, flags, env defaults, exit codes, completions, man page
 ## §I INTERFACES
 
 - switches: `--idle D` · `--between HH:MM-HH:MM`.
-- sources: macOS IOKit `HIDIdleTime` · Linux logind session `IdleSinceHint` (R1).
+- sources: macOS `HIDIdleTime` · Linux logind `IdleSinceHint`.
 
 ## §R RESEARCH
 
 id|topic|finding|src
-R1|Linux idle source|session file ⊥ idle ∴ D-Bus. Manager hint ⊥: idle headless, busy w/ ssh. graphical = hint ? now - `IdleSinceHint` : 0; tty: since = atime. `zbus` 66 crates, syn dup ∴ hand-rolled. X11, Wayland ⊥. verified on NixOS tty host: tty session class user ∧ ¬Remote w/ IdleSinceHint, class manager excluded; GNOME, KDE unverified|`logind-session.c`
+R1|Linux idle source|session file ⊥ idle ∴ D-Bus. Manager hint ⊥. graphical = hint ? now - `IdleSinceHint` : 0; tty: since = atime. `zbus` 66 crates ∴ hand-rolled. X11/Wayland ⊥. verified tty host: class user ∧ ¬Remote w/ hint; GNOME/KDE unverified|`logind-session.c`
 
 ## §V INVARIANTS
 
