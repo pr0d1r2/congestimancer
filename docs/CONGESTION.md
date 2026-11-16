@@ -404,9 +404,9 @@ Sources:
 | `--idle D` | no keyboard or mouse input for at least D |
 | `--between HH:MM-HH:MM` | local time is in the window (may wrap midnight) |
 
-Sources for `--idle`: `HIDIdleTime` from `IOHIDSystem` (macOS); the
-session's idle hint from logind, or X11/Wayland idle where available (Linux,
-unsupported on headless hosts).
+Sources for `--idle`: `HIDIdleTime` from `IOHIDSystem` (macOS); logind's
+idle hint, or a tty's last input, for the least idle local user session
+(Linux, unsupported on headless hosts).
 
 ## GPU
 
