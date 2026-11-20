@@ -69,13 +69,21 @@ over() {
 best=
 for _ in $(seq "$runs"); do
   t0=$(now_us)
-  "$cgmr" check --load 1 >/dev/null 2>&1 || true
+  code=0
+  "$cgmr" check --load 1 >/dev/null 2>&1 || code=$?
   t=$(($(now_us) - t0))
+  # 0 = all gates pass, 1 = a gate fails: both completed a check. Any other
+  # status (usage 64, unsupported 69, a crash) is no sample.
+  case $code in 0 | 1) ;; *) continue ;; esac
   if [ -z "$best" ] || [ "$t" -lt "$best" ]; then best=$t; fi
   [ "$best" -le "$start_budget_us" ] && break
 done
-echo "bench: cold start ${best}us (budget ${start_budget_us}us)"
-[ "$best" -le "$start_budget_us" ] || over "cold start of cgmr check --load 1 took ${best}us, over ${start_budget_us}us"
+if [ -z "$best" ]; then
+  over "cgmr check --load 1 completed no check in ${runs} runs"
+else
+  echo "bench: cold start ${best}us (budget ${start_budget_us}us)"
+  [ "$best" -le "$start_budget_us" ] || over "cold start of cgmr check --load 1 took ${best}us, over ${start_budget_us}us"
+fi
 
 # Round CPU and RSS, from one waiting process.
 children_cpu_us >"$scratch/cpu0"
